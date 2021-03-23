@@ -60,7 +60,7 @@ class Rules {
         final result = rule.apply(delta, index,
             len: len, data: data, attribute: attribute);
         if (result != null) {
-          print("Rule $rule applied"); //made to here
+          print("Rule $rule applied");
           return result..trim();
         }
       } catch (e) {

@@ -22,8 +22,7 @@ import 'package:flutter_quill/widgets/responsive_widget.dart';
 import 'package:flutter_quill/widgets/text_selection.dart';
 import 'package:string_validator/string_validator.dart';
 import 'package:universal_html/html.dart' as html;
-//import 'package:universal_ui/universal_ui.dart';
-import 'package:flutter_quill/universal_ui/universal_ui.dart';
+import 'package:flutter_quill/utils/universal_ui/universal_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'box.dart';
@@ -259,25 +258,25 @@ class _QuillEditorState extends State<QuillEditor>
     return _selectionGestureDetectorBuilder!.build(
       HitTestBehavior.translucent,
       RawEditor(
-          _editorKey,
-          widget.controller,
-          widget.focusNode,
-          widget.scrollController,
-          widget.scrollable,
-          widget.padding,
-          widget.readOnly,
-          widget.placeholder!,
-          widget.onLaunchUrl,
-          ToolbarOptions(
+          key: _editorKey,
+          controller: widget.controller,
+          focusNode: widget.focusNode,
+          scrollController: widget.scrollController,
+          scrollable: widget.scrollable,
+          padding: widget.padding,
+          readOnly: widget.readOnly,
+          placeholder: widget.placeholder!,
+          onLaunchUrl: widget.onLaunchUrl,
+          toolbarOptions: ToolbarOptions(
             copy: widget.enableInteractiveSelection ?? true,
             cut: widget.enableInteractiveSelection ?? true,
             paste: widget.enableInteractiveSelection ?? true,
             selectAll: widget.enableInteractiveSelection ?? true,
           ),
-          theme.platform == TargetPlatform.iOS ||
+          showSelectionHandles: theme.platform == TargetPlatform.iOS ||
               theme.platform == TargetPlatform.android,
-          widget.showCursor,
-          CursorStyle(
+          showCursor: widget.showCursor,
+          cursorStyle: CursorStyle(
             color: cursorColor,
             backgroundColor: Colors.grey,
             width: 2.0,
@@ -286,18 +285,18 @@ class _QuillEditorState extends State<QuillEditor>
             paintAboveText: paintCursorAboveText,
             opacityAnimates: cursorOpacityAnimates,
           ),
-          widget.textCapitalization,
-          widget.maxHeight ?? double.maxFinite,
-          widget.minHeight ?? 0.0,
-          widget.customStyles,
-          widget.expands,
-          widget.autoFocus,
-          selectionColor,
-          textSelectionControls,
-          widget.keyboardAppearance,
-          widget.enableInteractiveSelection!,
-          widget.scrollPhysics,
-          widget.embedBuilder!),
+          textCapitalization: widget.textCapitalization,
+          maxHeight: widget.maxHeight ?? double.maxFinite,
+          minHeight: widget.minHeight ?? 0.0,
+          customStyles: widget.customStyles,
+          expands: widget.expands,
+          autoFocus: widget.autoFocus,
+          selectionColor: selectionColor,
+          selectionCtrls: textSelectionControls,
+          keyboardAppearance: widget.keyboardAppearance,
+          enableInteractiveSelection: widget.enableInteractiveSelection!,
+          scrollPhysics: widget.scrollPhysics,
+          embedBuilder: widget.embedBuilder!),
     );
   }
 
@@ -529,9 +528,9 @@ class RenderEditor extends RenderEditableContainerBox
     implements RenderAbstractEditor {
   Document document;
   TextSelection selection;
-  bool _hasFocus = false;
-  LayerLink _startHandleLayerLink;
-  LayerLink _endHandleLayerLink;
+  bool hasFocus = false;
+  LayerLink startHandleLayerLink;
+  LayerLink endHandleLayerLink;
   TextSelectionChangedHandler? onSelectionChanged;
   final ValueNotifier<bool> _selectionStartInViewport =
       ValueNotifier<bool>(true);
@@ -542,18 +541,18 @@ class RenderEditor extends RenderEditableContainerBox
   ValueListenable<bool> get selectionEndInViewport => _selectionEndInViewport;
   final ValueNotifier<bool> _selectionEndInViewport = ValueNotifier<bool>(true);
 
-  RenderEditor(
-      List<RenderEditableBox>? children,
-      TextDirection textDirection,
-      EdgeInsetsGeometry padding,
-      this.document,
-      this.selection,
-      this._hasFocus,
-      this.onSelectionChanged,
-      this._startHandleLayerLink,
-      this._endHandleLayerLink,
-      EdgeInsets floatingCursorAddedMargin)
-      : super(
+  RenderEditor({
+    List<RenderEditableBox>? children,
+    required TextDirection textDirection,
+    required EdgeInsetsGeometry padding,
+    required this.document,
+    required this.selection,
+    required this.hasFocus,
+    this.onSelectionChanged,
+    required this.startHandleLayerLink,
+    required this.endHandleLayerLink,
+    required EdgeInsets floatingCursorAddedMargin,
+  }) : super(
           children,
           document.root,
           textDirection,
@@ -569,10 +568,10 @@ class RenderEditor extends RenderEditableContainerBox
   }
 
   setHasFocus(bool h) {
-    if (_hasFocus == h) {
+    if (hasFocus == h) {
       return;
     }
-    _hasFocus = h;
+    hasFocus = h;
     markNeedsSemanticsUpdate();
   }
 
@@ -585,18 +584,18 @@ class RenderEditor extends RenderEditableContainerBox
   }
 
   setStartHandleLayerLink(LayerLink value) {
-    if (_startHandleLayerLink == value) {
+    if (startHandleLayerLink == value) {
       return;
     }
-    _startHandleLayerLink = value;
+    startHandleLayerLink = value;
     markNeedsPaint();
   }
 
   setEndHandleLayerLink(LayerLink value) {
-    if (_endHandleLayerLink == value) {
+    if (endHandleLayerLink == value) {
       return;
     }
-    _endHandleLayerLink = value;
+    endHandleLayerLink = value;
     markNeedsPaint();
   }
 
@@ -699,7 +698,7 @@ class RenderEditor extends RenderEditableContainerBox
   ) {
     bool focusingEmpty = nextSelection.baseOffset == 0 &&
         nextSelection.extentOffset == 0 &&
-        !_hasFocus;
+        !hasFocus;
     if (nextSelection == selection &&
         cause != SelectionChangedCause.keyboard &&
         !focusingEmpty) {
@@ -834,7 +833,7 @@ class RenderEditor extends RenderEditableContainerBox
       startPoint.dy.clamp(0.0, size.height),
     );
     context.pushLayer(
-      LeaderLayer(link: _startHandleLayerLink, offset: startPoint),
+      LeaderLayer(link: startHandleLayerLink, offset: startPoint),
       super.paint,
       Offset.zero,
     );
@@ -845,7 +844,7 @@ class RenderEditor extends RenderEditableContainerBox
         endPoint.dy.clamp(0.0, size.height),
       );
       context.pushLayer(
-        LeaderLayer(link: _endHandleLayerLink, offset: endPoint),
+        LeaderLayer(link: endHandleLayerLink, offset: endPoint),
         super.paint,
         Offset.zero,
       );

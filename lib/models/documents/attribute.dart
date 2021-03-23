@@ -12,7 +12,7 @@ class Attribute<T> {
   final AttributeScope? scope;
   final T? value;
 
-  Attribute(this.key, this.scope, this.value);
+  Attribute({this.key, this.scope, this.value});
 
   static final Map<String, Attribute> _registry = {
     Attribute.bold.key!: Attribute.bold,
@@ -170,7 +170,7 @@ class Attribute<T> {
   }
 
   static Attribute clone(Attribute origin, dynamic value) {
-    return Attribute(origin.key, origin.scope, value);
+    return Attribute(key: origin.key, scope: origin.scope, value: value);
   }
 
   @override
@@ -193,83 +193,102 @@ class Attribute<T> {
 }
 
 class BoldAttribute extends Attribute<bool> {
-  BoldAttribute() : super('bold', AttributeScope.INLINE, true);
+  BoldAttribute()
+      : super(key: 'bold', scope: AttributeScope.INLINE, value: true);
 }
 
 class ItalicAttribute extends Attribute<bool> {
-  ItalicAttribute() : super('italic', AttributeScope.INLINE, true);
+  ItalicAttribute()
+      : super(key: 'italic', scope: AttributeScope.INLINE, value: true);
 }
 
 class UnderlineAttribute extends Attribute<bool> {
-  UnderlineAttribute() : super('underline', AttributeScope.INLINE, true);
+  UnderlineAttribute()
+      : super(key: 'underline', scope: AttributeScope.INLINE, value: true);
 }
 
 class StrikeThroughAttribute extends Attribute<bool> {
-  StrikeThroughAttribute() : super('strike', AttributeScope.INLINE, true);
+  StrikeThroughAttribute()
+      : super(key: 'strike', scope: AttributeScope.INLINE, value: true);
 }
 
 class FontAttribute extends Attribute<String> {
-  FontAttribute(String? val) : super('font', AttributeScope.INLINE, val);
+  FontAttribute(String? val)
+      : super(key: 'font', scope: AttributeScope.INLINE, value: val);
 }
 
 class SizeAttribute extends Attribute<String> {
-  SizeAttribute(String? val) : super('size', AttributeScope.INLINE, val);
+  SizeAttribute(String? val)
+      : super(key: 'size', scope: AttributeScope.INLINE, value: val);
 }
 
 class LinkAttribute extends Attribute<String> {
-  LinkAttribute(String? val) : super('link', AttributeScope.INLINE, val);
+  LinkAttribute(String? val)
+      : super(key: 'link', scope: AttributeScope.INLINE, value: val);
 }
 
 class ColorAttribute extends Attribute<String> {
-  ColorAttribute(String? val) : super('color', AttributeScope.INLINE, val);
+  ColorAttribute(String? val)
+      : super(key: 'color', scope: AttributeScope.INLINE, value: val);
 }
 
 class BackgroundAttribute extends Attribute<String> {
   BackgroundAttribute(String? val)
-      : super('background', AttributeScope.INLINE, val);
+      : super(key: 'background', scope: AttributeScope.INLINE, value: val);
 }
 
 /// This is custom attribute for hint
 class PlaceholderAttribute extends Attribute<bool> {
-  PlaceholderAttribute() : super('placeholder', AttributeScope.INLINE, true);
+  PlaceholderAttribute()
+      : super(key: 'placeholder', scope: AttributeScope.INLINE, value: true);
 }
 
 class HeaderAttribute extends Attribute<int> {
-  HeaderAttribute({int? level}) : super('header', AttributeScope.BLOCK, level);
+  HeaderAttribute({int? level})
+      : super(key: 'header', scope: AttributeScope.BLOCK, value: level);
 }
 
 class IndentAttribute extends Attribute<int> {
-  IndentAttribute({int? level}) : super('indent', AttributeScope.BLOCK, level);
+  IndentAttribute({int? level})
+      : super(key: 'indent', scope: AttributeScope.BLOCK, value: level);
 }
 
 class AlignAttribute extends Attribute<String> {
-  AlignAttribute(String? val) : super('align', AttributeScope.BLOCK, val);
+  AlignAttribute(String? val)
+      : super(key: 'align', scope: AttributeScope.BLOCK, value: val);
 }
 
 class ListAttribute extends Attribute<String> {
-  ListAttribute(String? val) : super('list', AttributeScope.BLOCK, val);
+  ListAttribute(String? val)
+      : super(key: 'list', scope: AttributeScope.BLOCK, value: val);
 }
 
 class CodeBlockAttribute extends Attribute<bool> {
-  CodeBlockAttribute() : super('code-block', AttributeScope.BLOCK, true);
+  CodeBlockAttribute()
+      : super(key: 'code-block', scope: AttributeScope.BLOCK, value: true);
 }
 
 class BlockQuoteAttribute extends Attribute<bool> {
-  BlockQuoteAttribute() : super('blockquote', AttributeScope.BLOCK, true);
+  BlockQuoteAttribute()
+      : super(key: 'blockquote', scope: AttributeScope.BLOCK, value: true);
 }
 
 class WidthAttribute extends Attribute<String> {
-  WidthAttribute(String? val) : super('width', AttributeScope.IGNORE, val);
+  WidthAttribute(String? val)
+      : super(key: 'width', scope: AttributeScope.IGNORE, value: val);
 }
 
 class HeightAttribute extends Attribute<String> {
-  HeightAttribute(String? val) : super('height', AttributeScope.IGNORE, val);
+  HeightAttribute(String? val)
+      : super(key: 'height', scope: AttributeScope.IGNORE, value: val);
 }
 
 class StyleAttribute extends Attribute<String> {
-  StyleAttribute(String? val) : super('style', AttributeScope.IGNORE, val);
+  StyleAttribute(String? val)
+      : super(key: 'style', scope: AttributeScope.IGNORE, value: val);
 }
 
 class TokenAttribute extends Attribute<String> {
-  TokenAttribute(String? val) : super('token', AttributeScope.IGNORE, val);
+  TokenAttribute(String? val)
+      : super(key: 'token', scope: AttributeScope.IGNORE, value: val);
 }

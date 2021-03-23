@@ -205,18 +205,18 @@ class EditableTextLine extends RenderObjectWidget {
   final CursorCont cursorCont;
 
   EditableTextLine(
-      this.line,
+      {required this.line,
       this.leading,
       this.body,
-      this.indentWidth,
-      this.verticalSpacing,
-      this.textDirection,
-      this.textSelection,
-      this.color,
-      this.enableInteractiveSelection,
-      this.hasFocus,
-      this.devicePixelRatio,
-      this.cursorCont);
+      required this.indentWidth,
+      required this.verticalSpacing,
+      required this.textDirection,
+      required this.textSelection,
+      required this.color,
+      required this.enableInteractiveSelection,
+      required this.hasFocus,
+      required this.devicePixelRatio,
+      required this.cursorCont});
 
   @override
   RenderObjectElement createElement() {
@@ -226,15 +226,15 @@ class EditableTextLine extends RenderObjectWidget {
   @override
   RenderObject createRenderObject(BuildContext context) {
     return RenderEditableTextLine(
-        line,
-        textDirection,
-        textSelection,
-        enableInteractiveSelection,
-        hasFocus,
-        devicePixelRatio,
-        _getPadding(),
-        this.color,
-        cursorCont);
+        line: line,
+        textDirection: textDirection,
+        textSelection: textSelection,
+        enableInteractiveSelection: enableInteractiveSelection,
+        hasFocus: hasFocus,
+        devicePixelRatio: devicePixelRatio,
+        padding: _getPadding(),
+        color: this.color,
+        cursorCont: cursorCont);
   }
 
   @override
@@ -279,17 +279,17 @@ class RenderEditableTextLine extends RenderEditableBox {
   Rect? _caretPrototype;
   final Map<TextLineSlot, RenderBox> children = <TextLineSlot, RenderBox>{};
 
-  RenderEditableTextLine(
-      this.line,
-      this.textDirection,
-      this.textSelection,
-      this.enableInteractiveSelection,
-      this.hasFocus,
-      this.devicePixelRatio,
-      this.padding,
-      this.color,
-      this.cursorCont)
-      : assert(padding.isNonNegative);
+  RenderEditableTextLine({
+    required this.line,
+    this.textDirection,
+    this.textSelection,
+    this.enableInteractiveSelection,
+    required this.hasFocus,
+    required this.devicePixelRatio,
+    required this.padding,
+    required this.color,
+    required this.cursorCont,
+  }) : assert(padding.isNonNegative);
 
   Iterable<RenderBox> get _children sync* {
     if (_leading != null) {
@@ -713,11 +713,11 @@ class RenderEditableTextLine extends RenderEditableBox {
   }
 
   CursorPainter get _cursorPainter => CursorPainter(
-        _body!,
-        cursorCont.style,
-        _caretPrototype!,
-        cursorCont.cursorColor.value,
-        devicePixelRatio,
+        editable: _body!,
+        style: cursorCont.style,
+        prototype: _caretPrototype!,
+        color: cursorCont.cursorColor.value,
+        devicePixelRatio: devicePixelRatio,
       );
 
   @override

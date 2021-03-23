@@ -1,12 +1,10 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-//import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-//import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/documents/nodes/embed.dart';

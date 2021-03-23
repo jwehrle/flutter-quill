@@ -55,33 +55,33 @@ class RawEditor extends StatefulWidget {
   final ScrollPhysics? scrollPhysics;
   final EmbedBuilder embedBuilder;
 
-  RawEditor(
-      Key key,
-      this.controller,
-      this.focusNode,
-      this.scrollController,
-      this.scrollable,
-      this.padding,
-      this.readOnly,
-      this.placeholder,
-      this.onLaunchUrl,
-      this.toolbarOptions,
-      this.showSelectionHandles,
-      bool? showCursor,
-      this.cursorStyle,
-      this.textCapitalization,
-      this.maxHeight,
-      this.minHeight,
-      this.customStyles,
-      this.expands,
-      this.autoFocus,
-      this.selectionColor,
-      this.selectionCtrls,
-      this.keyboardAppearance,
-      this.enableInteractiveSelection,
-      this.scrollPhysics,
-      this.embedBuilder)
-      : assert(maxHeight > 0, 'maxHeight cannot be null'),
+  RawEditor({
+    required Key key,
+    required this.controller,
+    required this.focusNode,
+    this.scrollController,
+    required this.scrollable,
+    required this.padding,
+    required this.readOnly,
+    required this.placeholder,
+    required this.onLaunchUrl,
+    required this.toolbarOptions,
+    required this.showSelectionHandles,
+    bool? showCursor,
+    required this.cursorStyle,
+    required this.textCapitalization,
+    required this.maxHeight,
+    required this.minHeight,
+    this.customStyles,
+    required this.expands,
+    required this.autoFocus,
+    required this.selectionColor,
+    this.selectionCtrls,
+    required this.keyboardAppearance,
+    required this.enableInteractiveSelection,
+    this.scrollPhysics,
+    required this.embedBuilder,
+  })   : assert(maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight >= minHeight, 'maxHeight cannot be null'),
         showCursor = showCursor ?? !readOnly,
@@ -573,21 +573,21 @@ class RawEditorState extends EditorState
       } else if (node is Block) {
         Map<String, Attribute> attrs = node.style.attributes;
         EditableTextBlock editableTextBlock = EditableTextBlock(
-            node,
-            _textDirection,
-            _getVerticalSpacingForBlock(node, _styles!),
-            widget.controller.selection,
-            widget.selectionColor,
-            _styles!,
-            widget.enableInteractiveSelection,
-            _hasFocus,
-            attrs.containsKey(Attribute.codeBlock.key)
+            block: node,
+            textDirection: _textDirection,
+            verticalSpacing: _getVerticalSpacingForBlock(node, _styles!),
+            textSelection: widget.controller.selection,
+            color: widget.selectionColor,
+            styles: _styles!,
+            enableInteractiveSelection: widget.enableInteractiveSelection,
+            hasFocus: _hasFocus,
+            contentPadding: attrs.containsKey(Attribute.codeBlock.key)
                 ? EdgeInsets.all(16.0)
                 : EdgeInsets.all(
                     0.0), //CANNOT BE NULL - there's an assert in text_block.dart
-            widget.embedBuilder,
-            _cursorCont!,
-            indentLevelCounts);
+            embedBuilder: widget.embedBuilder,
+            cursorCont: _cursorCont!,
+            indentLevelCounts: indentLevelCounts);
         result.add(editableTextBlock);
       } else {
         throw StateError('Unreachable.');
@@ -605,18 +605,17 @@ class RawEditorState extends EditorState
       styles: _styles!,
     );
     EditableTextLine editableTextLine = EditableTextLine(
-        node,
-        null,
-        textLine,
-        0,
-        _getVerticalSpacingForLine(node, _styles!),
-        _textDirection,
-        widget.controller.selection,
-        widget.selectionColor,
-        widget.enableInteractiveSelection,
-        _hasFocus,
-        MediaQuery.of(context).devicePixelRatio,
-        _cursorCont!);
+        line: node,
+        body: textLine,
+        indentWidth: 0,
+        verticalSpacing: _getVerticalSpacingForLine(node, _styles!),
+        textDirection: _textDirection,
+        textSelection: widget.controller.selection,
+        color: widget.selectionColor,
+        enableInteractiveSelection: widget.enableInteractiveSelection,
+        hasFocus: _hasFocus,
+        devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
+        cursorCont: _cursorCont!);
     return editableTextLine;
   }
 
@@ -671,9 +670,9 @@ class RawEditorState extends EditorState
     );
 
     _keyboardListener = KeyboardListener(
-      handleCursorMovement,
-      handleShortcut,
-      handleDelete,
+      onCursorMove: handleCursorMovement,
+      onShortcut: handleShortcut,
+      onDelete: handleDelete,
     );
 
     if (defaultTargetPlatform == TargetPlatform.windows ||
@@ -1124,16 +1123,15 @@ class _Editor extends MultiChildRenderObjectWidget {
   @override
   RenderEditor createRenderObject(BuildContext context) {
     return RenderEditor(
-        null,
-        textDirection,
-        padding,
-        document,
-        selection,
-        hasFocus,
-        onSelectionChanged,
-        startHandleLayerLink,
-        endHandleLayerLink,
-        EdgeInsets.fromLTRB(4, 4, 4, 5));
+        textDirection: textDirection,
+        padding: padding,
+        document: document,
+        selection: selection,
+        hasFocus: hasFocus,
+        onSelectionChanged: onSelectionChanged,
+        startHandleLayerLink: startHandleLayerLink,
+        endHandleLayerLink: endHandleLayerLink,
+        floatingCursorAddedMargin: EdgeInsets.fromLTRB(4, 4, 4, 5));
   }
 
   @override

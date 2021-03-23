@@ -50,7 +50,11 @@ class Operation {
       _attributes == null ? null : Map<String, dynamic>.from(_attributes!);
   final Map<String, dynamic>? _attributes;
 
-  Operation._(this.key, this.length, this.data, Map? attributes)
+  Operation._(
+      {required this.key,
+      required this.length,
+      required this.data,
+      Map? attributes})
       : assert(_validKeys.contains(key), 'Invalid operation key "$key".'),
         assert(() {
           if (key != Operation.insertKey) return true;
@@ -70,14 +74,21 @@ class Operation {
       final data = dataDecoder(map[Operation.insertKey]);
       final dataLength = data is String ? data.length : 1;
       return Operation._(
-          Operation.insertKey, dataLength, data, map[Operation.attributesKey]);
+          key: Operation.insertKey,
+          length: dataLength,
+          data: data,
+          attributes: map[Operation.attributesKey]);
     } else if (map.containsKey(Operation.deleteKey)) {
       final int length = map[Operation.deleteKey];
-      return Operation._(Operation.deleteKey, length, '', null);
+      return Operation._(
+          key: Operation.deleteKey, length: length, data: '', attributes: null);
     } else if (map.containsKey(Operation.retainKey)) {
       final int length = map[Operation.retainKey];
       return Operation._(
-          Operation.retainKey, length, '', map[Operation.attributesKey]);
+          key: Operation.retainKey,
+          length: length,
+          data: '',
+          attributes: map[Operation.attributesKey]);
     }
     throw ArgumentError.value(data, 'Invalid data for Delta operation.');
   }
@@ -90,18 +101,25 @@ class Operation {
   }
 
   /// Creates operation which deletes [length] of characters.
-  factory Operation.delete(int length) =>
-      Operation._(Operation.deleteKey, length, '', null);
+  factory Operation.delete(int length) => Operation._(
+      key: Operation.deleteKey, length: length, data: '', attributes: null);
 
   /// Creates operation which inserts [text] with optional [attributes].
   factory Operation.insert(dynamic data, [Map<String, dynamic>? attributes]) =>
-      Operation._(Operation.insertKey, data is String ? data.length : 1, data,
-          attributes);
+      Operation._(
+          key: Operation.insertKey,
+          length: data is String ? data.length : 1,
+          data: data,
+          attributes: attributes);
 
   /// Creates operation which retains [length] of characters and optionally
   /// applies attributes.
   factory Operation.retain(int length, [Map<String, dynamic>? attributes]) =>
-      Operation._(Operation.retainKey, length, '', attributes);
+      Operation._(
+          key: Operation.retainKey,
+          length: length,
+          data: '',
+          attributes: attributes);
 
   /// Returns value of this operation.
   ///
@@ -333,7 +351,11 @@ class Delta {
     final resultText = lastText + opText;
     final index = _operations.length;
     _operations.replaceRange(index - 1, index, [
-      Operation._(operation.key, length, resultText, operation.attributes),
+      Operation._(
+          key: operation.key,
+          length: length,
+          data: resultText,
+          attributes: operation.attributes),
     ]);
   }
 
@@ -665,7 +687,11 @@ class DeltaIterator {
       final opLength = opData is String ? opData.length : 1;
       final int opActualLength =
           opIsNotEmpty ? opLength : (actualLength as int);
-      return Operation._(opKey, opActualLength, opData, opAttributes);
+      return Operation._(
+          key: opKey,
+          length: opActualLength,
+          data: opData,
+          attributes: opAttributes);
     }
     return Operation.retain(length);
   }

@@ -4,11 +4,11 @@ import 'package:flutter/rendering.dart';
 import 'package:photo_view/photo_view.dart';
 
 class ImageTapWrapper extends StatelessWidget {
+  final ImageProvider? imageProvider;
+
   const ImageTapWrapper({
     this.imageProvider,
   });
-
-  final ImageProvider? imageProvider;
 
   @override
   Widget build(BuildContext context) {

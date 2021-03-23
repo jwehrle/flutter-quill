@@ -36,9 +36,9 @@ class Block extends Container<Line> {
       block.unlink();
       block = (prev as Block);
     }
-    Node next = block.next!;
+    Node? next = block.next;
     // merging it with next block if style is the same
-    if (!block.isLast && block.next is Block && next.style == block.style) {
+    if (!block.isLast && block.next is Block && next!.style == block.style) {
       (next as Block).moveChildToNewParent(block);
       next.unlink();
     }

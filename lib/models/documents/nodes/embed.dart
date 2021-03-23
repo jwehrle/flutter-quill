@@ -1,13 +1,11 @@
 class Embeddable {
-  final String? type;
-  final dynamic? data;
+  final String type;
+  final dynamic data;
 
-  Embeddable(this.type, this.data)
-      : assert(type != null),
-        assert(data != null);
+  Embeddable({required this.type, required this.data});
 
   Map<String, dynamic> toJson() {
-    Map<String, String> m = {type!: data};
+    Map<String, String> m = {type: data.toString()};
     return m;
   }
 
@@ -15,14 +13,17 @@ class Embeddable {
     Map<String, dynamic> m = Map<String, dynamic>.from(json);
     assert(m.length == 1, 'Embeddable map has one key');
 
-    return BlockEmbed(m.keys.first, m.values.first);
+    return BlockEmbed(type: m.keys.first, data: m.values.first);
   }
 }
 
 class BlockEmbed extends Embeddable {
-  BlockEmbed(String type, String data) : super(type, data);
+  BlockEmbed({required String type, required String data})
+      : super(type: type, data: data);
 
-  static final BlockEmbed horizontalRule = BlockEmbed('divider', 'hr');
+  static final BlockEmbed horizontalRule =
+      BlockEmbed(type: 'divider', data: 'hr');
 
-  static BlockEmbed image(String imageUrl) => BlockEmbed('image', imageUrl);
+  static BlockEmbed image(String imageUrl) =>
+      BlockEmbed(type: 'image', data: imageUrl);
 }

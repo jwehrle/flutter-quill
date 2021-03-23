@@ -61,19 +61,20 @@ class EditableTextBlock extends StatelessWidget {
   final CursorCont cursorCont;
   final Map<int, int> indentLevelCounts;
 
-  EditableTextBlock(
-      this.block,
-      this.textDirection,
-      this.verticalSpacing,
-      this.textSelection,
-      this.color,
-      this.styles,
-      this.enableInteractiveSelection,
-      this.hasFocus,
-      this.contentPadding,
-      this.embedBuilder,
-      this.cursorCont,
-      this.indentLevelCounts);
+  EditableTextBlock({
+    required this.block,
+    required this.textDirection,
+    required this.verticalSpacing,
+    this.textSelection,
+    this.color,
+    required this.styles,
+    this.enableInteractiveSelection,
+    required this.hasFocus,
+    required this.contentPadding,
+    required this.embedBuilder,
+    required this.cursorCont,
+    required this.indentLevelCounts,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +82,13 @@ class EditableTextBlock extends StatelessWidget {
 
     DefaultStyles? defaultStyles = QuillStyles.getStyles(context, false);
     return _EditableBlock(
-        block,
-        textDirection,
-        verticalSpacing,
-        _getDecorationForBlock(block, defaultStyles) ?? BoxDecoration(),
-        contentPadding,
-        _buildChildren(context, this.indentLevelCounts));
+        block: block,
+        textDirection: textDirection,
+        padding: verticalSpacing,
+        decoration:
+            _getDecorationForBlock(block, defaultStyles) ?? BoxDecoration(),
+        contentPadding: contentPadding,
+        children: _buildChildren(context, this.indentLevelCounts));
   }
 
   BoxDecoration? _getDecorationForBlock(
@@ -110,26 +112,28 @@ class EditableTextBlock extends StatelessWidget {
     int count = block.children.length;
     var children = <Widget>[];
     int index = 0;
-    for (Line line in block.children as List<Line>) {
+    for (Line line in Iterable.castFrom<dynamic, Line>(block.children)) {
       index++;
       EditableTextLine editableTextLine = EditableTextLine(
-          line,
-          _buildLeading(context, line, index, indentLevelCounts, count),
-          TextLine(
+          line: line,
+          leading:
+              _buildLeading(context, line, index, indentLevelCounts, count),
+          body: TextLine(
             line: line,
             textDirection: textDirection,
             embedBuilder: embedBuilder,
             styles: styles,
           ),
-          _getIndentWidth(),
-          _getSpacingForLine(line, index, count, defaultStyles!),
-          textDirection,
-          textSelection!,
-          color!,
-          enableInteractiveSelection!,
-          hasFocus,
-          MediaQuery.of(context).devicePixelRatio,
-          cursorCont);
+          indentWidth: _getIndentWidth(),
+          verticalSpacing:
+              _getSpacingForLine(line, index, count, defaultStyles!),
+          textDirection: textDirection,
+          textSelection: textSelection!,
+          color: color!,
+          enableInteractiveSelection: enableInteractiveSelection!,
+          hasFocus: hasFocus,
+          devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
+          cursorCont: cursorCont);
       children.add(editableTextLine);
     }
     return children.toList(growable: false);
@@ -519,9 +523,14 @@ class _EditableBlock extends MultiChildRenderObjectWidget {
   final Decoration decoration;
   final EdgeInsets? contentPadding;
 
-  _EditableBlock(this.block, this.textDirection, this.padding, this.decoration,
-      this.contentPadding, List<Widget> children)
-      : super(children: children);
+  _EditableBlock({
+    required this.block,
+    required this.textDirection,
+    required this.padding,
+    required this.decoration,
+    this.contentPadding,
+    required List<Widget> children,
+  }) : super(children: children);
 
   EdgeInsets get _padding =>
       EdgeInsets.only(top: padding.item1, bottom: padding.item2);
@@ -691,12 +700,6 @@ class __CheckboxState extends State<_Checkbox> {
 
   void _onCheckboxClicked(bool? newValue) => setState(() {
         isChecked = newValue;
-
-        if (isChecked!) {
-          // check list
-        } else {
-          // uncheck list
-        }
       });
 
   @override

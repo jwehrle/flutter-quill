@@ -160,8 +160,13 @@ class CursorPainter {
   final Color color;
   final double devicePixelRatio;
 
-  CursorPainter(this.editable, this.style, this.prototype, this.color,
-      this.devicePixelRatio);
+  CursorPainter({
+    required this.editable,
+    required this.style,
+    required this.prototype,
+    required this.color,
+    required this.devicePixelRatio,
+  });
 
   paint(Canvas canvas, Offset offset, TextPosition position) {
     Offset caretOffset =
