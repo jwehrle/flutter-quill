@@ -35,7 +35,7 @@ class PreserveLineStyleOnMergeRule extends DeleteRule {
     }
 
     bool isNotPlain = op.isNotPlain;
-    Map<String, dynamic> attrs = op.attributes!;
+    Map<String, dynamic>? attrs = op.attributes;
     assert(len != null);
     itr.skip(len! - 1);
     Delta delta = Delta()
@@ -58,7 +58,9 @@ class PreserveLineStyleOnMergeRule extends DeleteRule {
 
       if (isNotPlain) {
         attributes ??= <String, dynamic>{};
-        attributes.addAll(attrs);
+        if (attrs != null) {
+          attributes.addAll(attrs);
+        }
       }
       delta..retain(lineBreak)..retain(1, attributes);
       break;
