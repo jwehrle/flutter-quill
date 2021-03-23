@@ -1292,8 +1292,7 @@ class _QuillDropdownButtonState<T> extends State<QuillDropdownButton<T>> {
   }
 
   Widget _buildContent(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints.tightFor(width: 110),
+    return IntrinsicWidth(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
