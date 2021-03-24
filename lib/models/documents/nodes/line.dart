@@ -164,16 +164,16 @@ class Line extends Container<Leaf> {
 
     if (parent is Block) {
       Attribute? parentStyle = (parent as Block).style.getBlockExceptHeader();
-      if (blockStyle!.value == null) {
+      if (blockStyle != null && blockStyle.value == null) {
         _unwrap();
-      } else if (blockStyle != parentStyle) {
+      } else if (blockStyle != null && blockStyle != parentStyle) {
         _unwrap();
         Block block = Block();
         block.applyAttribute(blockStyle);
         _wrap(block);
         block.adjust();
       }
-    } else if (blockStyle!.value != null) {
+    } else if (blockStyle != null && blockStyle.value != null) {
       Block block = Block();
       block.applyAttribute(blockStyle);
       _wrap(block);
