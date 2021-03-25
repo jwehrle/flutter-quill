@@ -431,49 +431,49 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
 }
 
 Widget _selectHeadingStyleButtonBuilder(
-    BuildContext context, Attribute value, ValueChanged<Attribute> onSelected) {
-  //final style = TextStyle(fontSize: 13);
-
+  BuildContext context,
+  Attribute value,
+  ValueChanged<Attribute> onSelected,
+) {
   final Map<Attribute, String> _valueToText = {
     Attribute.header: 'Normal',
-    Attribute.h1: 'Biggest', //H1
-    Attribute.h2: 'Bigger', //H2
-    Attribute.h3: 'Big', //H1
+    Attribute.h1: 'Biggest',
+    Attribute.h2: 'Bigger',
+    Attribute.h3: 'Big',
   };
 
-  return QuillDropdownButton<Attribute>(
+  return QuillOptionsButton(
     highlightElevation: 0,
     hoverElevation: 0,
     height: iconSize * 1.77,
     fillColor: Theme.of(context).canvasColor,
-    child: Text(
-      !kIsWeb
-          ? _valueToText[value]!
-          : _valueToText[value.key == "header"
-              ? Attribute.header
-              : (value.key == "h1")
-                  ? Attribute.h1
-                  : (value.key == "h2")
-                      ? Attribute.h2
-                      : Attribute.h3]!,
-      //style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-    ),
-    initialValue: value,
+    initialOption: QuillToolbarOption(
+        title: !kIsWeb
+            ? _valueToText[value]!
+            : _valueToText[value.key == "header"
+                ? Attribute.header
+                : (value.key == "h1")
+                    ? Attribute.h1
+                    : (value.key == "h2")
+                        ? Attribute.h2
+                        : Attribute.h3]!,
+        value: value),
+    description: 'Text: ',
     items: [
-      QuillToolbarOption<Attribute>(
-        text: Text(_valueToText[Attribute.header]!),
+      QuillToolbarOption(
+        title: _valueToText[Attribute.header]!,
         value: Attribute.header,
       ),
-      QuillToolbarOption<Attribute>(
-        text: Text(_valueToText[Attribute.h3]!),
+      QuillToolbarOption(
+        title: _valueToText[Attribute.h3]!,
         value: Attribute.h3,
       ),
-      QuillToolbarOption<Attribute>(
-        text: Text(_valueToText[Attribute.h2]!),
+      QuillToolbarOption(
+        title: _valueToText[Attribute.h2]!,
         value: Attribute.h2,
       ),
-      QuillToolbarOption<Attribute>(
-        text: Text(_valueToText[Attribute.h1]!),
+      QuillToolbarOption(
+        title: _valueToText[Attribute.h1]!,
         value: Attribute.h1,
       ),
     ],
@@ -1207,34 +1207,41 @@ class QuillIconButton extends StatelessWidget {
   }
 }
 
-class QuillDropdownButton<T> extends StatefulWidget {
+class QuillOptionsButton extends StatefulWidget {
   final double height;
   final Color? fillColor;
   final double hoverElevation;
   final double highlightElevation;
-  final Widget child;
-  final T initialValue;
+  final QuillToolbarOption initialOption;
+  final String description;
   final List<QuillToolbarOption> items;
-  final ValueChanged<T>? onSelected;
+  final ValueChanged<Attribute>? onSelected;
 
-  const QuillDropdownButton({
+  const QuillOptionsButton({
     Key? key,
     this.height = 40,
     this.fillColor,
     this.hoverElevation = 1,
     this.highlightElevation = 1,
-    required this.child,
-    required this.initialValue,
+    required this.initialOption,
+    required this.description,
     required this.items,
     required this.onSelected,
   }) : super(key: key);
 
   @override
-  _QuillDropdownButtonState<T> createState() => _QuillDropdownButtonState<T>();
+  _QuillOptionsButtonState createState() => _QuillOptionsButtonState();
 }
 
-class _QuillDropdownButtonState<T> extends State<QuillDropdownButton<T>> {
+class _QuillOptionsButtonState extends State<QuillOptionsButton> {
   bool _showingMenu = false;
+  Attribute? _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialOption.value;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1248,7 +1255,7 @@ class _QuillDropdownButtonState<T> extends State<QuillDropdownButton<T>> {
         fillColor: widget.fillColor,
         elevation: 0,
         hoverElevation: widget.hoverElevation,
-        highlightElevation: widget.hoverElevation,
+        highlightElevation: widget.highlightElevation,
         onPressed: _showMenu,
       ),
     );
@@ -1258,39 +1265,6 @@ class _QuillDropdownButtonState<T> extends State<QuillDropdownButton<T>> {
     setState(() {
       _showingMenu = true;
     });
-    // final popupMenuTheme = PopupMenuTheme.of(context);
-    // final button = context.findRenderObject() as RenderBox;
-    // final overlay =
-    //     Overlay.of(context)!.context.findRenderObject() as RenderBox;
-    // final position = RelativeRect.fromRect(
-    //   Rect.fromPoints(
-    //     button.localToGlobal(Offset.zero, ancestor: overlay),
-    //     button.localToGlobal(button.size.bottomLeft(Offset.zero),
-    //         ancestor: overlay),
-    //   ),
-    //   Offset.zero & overlay.size,
-    // );
-    // showMenu<T>(
-    //   context: context,
-    //   elevation: 4,
-    //   // widget.elevation ?? popupMenuTheme.elevation,
-    //   initialValue: widget.initialValue,
-    //   items: widget.items,
-    //   position: position,
-    //   shape: popupMenuTheme.shape,
-    //   // widget.shape ?? popupMenuTheme.shape,
-    //   color: popupMenuTheme.color, // widget.color ?? popupMenuTheme.color,
-    //   // captureInheritedThemes: widget.captureInheritedThemes,
-    // ).then((T? newValue) {
-    //   if (!mounted) return null;
-    //   if (newValue == null) {
-    //     // if (widget.onCanceled != null) widget.onCanceled();
-    //     return null;
-    //   }
-    //   if (widget.onSelected != null) {
-    //     widget.onSelected!(newValue);
-    //   }
-    // });
   }
 
   Widget _buildContent(BuildContext context) {
@@ -1302,27 +1276,34 @@ class _QuillDropdownButtonState<T> extends State<QuillDropdownButton<T>> {
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          Text('Text: '),
-          widget.child,
+          Text(widget.description),
+          Text(widget.initialOption.title),
         ],
       ),
     );
   }
 
   Widget _options() {
-    List<Widget> children = [Text('Text: ')];
+    List<Widget> children = [Text(widget.description)];
     widget.items.forEach((QuillToolbarOption e) {
       children.add(GestureDetector(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: e.text,
+          child: e.value == _selected!
+              ? Text(
+                  e.title,
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                )
+              : Text(e.title),
         ),
         onTap: () {
-          if (widget.onSelected != null) {
+          if (widget.onSelected != null &&
+              e.value != widget.initialOption.value) {
             widget.onSelected!(e.value);
           }
           setState(() {
             _showingMenu = false;
+            _selected = e.value;
           });
         },
       ));
@@ -1334,9 +1315,9 @@ class _QuillDropdownButtonState<T> extends State<QuillDropdownButton<T>> {
   }
 }
 
-class QuillToolbarOption<T> {
-  final Text text;
-  final T value;
+class QuillToolbarOption {
+  final String title;
+  final Attribute value;
 
-  QuillToolbarOption({required this.text, required this.value});
+  QuillToolbarOption({required this.title, required this.value});
 }
