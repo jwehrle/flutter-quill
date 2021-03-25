@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
@@ -431,13 +432,13 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
 
 Widget _selectHeadingStyleButtonBuilder(
     BuildContext context, Attribute value, ValueChanged<Attribute> onSelected) {
-  final style = TextStyle(fontSize: 13);
+  //final style = TextStyle(fontSize: 13);
 
   final Map<Attribute, String> _valueToText = {
-    Attribute.header: 'Normal text',
-    Attribute.h1: 'Heading 1',
-    Attribute.h2: 'Heading 2',
-    Attribute.h3: 'Heading 3',
+    Attribute.header: 'Normal',
+    Attribute.h1: 'Biggest', //H1
+    Attribute.h2: 'Bigger', //H2
+    Attribute.h3: 'Big', //H1
   };
 
   return QuillDropdownButton<Attribute>(
@@ -455,29 +456,25 @@ Widget _selectHeadingStyleButtonBuilder(
                   : (value.key == "h2")
                       ? Attribute.h2
                       : Attribute.h3]!,
-      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+      //style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
     ),
     initialValue: value,
     items: [
-      PopupMenuItem(
-        child: Text(_valueToText[Attribute.header]!, style: style),
+      QuillToolbarOption<Attribute>(
+        text: Text(_valueToText[Attribute.header]!),
         value: Attribute.header,
-        height: iconSize * 1.77,
       ),
-      PopupMenuItem(
-        child: Text(_valueToText[Attribute.h1]!, style: style),
-        value: Attribute.h1,
-        height: iconSize * 1.77,
-      ),
-      PopupMenuItem(
-        child: Text(_valueToText[Attribute.h2]!, style: style),
-        value: Attribute.h2,
-        height: iconSize * 1.77,
-      ),
-      PopupMenuItem(
-        child: Text(_valueToText[Attribute.h3]!, style: style),
+      QuillToolbarOption<Attribute>(
+        text: Text(_valueToText[Attribute.h3]!),
         value: Attribute.h3,
-        height: iconSize * 1.77,
+      ),
+      QuillToolbarOption<Attribute>(
+        text: Text(_valueToText[Attribute.h2]!),
+        value: Attribute.h2,
+      ),
+      QuillToolbarOption<Attribute>(
+        text: Text(_valueToText[Attribute.h1]!),
+        value: Attribute.h1,
       ),
     ],
     onSelected: onSelected,
@@ -1217,7 +1214,7 @@ class QuillDropdownButton<T> extends StatefulWidget {
   final double highlightElevation;
   final Widget child;
   final T initialValue;
-  final List<PopupMenuEntry<T>> items;
+  final List<QuillToolbarOption> items;
   final ValueChanged<T>? onSelected;
 
   const QuillDropdownButton({
@@ -1237,6 +1234,8 @@ class QuillDropdownButton<T> extends StatefulWidget {
 }
 
 class _QuillDropdownButtonState<T> extends State<QuillDropdownButton<T>> {
+  bool _showingMenu = false;
+
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
@@ -1256,53 +1255,88 @@ class _QuillDropdownButtonState<T> extends State<QuillDropdownButton<T>> {
   }
 
   void _showMenu() {
-    final popupMenuTheme = PopupMenuTheme.of(context);
-    final button = context.findRenderObject() as RenderBox;
-    final overlay =
-        Overlay.of(context)!.context.findRenderObject() as RenderBox;
-    final position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(button.size.bottomLeft(Offset.zero),
-            ancestor: overlay),
-      ),
-      Offset.zero & overlay.size,
-    );
-    showMenu<T>(
-      context: context,
-      elevation: 4,
-      // widget.elevation ?? popupMenuTheme.elevation,
-      initialValue: widget.initialValue,
-      items: widget.items,
-      position: position,
-      shape: popupMenuTheme.shape,
-      // widget.shape ?? popupMenuTheme.shape,
-      color: popupMenuTheme.color, // widget.color ?? popupMenuTheme.color,
-      // captureInheritedThemes: widget.captureInheritedThemes,
-    ).then((T? newValue) {
-      if (!mounted) return null;
-      if (newValue == null) {
-        // if (widget.onCanceled != null) widget.onCanceled();
-        return null;
-      }
-      if (widget.onSelected != null) {
-        widget.onSelected!(newValue);
-      }
+    setState(() {
+      _showingMenu = true;
     });
+    // final popupMenuTheme = PopupMenuTheme.of(context);
+    // final button = context.findRenderObject() as RenderBox;
+    // final overlay =
+    //     Overlay.of(context)!.context.findRenderObject() as RenderBox;
+    // final position = RelativeRect.fromRect(
+    //   Rect.fromPoints(
+    //     button.localToGlobal(Offset.zero, ancestor: overlay),
+    //     button.localToGlobal(button.size.bottomLeft(Offset.zero),
+    //         ancestor: overlay),
+    //   ),
+    //   Offset.zero & overlay.size,
+    // );
+    // showMenu<T>(
+    //   context: context,
+    //   elevation: 4,
+    //   // widget.elevation ?? popupMenuTheme.elevation,
+    //   initialValue: widget.initialValue,
+    //   items: widget.items,
+    //   position: position,
+    //   shape: popupMenuTheme.shape,
+    //   // widget.shape ?? popupMenuTheme.shape,
+    //   color: popupMenuTheme.color, // widget.color ?? popupMenuTheme.color,
+    //   // captureInheritedThemes: widget.captureInheritedThemes,
+    // ).then((T? newValue) {
+    //   if (!mounted) return null;
+    //   if (newValue == null) {
+    //     // if (widget.onCanceled != null) widget.onCanceled();
+    //     return null;
+    //   }
+    //   if (widget.onSelected != null) {
+    //     widget.onSelected!(newValue);
+    //   }
+    // });
   }
 
   Widget _buildContent(BuildContext context) {
-    return IntrinsicWidth(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          children: [
-            widget.child,
-            Expanded(child: Container()),
-            Icon(Icons.arrow_drop_down, size: 15)
-          ],
-        ),
+    return _showingMenu ? _options() : _selection();
+  }
+
+  Widget _selection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        children: [
+          Text('Text: '),
+          widget.child,
+        ],
       ),
     );
   }
+
+  Widget _options() {
+    List<Widget> children = [Text('Text: ')];
+    widget.items.forEach((QuillToolbarOption e) {
+      children.add(GestureDetector(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: e.text,
+        ),
+        onTap: () {
+          if (widget.onSelected != null) {
+            widget.onSelected!(e.value);
+          }
+          setState(() {
+            _showingMenu = false;
+          });
+        },
+      ));
+    });
+    return Container(
+      height: kToolbarHeight,
+      child: Row(mainAxisSize: MainAxisSize.min, children: children),
+    );
+  }
+}
+
+class QuillToolbarOption<T> {
+  final Text text;
+  final T value;
+
+  QuillToolbarOption({required this.text, required this.value});
 }
