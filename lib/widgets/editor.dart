@@ -149,7 +149,7 @@ class QuillEditor extends StatefulWidget {
   final bool? showCursor;
   final bool readOnly;
   final String? placeholder;
-  final bool? enableInteractiveSelection;
+  final bool enableInteractiveSelection;
   final double? minHeight;
   final double? maxHeight;
   final DefaultStyles? customStyles;
@@ -170,7 +170,7 @@ class QuillEditor extends StatefulWidget {
       this.showCursor,
       required this.readOnly,
       this.placeholder,
-      this.enableInteractiveSelection,
+      this.enableInteractiveSelection = true,
       this.minHeight,
       this.maxHeight,
       this.customStyles,
@@ -265,13 +265,13 @@ class _QuillEditorState extends State<QuillEditor>
           scrollable: widget.scrollable,
           padding: widget.padding,
           readOnly: widget.readOnly,
-          placeholder: widget.placeholder!,
+          placeholder: widget.placeholder,
           onLaunchUrl: widget.onLaunchUrl,
           toolbarOptions: ToolbarOptions(
-            copy: widget.enableInteractiveSelection ?? true,
-            cut: widget.enableInteractiveSelection ?? true,
-            paste: widget.enableInteractiveSelection ?? true,
-            selectAll: widget.enableInteractiveSelection ?? true,
+            copy: widget.enableInteractiveSelection,
+            cut: widget.enableInteractiveSelection,
+            paste: widget.enableInteractiveSelection,
+            selectAll: widget.enableInteractiveSelection,
           ),
           showSelectionHandles: theme.platform == TargetPlatform.iOS ||
               theme.platform == TargetPlatform.android,
@@ -294,7 +294,7 @@ class _QuillEditorState extends State<QuillEditor>
           selectionColor: selectionColor,
           selectionCtrls: textSelectionControls,
           keyboardAppearance: widget.keyboardAppearance,
-          enableInteractiveSelection: widget.enableInteractiveSelection!,
+          enableInteractiveSelection: widget.enableInteractiveSelection,
           scrollPhysics: widget.scrollPhysics,
           embedBuilder: widget.embedBuilder!),
     );
@@ -312,7 +312,7 @@ class _QuillEditorState extends State<QuillEditor>
 
   @override
   bool getSelectionEnabled() {
-    return widget.enableInteractiveSelection!;
+    return widget.enableInteractiveSelection;
   }
 
   _requestKeyboard() {

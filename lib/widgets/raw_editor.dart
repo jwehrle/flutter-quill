@@ -36,7 +36,7 @@ class RawEditor extends StatefulWidget {
   final bool scrollable;
   final EdgeInsetsGeometry padding;
   final bool readOnly;
-  final String placeholder;
+  final String? placeholder;
   final ValueChanged<String>? onLaunchUrl;
   final ToolbarOptions toolbarOptions;
   final bool showSelectionHandles;
@@ -63,7 +63,7 @@ class RawEditor extends StatefulWidget {
     required this.scrollable,
     required this.padding,
     required this.readOnly,
-    required this.placeholder,
+    this.placeholder,
     required this.onLaunchUrl,
     required this.toolbarOptions,
     required this.showSelectionHandles,
@@ -498,8 +498,13 @@ class RawEditorState extends EditorState
 
     Document _doc = widget.controller.document;
     if (_doc.isEmpty() && !widget.focusNode.hasFocus) {
-      _doc = Document.fromJson(jsonDecode(
-          '[{"attributes":{"placeholder":true},"insert":"${widget.placeholder}\\n"}]'));
+      if (widget.placeholder != null) {
+        _doc = Document.fromJson(jsonDecode(
+            '[{"attributes":{"placeholder":true},"insert":"${widget.placeholder}\\n"}]'));
+      } else {
+        _doc = Document.fromJson(jsonDecode(
+            '[{"attributes":{"placeholder":false},"insert":"\\n"}]'));
+      }
     }
 
     Widget child = CompositedTransformTarget(
