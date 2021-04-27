@@ -637,11 +637,12 @@ class HideKeyboardButton extends StatefulWidget {
 }
 
 class HideKeyboardButtonState extends State<HideKeyboardButton> {
-  bool _isEnabled = true;
+  late bool _isEnabled;
 
   @override
   void initState() {
     super.initState();
+    _isEnabled = widget.focusNode.hasFocus;
     widget.focusNode.addListener(_focusListener);
   }
 
