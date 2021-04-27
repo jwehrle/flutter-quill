@@ -34,6 +34,7 @@ class DemoScaffold extends StatefulWidget {
 class _DemoScaffoldState extends State<DemoScaffold> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   QuillController? _controller;
+  FocusNode _focusNode = FocusNode();
 
   bool _loading = false;
 
@@ -49,6 +50,7 @@ class _DemoScaffoldState extends State<DemoScaffold> {
   @override
   void dispose() {
     _controller?.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -92,7 +94,10 @@ class _DemoScaffoldState extends State<DemoScaffold> {
         ),
         title: _loading || widget.showToolbar == false
             ? null
-            : QuillToolbar.basic(controller: _controller!),
+            : QuillToolbar.basic(
+                controller: _controller!,
+                focusNode: _focusNode,
+              ),
         actions: actions,
       ),
       floatingActionButton: widget.floatingActionButton,

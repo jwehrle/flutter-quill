@@ -136,11 +136,13 @@ class _HomePageState extends State<HomePage> {
                   padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
                   child: QuillToolbar.basic(
                       controller: _controller!,
+                      focusNode: _focusNode,
                       onImagePickCallback: _onImagePickCallback),
                 ))
               : Container(
                   child: QuillToolbar.basic(
                       controller: _controller!,
+                      focusNode: _focusNode,
                       onImagePickCallback: _onImagePickCallback),
                 ),
         ],

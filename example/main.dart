@@ -10,13 +10,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   QuillController _controller = QuillController.basic();
+  FocusNode _focusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Column(
       children: [
-        QuillToolbar.basic(controller: _controller),
+        QuillToolbar.basic(
+          controller: _controller,
+          focusNode: _focusNode,
+        ),
         Expanded(
           child: Container(
             child: QuillEditor.basic(
@@ -27,5 +31,12 @@ class _HomePageState extends State<HomePage> {
         )
       ],
     ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 }

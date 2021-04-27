@@ -624,6 +624,65 @@ class _ImageButtonState extends State<ImageButton> {
   }
 }
 
+class HideKeyboardButton extends StatefulWidget {
+  final FocusNode focusNode;
+
+  HideKeyboardButton({
+    Key? key,
+    required this.focusNode,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => HideKeyboardButtonState();
+}
+
+class HideKeyboardButtonState extends State<HideKeyboardButton> {
+  bool _isEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(_focusListener);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final iconColor = _isEnabled ? theme.iconTheme.color : theme.disabledColor;
+    final fillColor = theme.canvasColor;
+    return QuillIconButton(
+      highlightElevation: 0,
+      hoverElevation: 0,
+      size: iconSize * 1.77,
+      icon: Icon(Icons.keyboard_hide, size: iconSize, color: iconColor),
+      fillColor: fillColor,
+      onPressed: _isEnabled ? _onHide : null,
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.focusNode.removeListener(_focusListener);
+  }
+
+  void _onHide() {
+    widget.focusNode.unfocus();
+  }
+
+  void _focusListener() {
+    if (widget.focusNode.hasFocus) {
+      setState(() {
+        _isEnabled = true;
+      });
+    } else {
+      setState(() {
+        _isEnabled = false;
+      });
+    }
+  }
+}
+
 /// Controls color styles.
 ///
 /// When pressed, this button displays overlay toolbar with
@@ -934,6 +993,7 @@ class QuillToolbar extends StatefulWidget implements PreferredSizeWidget {
   factory QuillToolbar.basic(
       {Key? key,
       required QuillController controller,
+      required FocusNode focusNode,
       double toolbarIconSize = 18.0,
       bool showBoldButton = true,
       bool showItalicButton = true,
@@ -955,6 +1015,9 @@ class QuillToolbar extends StatefulWidget implements PreferredSizeWidget {
       OnImagePickCallback? onImagePickCallback}) {
     iconSize = toolbarIconSize;
     return QuillToolbar(key: key, children: [
+      HideKeyboardButton(
+        focusNode: focusNode,
+      ),
       Visibility(
         visible: showHistory,
         child: HistoryButton(
