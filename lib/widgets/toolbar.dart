@@ -1,26 +1,14 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
-import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/documents/nodes/embed.dart';
 import 'package:flutter_quill/models/documents/style.dart';
-import 'package:flutter_quill/utils/color.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'controller.dart';
 
 double iconSize = 18.0;
 double kToolbarHeight = iconSize * 2;
-
-typedef OnImagePickCallback = Future<String?> Function(File? file);
-typedef ImagePickImpl = Future<String> Function(ImageSource source);
 
 class InsertEmbedButton extends StatelessWidget {
   final QuillController controller;
@@ -481,148 +469,148 @@ Widget _selectHeadingStyleButtonBuilder(
   );
 }
 
-class ImageButton extends StatefulWidget {
-  final IconData icon;
-
-  final QuillController controller;
-
-  final OnImagePickCallback? onImagePickCallback;
-
-  final ImagePickImpl? imagePickImpl;
-
-  final ImageSource imageSource;
-
-  ImageButton(
-      {Key? key,
-      required this.icon,
-      required this.controller,
-      required this.imageSource,
-      this.onImagePickCallback,
-      this.imagePickImpl})
-      : super(key: key);
-
-  @override
-  _ImageButtonState createState() => _ImageButtonState();
-}
-
-class _ImageButtonState extends State<ImageButton> {
-  List<PlatformFile>? _paths;
-  String? _extension;
-  final _picker = ImagePicker();
-  FileType _pickingType = FileType.any;
-
-  Future<String?> _pickImage(ImageSource imageSource) async {
-    final PickedFile? pickedFile = await _picker.getImage(source: imageSource);
-    if (pickedFile == null) return null;
-
-    final File? file = File(pickedFile.path);
-
-    if (file == null || widget.onImagePickCallback == null) return null;
-    // We simply return the absolute path to selected file.
-    try {
-      String? url = await widget.onImagePickCallback!(file);
-      print('Image uploaded and its url is $url');
-      return url;
-    } catch (error) {
-      print('Upload image error $error');
-    }
-    return null;
-  }
-
-  Future<String?> _pickImageWeb() async {
-    try {
-      _paths = (await FilePicker.platform.pickFiles(
-        type: _pickingType,
-        allowMultiple: false,
-        allowedExtensions: (_extension?.isNotEmpty ?? false)
-            ? _extension?.replaceAll(' ', '').split(',')
-            : null,
-      ))
-          ?.files;
-    } on PlatformException catch (e) {
-      print("Unsupported operation" + e.toString());
-    } catch (ex) {
-      print(ex);
-    }
-    var _fileName =
-        _paths != null ? _paths!.map((e) => e.name).toString() : '...';
-
-    if (_paths != null) {
-      File file = File(_fileName);
-      //The condition is never true because File constructor never gives null.
-      //if (file == null || widget.onImagePickCallback == null) return null;
-      // We simply return the absolute path to selected file.
-      try {
-        String? url = await widget.onImagePickCallback!(file);
-        print('Image uploaded and its url is $url');
-        return url;
-      } catch (error) {
-        print('Upload image error $error');
-      }
-      return null;
-    } else {
-      // User canceled the picker
-    }
-    return null;
-  }
-
-  Future<String?> _pickImageDesktop() async {
-    try {
-      var filePath = await FilesystemPicker.open(
-        context: context,
-        rootDirectory: await getApplicationDocumentsDirectory(),
-        fsType: FilesystemType.file,
-        fileTileSelectMode: FileTileSelectMode.wholeTile,
-      );
-      if (filePath == null || filePath.isEmpty) return null;
-
-      final File file = File(filePath);
-      String? url = await widget.onImagePickCallback!(file);
-      print('Image uploaded and its url is $url');
-      return url;
-    } catch (error) {
-      print('Upload image error $error');
-    }
-    return null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final iconColor = theme.iconTheme.color;
-    final fillColor = theme.canvasColor;
-    return QuillIconButton(
-      highlightElevation: 0,
-      hoverElevation: 0,
-      size: iconSize * 1.77,
-      icon: Icon(widget.icon, size: iconSize, color: iconColor),
-      fillColor: fillColor,
-      onPressed: () {
-        final index = widget.controller.selection.baseOffset;
-        final length = widget.controller.selection.extentOffset - index;
-        Future<String?> image;
-        if (widget.imagePickImpl != null) {
-          image = widget.imagePickImpl!(widget.imageSource);
-        } else {
-          if (kIsWeb) {
-            image = _pickImageWeb();
-          } else if (Platform.isAndroid || Platform.isIOS) {
-            image = _pickImage(widget.imageSource);
-          } else {
-            image = _pickImageDesktop();
-          }
-        }
-        image.then((imageUploadUrl) => {
-              if (imageUploadUrl != null)
-                {
-                  widget.controller.replaceText(
-                      index, length, BlockEmbed.image(imageUploadUrl), null)
-                }
-            });
-      },
-    );
-  }
-}
+// class ImageButton extends StatefulWidget {
+//   final IconData icon;
+//
+//   final QuillController controller;
+//
+//   final OnImagePickCallback? onImagePickCallback;
+//
+//   //final ImagePickImpl? imagePickImpl;
+//
+//   // final ImageSource imageSource;
+//
+//   ImageButton(
+//       {Key? key,
+//       required this.icon,
+//       required this.controller,
+//       //required this.imageSource,
+//       this.onImagePickCallback,
+//       this.imagePickImpl})
+//       : super(key: key);
+//
+//   @override
+//   _ImageButtonState createState() => _ImageButtonState();
+// }
+//
+// class _ImageButtonState extends State<ImageButton> {
+//   List<PlatformFile>? _paths;
+//   String? _extension;
+//   final _picker = ImagePicker();
+//   FileType _pickingType = FileType.any;
+//
+//   Future<String?> _pickImage(ImageSource imageSource) async {
+//     final PickedFile? pickedFile = await _picker.getImage(source: imageSource);
+//     if (pickedFile == null) return null;
+//
+//     final File? file = File(pickedFile.path);
+//
+//     if (file == null || widget.onImagePickCallback == null) return null;
+//     // We simply return the absolute path to selected file.
+//     try {
+//       String? url = await widget.onImagePickCallback!(file);
+//       print('Image uploaded and its url is $url');
+//       return url;
+//     } catch (error) {
+//       print('Upload image error $error');
+//     }
+//     return null;
+//   }
+//
+//   Future<String?> _pickImageWeb() async {
+//     try {
+//       _paths = (await FilePicker.platform.pickFiles(
+//         type: _pickingType,
+//         allowMultiple: false,
+//         allowedExtensions: (_extension?.isNotEmpty ?? false)
+//             ? _extension?.replaceAll(' ', '').split(',')
+//             : null,
+//       ))
+//           ?.files;
+//     } on PlatformException catch (e) {
+//       print("Unsupported operation" + e.toString());
+//     } catch (ex) {
+//       print(ex);
+//     }
+//     var _fileName =
+//         _paths != null ? _paths!.map((e) => e.name).toString() : '...';
+//
+//     if (_paths != null) {
+//       File file = File(_fileName);
+//       //The condition is never true because File constructor never gives null.
+//       //if (file == null || widget.onImagePickCallback == null) return null;
+//       // We simply return the absolute path to selected file.
+//       try {
+//         String? url = await widget.onImagePickCallback!(file);
+//         print('Image uploaded and its url is $url');
+//         return url;
+//       } catch (error) {
+//         print('Upload image error $error');
+//       }
+//       return null;
+//     } else {
+//       // User canceled the picker
+//     }
+//     return null;
+//   }
+//
+//   Future<String?> _pickImageDesktop() async {
+//     try {
+//       var filePath = await FilesystemPicker.open(
+//         context: context,
+//         rootDirectory: await getApplicationDocumentsDirectory(),
+//         fsType: FilesystemType.file,
+//         fileTileSelectMode: FileTileSelectMode.wholeTile,
+//       );
+//       if (filePath == null || filePath.isEmpty) return null;
+//
+//       final File file = File(filePath);
+//       String? url = await widget.onImagePickCallback!(file);
+//       print('Image uploaded and its url is $url');
+//       return url;
+//     } catch (error) {
+//       print('Upload image error $error');
+//     }
+//     return null;
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final theme = Theme.of(context);
+//     final iconColor = theme.iconTheme.color;
+//     final fillColor = theme.canvasColor;
+//     return QuillIconButton(
+//       highlightElevation: 0,
+//       hoverElevation: 0,
+//       size: iconSize * 1.77,
+//       icon: Icon(widget.icon, size: iconSize, color: iconColor),
+//       fillColor: fillColor,
+//       onPressed: () {
+//         final index = widget.controller.selection.baseOffset;
+//         final length = widget.controller.selection.extentOffset - index;
+//         Future<String?> image;
+//         if (widget.imagePickImpl != null) {
+//           image = widget.imagePickImpl!(widget.imageSource);
+//         } else {
+//           if (kIsWeb) {
+//             image = _pickImageWeb();
+//           } else if (Platform.isAndroid || Platform.isIOS) {
+//             image = _pickImage(widget.imageSource);
+//           } else {
+//             image = _pickImageDesktop();
+//           }
+//         }
+//         image.then((imageUploadUrl) => {
+//               if (imageUploadUrl != null)
+//                 {
+//                   widget.controller.replaceText(
+//                       index, length, BlockEmbed.image(imageUploadUrl), null)
+//                 }
+//             });
+//       },
+//     );
+//   }
+// }
 
 class HideKeyboardButton extends StatefulWidget {
   final FocusNode focusNode;
@@ -688,143 +676,143 @@ class HideKeyboardButtonState extends State<HideKeyboardButton> {
 ///
 /// When pressed, this button displays overlay toolbar with
 /// buttons for each color.
-class ColorButton extends StatefulWidget {
-  final IconData icon;
-  final bool background;
-  final QuillController controller;
-
-  ColorButton(
-      {Key? key,
-      required this.icon,
-      required this.controller,
-      required this.background})
-      : super(key: key);
-
-  @override
-  _ColorButtonState createState() => _ColorButtonState();
-}
-
-class _ColorButtonState extends State<ColorButton> {
-  bool? _isToggledColor;
-  bool? _isToggledBackground;
-  bool? _isWhite;
-  bool? _isWhitebackground;
-
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
-
-  void _didChangeEditingValue() {
-    setState(() {
-      _isToggledColor =
-          _getIsToggledColor(widget.controller.getSelectionStyle().attributes);
-      _isToggledBackground = _getIsToggledBackground(
-          widget.controller.getSelectionStyle().attributes);
-      _isWhite = _isToggledColor! &&
-          _selectionStyle.attributes["color"]!.value == '#ffffff';
-      _isWhitebackground = _isToggledBackground! &&
-          _selectionStyle.attributes["background"]!.value == '#ffffff';
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
-    _isToggledBackground = _getIsToggledBackground(_selectionStyle.attributes);
-    _isWhite = _isToggledColor! &&
-        _selectionStyle.attributes["color"]!.value == '#ffffff';
-    _isWhitebackground = _isToggledBackground! &&
-        _selectionStyle.attributes["background"]!.value == '#ffffff';
-    widget.controller.addListener(_didChangeEditingValue);
-  }
-
-  bool _getIsToggledColor(Map<String, Attribute> attrs) {
-    return attrs.containsKey(Attribute.color.key);
-  }
-
-  bool _getIsToggledBackground(Map<String, Attribute> attrs) {
-    return attrs.containsKey(Attribute.background.key);
-  }
-
-  @override
-  void didUpdateWidget(covariant ColorButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
-      _isToggledBackground =
-          _getIsToggledBackground(_selectionStyle.attributes);
-      _isWhite = _isToggledColor! &&
-          _selectionStyle.attributes["color"]!.value == '#ffffff';
-      _isWhitebackground = _isToggledBackground! &&
-          _selectionStyle.attributes["background"]!.value == '#ffffff';
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    Color iconColor = _isToggledColor! && !widget.background && !_isWhite!
-        ? stringToColor(_selectionStyle.attributes["color"]!.value)
-        : theme.iconTheme.color!;
-
-    Color iconColorBackground =
-        _isToggledBackground! && widget.background && !_isWhitebackground!
-            ? stringToColor(_selectionStyle.attributes["background"]!.value)
-            : theme.iconTheme.color!;
-
-    Color fillColor = _isToggledColor! && !widget.background && _isWhite!
-        ? stringToColor('#ffffff')
-        : theme.canvasColor;
-    Color fillColorBackground =
-        _isToggledBackground! && widget.background && _isWhitebackground!
-            ? stringToColor('#ffffff')
-            : theme.canvasColor;
-
-    return QuillIconButton(
-      highlightElevation: 0,
-      hoverElevation: 0,
-      size: iconSize * 1.77,
-      icon: Icon(widget.icon,
-          size: iconSize,
-          color: widget.background ? iconColorBackground : iconColor),
-      fillColor: widget.background ? fillColorBackground : fillColor,
-      onPressed: _showColorPicker,
-    );
-  }
-
-  void _changeColor(Color color) {
-    String hex = color.value.toRadixString(16);
-    if (hex.startsWith('ff')) {
-      hex = hex.substring(2);
-    }
-    hex = '#$hex';
-    widget.controller.formatSelection(
-        widget.background ? BackgroundAttribute(hex) : ColorAttribute(hex));
-    Navigator.of(context).pop();
-  }
-
-  _showColorPicker() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-          title: const Text('Select Color'),
-          backgroundColor: Theme.of(context).canvasColor,
-          content: SingleChildScrollView(
-            child: MaterialPicker(
-              pickerColor: Color(0),
-              onColorChanged: _changeColor,
-            ),
-          )),
-    );
-  }
-}
+// class ColorButton extends StatefulWidget {
+//   final IconData icon;
+//   final bool background;
+//   final QuillController controller;
+//
+//   ColorButton(
+//       {Key? key,
+//       required this.icon,
+//       required this.controller,
+//       required this.background})
+//       : super(key: key);
+//
+//   @override
+//   _ColorButtonState createState() => _ColorButtonState();
+// }
+//
+// class _ColorButtonState extends State<ColorButton> {
+//   bool? _isToggledColor;
+//   bool? _isToggledBackground;
+//   bool? _isWhite;
+//   bool? _isWhitebackground;
+//
+//   Style get _selectionStyle => widget.controller.getSelectionStyle();
+//
+//   void _didChangeEditingValue() {
+//     setState(() {
+//       _isToggledColor =
+//           _getIsToggledColor(widget.controller.getSelectionStyle().attributes);
+//       _isToggledBackground = _getIsToggledBackground(
+//           widget.controller.getSelectionStyle().attributes);
+//       _isWhite = _isToggledColor! &&
+//           _selectionStyle.attributes["color"]!.value == '#ffffff';
+//       _isWhitebackground = _isToggledBackground! &&
+//           _selectionStyle.attributes["background"]!.value == '#ffffff';
+//     });
+//   }
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
+//     _isToggledBackground = _getIsToggledBackground(_selectionStyle.attributes);
+//     _isWhite = _isToggledColor! &&
+//         _selectionStyle.attributes["color"]!.value == '#ffffff';
+//     _isWhitebackground = _isToggledBackground! &&
+//         _selectionStyle.attributes["background"]!.value == '#ffffff';
+//     widget.controller.addListener(_didChangeEditingValue);
+//   }
+//
+//   bool _getIsToggledColor(Map<String, Attribute> attrs) {
+//     return attrs.containsKey(Attribute.color.key);
+//   }
+//
+//   bool _getIsToggledBackground(Map<String, Attribute> attrs) {
+//     return attrs.containsKey(Attribute.background.key);
+//   }
+//
+//   @override
+//   void didUpdateWidget(covariant ColorButton oldWidget) {
+//     super.didUpdateWidget(oldWidget);
+//     if (oldWidget.controller != widget.controller) {
+//       oldWidget.controller.removeListener(_didChangeEditingValue);
+//       widget.controller.addListener(_didChangeEditingValue);
+//       _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
+//       _isToggledBackground =
+//           _getIsToggledBackground(_selectionStyle.attributes);
+//       _isWhite = _isToggledColor! &&
+//           _selectionStyle.attributes["color"]!.value == '#ffffff';
+//       _isWhitebackground = _isToggledBackground! &&
+//           _selectionStyle.attributes["background"]!.value == '#ffffff';
+//     }
+//   }
+//
+//   @override
+//   void dispose() {
+//     widget.controller.removeListener(_didChangeEditingValue);
+//     super.dispose();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final theme = Theme.of(context);
+//     Color iconColor = _isToggledColor! && !widget.background && !_isWhite!
+//         ? stringToColor(_selectionStyle.attributes["color"]!.value)
+//         : theme.iconTheme.color!;
+//
+//     Color iconColorBackground =
+//         _isToggledBackground! && widget.background && !_isWhitebackground!
+//             ? stringToColor(_selectionStyle.attributes["background"]!.value)
+//             : theme.iconTheme.color!;
+//
+//     Color fillColor = _isToggledColor! && !widget.background && _isWhite!
+//         ? stringToColor('#ffffff')
+//         : theme.canvasColor;
+//     Color fillColorBackground =
+//         _isToggledBackground! && widget.background && _isWhitebackground!
+//             ? stringToColor('#ffffff')
+//             : theme.canvasColor;
+//
+//     return QuillIconButton(
+//       highlightElevation: 0,
+//       hoverElevation: 0,
+//       size: iconSize * 1.77,
+//       icon: Icon(widget.icon,
+//           size: iconSize,
+//           color: widget.background ? iconColorBackground : iconColor),
+//       fillColor: widget.background ? fillColorBackground : fillColor,
+//       onPressed: _showColorPicker,
+//     );
+//   }
+//
+//   void _changeColor(Color color) {
+//     String hex = color.value.toRadixString(16);
+//     if (hex.startsWith('ff')) {
+//       hex = hex.substring(2);
+//     }
+//     hex = '#$hex';
+//     widget.controller.formatSelection(
+//         widget.background ? BackgroundAttribute(hex) : ColorAttribute(hex));
+//     Navigator.of(context).pop();
+//   }
+//
+//   _showColorPicker() {
+//     showDialog(
+//       context: context,
+//       builder: (_) => AlertDialog(
+//           title: const Text('Select Color'),
+//           backgroundColor: Theme.of(context).canvasColor,
+//           content: SingleChildScrollView(
+//             child: MaterialPicker(
+//               pickerColor: Color(0),
+//               onColorChanged: _changeColor,
+//             ),
+//           )),
+//     );
+//   }
+// }
 
 class HistoryButton extends StatefulWidget {
   final IconData icon;
@@ -1012,8 +1000,7 @@ class QuillToolbar extends StatefulWidget implements PreferredSizeWidget {
       bool showIndent = true,
       bool showLink = true,
       bool showHistory = true,
-      bool showHorizontalRule = false,
-      OnImagePickCallback? onImagePickCallback}) {
+      bool showHorizontalRule = false}) {
     iconSize = toolbarIconSize;
     return QuillToolbar(key: key, children: [
       HideKeyboardButton(
@@ -1073,48 +1060,10 @@ class QuillToolbar extends StatefulWidget implements PreferredSizeWidget {
       ),
       SizedBox(width: 0.6),
       Visibility(
-        visible: showColorButton,
-        child: ColorButton(
-          icon: Icons.color_lens,
-          controller: controller,
-          background: false,
-        ),
-      ),
-      SizedBox(width: 0.6),
-      Visibility(
-        visible: showBackgroundColorButton,
-        child: ColorButton(
-          icon: Icons.format_color_fill,
-          controller: controller,
-          background: true,
-        ),
-      ),
-      SizedBox(width: 0.6),
-      Visibility(
         visible: showClearFormat,
         child: ClearFormatButton(
           icon: Icons.format_clear,
           controller: controller,
-        ),
-      ),
-      SizedBox(width: 0.6),
-      Visibility(
-        visible: onImagePickCallback != null,
-        child: ImageButton(
-          icon: Icons.image,
-          controller: controller,
-          imageSource: ImageSource.gallery,
-          onImagePickCallback: onImagePickCallback,
-        ),
-      ),
-      SizedBox(width: 0.6),
-      Visibility(
-        visible: onImagePickCallback != null,
-        child: ImageButton(
-          icon: Icons.photo_camera,
-          controller: controller,
-          imageSource: ImageSource.camera,
-          onImagePickCallback: onImagePickCallback,
         ),
       ),
       Visibility(
