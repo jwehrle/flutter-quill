@@ -49,6 +49,8 @@ const linkPrefixes = [
 ];
 
 abstract class EditorState extends State<RawEditor> {
+  ScrollController get scrollController;
+
   TextEditingValue getTextEditingValue();
 
   void setTextEditingValue(TextEditingValue value);
@@ -91,6 +93,8 @@ abstract class RenderAbstractEditor {
   void selectWord(SelectionChangedCause cause);
 
   void selectPosition(SelectionChangedCause cause);
+
+  Rect getLocalRectForCaret(TextPosition position);
 }
 
 Widget _defaultEmbedBuilder(BuildContext context, leaf.Embed node) {
@@ -896,6 +900,17 @@ class RenderEditor extends RenderEditableContainerBox
       return null;
     }
     return math.max(dy, 0.0);
+  }
+
+  @override
+  Rect getLocalRectForCaret(TextPosition position) {
+    final targetChild = childAtPosition(position);
+    final localPosition = targetChild.globalToLocalPosition(position);
+
+    final childLocalRect = targetChild.getLocalRectForCaret(localPosition);
+
+    final boxParentData = targetChild.parentData as BoxParentData;
+    return childLocalRect.shift(Offset(0, boxParentData.offset.dy));
   }
 }
 

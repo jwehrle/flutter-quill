@@ -21,6 +21,9 @@ import 'package:flutter_quill/widgets/text_block.dart';
 import 'package:flutter_quill/widgets/text_line.dart';
 import 'package:flutter_quill/widgets/text_selection.dart';
 import 'package:tuple/tuple.dart';
+import 'raw_editor/raw_editor_state_keyboard_mixin.dart';
+import 'raw_editor/raw_editor_state_selection_delegate_mixin.dart';
+import 'raw_editor/raw_editor_state_text_input_client_mixin.dart';
 
 import 'box.dart';
 import 'controller.dart';
@@ -81,7 +84,7 @@ class RawEditor extends StatefulWidget {
     required this.enableInteractiveSelection,
     this.scrollPhysics,
     required this.embedBuilder,
-  })   : assert(maxHeight > 0, 'maxHeight cannot be null'),
+  })  : assert(maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight >= minHeight, 'maxHeight cannot be null'),
         showCursor = showCursor ?? !readOnly,
@@ -97,8 +100,10 @@ class RawEditorState extends EditorState
     with
         AutomaticKeepAliveClientMixin<RawEditor>,
         WidgetsBindingObserver,
-        TickerProviderStateMixin<RawEditor>
-    implements TextSelectionDelegate, TextInputClient {
+        TickerProviderStateMixin<RawEditor>,
+        RawEditorStateKeyboardMixin,
+        RawEditorStateTextInputClientMixin,
+        RawEditorStateSelectionDelegateMixin {
   final GlobalKey _editorKey = GlobalKey();
   final List<TextEditingValue> _sentRemoteValues = [];
   TextInputConnection? _textInputConnection;
@@ -108,7 +113,7 @@ class RawEditorState extends EditorState
   EditorTextSelectionOverlay? _selectionOverlay;
   FocusAttachment? _focusAttachment;
   CursorCont? _cursorCont;
-  ScrollController? _scrollController;
+  //ScrollController? _scrollController;
   KeyboardVisibilityController? _keyboardVisibilityController;
   StreamSubscription<bool>? _keyboardVisibilitySubscription;
   KeyboardListener? _keyboardListener;
@@ -666,7 +671,7 @@ class RawEditorState extends EditorState
     widget.controller.addListener(_didChangeTextEditingValue);
 
     _scrollController = widget.scrollController ?? ScrollController();
-    _scrollController!.addListener(_updateSelectionOverlayForScroll);
+    _scrollController.addListener(_updateSelectionOverlayForScroll);
 
     _cursorCont = CursorCont(
       show: ValueNotifier<bool>(widget.showCursor),
@@ -735,9 +740,9 @@ class RawEditorState extends EditorState
 
     if (widget.scrollController != null &&
         widget.scrollController != _scrollController) {
-      _scrollController!.removeListener(_updateSelectionOverlayForScroll);
-      _scrollController = widget.scrollController;
-      _scrollController!.addListener(_updateSelectionOverlayForScroll);
+      _scrollController.removeListener(_updateSelectionOverlayForScroll);
+      _scrollController = widget.scrollController!;
+      _scrollController.addListener(_updateSelectionOverlayForScroll);
     }
 
     if (widget.focusNode != oldWidget.focusNode) {
@@ -798,59 +803,59 @@ class RawEditorState extends EditorState
     );
   }
 
-  Future<void> handleShortcut(InputShortcut shortcut) async {
-    TextSelection selection = widget.controller.selection;
-    String plainText = textEditingValue.text;
-    if (shortcut == InputShortcut.COPY) {
-      if (!selection.isCollapsed) {
-        Clipboard.setData(ClipboardData(text: selection.textInside(plainText)));
-      }
-      return;
-    }
-    if (shortcut == InputShortcut.CUT && !widget.readOnly) {
-      if (!selection.isCollapsed) {
-        final data = selection.textInside(plainText);
-        Clipboard.setData(ClipboardData(text: data));
-
-        widget.controller.replaceText(
-          selection.start,
-          data.length,
-          '',
-          TextSelection.collapsed(offset: selection.start),
-        );
-
-        textEditingValue = TextEditingValue(
-          text:
-              selection.textBefore(plainText) + selection.textAfter(plainText),
-          selection: TextSelection.collapsed(offset: selection.start),
-        );
-      }
-      return;
-    }
-    if (shortcut == InputShortcut.PASTE && !widget.readOnly) {
-      ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
-      if (data != null) {
-        widget.controller.replaceText(
-          selection.start,
-          selection.end - selection.start,
-          data.text as String,
-          TextSelection.collapsed(
-              offset: selection.start + (data.text as String).length),
-        );
-      }
-      return;
-    }
-    if (shortcut == InputShortcut.SELECT_ALL &&
-        widget.enableInteractiveSelection) {
-      widget.controller.updateSelection(
-          selection.copyWith(
-            baseOffset: 0,
-            extentOffset: textEditingValue.text.length,
-          ),
-          ChangeSource.REMOTE);
-      return;
-    }
-  }
+  // Future<void> handleShortcut(InputShortcut shortcut) async {
+  //   TextSelection selection = widget.controller.selection;
+  //   String plainText = textEditingValue.text;
+  //   if (shortcut == InputShortcut.COPY) {
+  //     if (!selection.isCollapsed) {
+  //       Clipboard.setData(ClipboardData(text: selection.textInside(plainText)));
+  //     }
+  //     return;
+  //   }
+  //   if (shortcut == InputShortcut.CUT && !widget.readOnly) {
+  //     if (!selection.isCollapsed) {
+  //       final data = selection.textInside(plainText);
+  //       Clipboard.setData(ClipboardData(text: data));
+  //
+  //       widget.controller.replaceText(
+  //         selection.start,
+  //         data.length,
+  //         '',
+  //         TextSelection.collapsed(offset: selection.start),
+  //       );
+  //
+  //       textEditingValue = TextEditingValue(
+  //         text:
+  //             selection.textBefore(plainText) + selection.textAfter(plainText),
+  //         selection: TextSelection.collapsed(offset: selection.start),
+  //       );
+  //     }
+  //     return;
+  //   }
+  //   if (shortcut == InputShortcut.PASTE && !widget.readOnly) {
+  //     ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+  //     if (data != null) {
+  //       widget.controller.replaceText(
+  //         selection.start,
+  //         selection.end - selection.start,
+  //         data.text as String,
+  //         TextSelection.collapsed(
+  //             offset: selection.start + (data.text as String).length),
+  //       );
+  //     }
+  //     return;
+  //   }
+  //   if (shortcut == InputShortcut.SELECT_ALL &&
+  //       widget.enableInteractiveSelection) {
+  //     widget.controller.updateSelection(
+  //         selection.copyWith(
+  //           baseOffset: 0,
+  //           extentOffset: textEditingValue.text.length,
+  //         ),
+  //         ChangeSource.REMOTE);
+  //     return;
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -975,16 +980,16 @@ class RawEditorState extends EditorState
       assert(viewport != null);
       final editorOffset = getRenderEditor()!
           .localToGlobal(Offset(0.0, 0.0), ancestor: viewport);
-      final offsetInViewport = _scrollController!.offset + editorOffset.dy;
+      final offsetInViewport = _scrollController.offset + editorOffset.dy;
 
       final offset = getRenderEditor()!.getOffsetToRevealCursor(
-        _scrollController!.position.viewportDimension,
-        _scrollController!.offset,
+        _scrollController.position.viewportDimension,
+        _scrollController.offset,
         offsetInViewport,
       );
 
       if (offset != null) {
-        _scrollController!.animateTo(
+        _scrollController.animateTo(
           offset,
           duration: Duration(milliseconds: 100),
           curve: Curves.fastOutSlowIn,
@@ -1004,13 +1009,17 @@ class RawEditorState extends EditorState
   }
 
   @override
+  ScrollController get scrollController => _scrollController;
+  late ScrollController _scrollController;
+
+  @override
   TextEditingValue getTextEditingValue() {
     return widget.controller.plainTextEditingValue;
   }
 
   @override
-  void hideToolbar() {
-    if (getSelectionOverlay()?.toolbar != null) {
+  void hideToolbar([bool hideHandles = true]) {
+    if (getSelectionOverlay()?.toolbar != null && hideHandles) {
       getSelectionOverlay()?.hideToolbar();
     }
   }

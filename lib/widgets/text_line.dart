@@ -774,6 +774,27 @@ class RenderEditableTextLine extends RenderEditableBox {
     );
     _cursorPainter.paint(context.canvas, effectiveOffset, position);
   }
+
+  @override
+  Rect getLocalRectForCaret(TextPosition position) {
+    final caretOffset = getOffsetForCaret(position);
+    var rect =
+        Rect.fromLTWH(0, 0, cursorWidth, cursorHeight).shift(caretOffset);
+    final cursorOffset = cursorCont.style.offset;
+    // Add additional cursor offset (generally only if on iOS).
+    if (cursorOffset != null) rect = rect.shift(cursorOffset);
+    return rect;
+  }
+
+  @override
+  TextPosition globalToLocalPosition(TextPosition position) {
+    assert(getContainer().containsOffset(position.offset),
+        'The provided text position is not in the current node');
+    return TextPosition(
+      offset: position.offset - getContainer().getDocumentOffset(),
+      affinity: position.affinity,
+    );
+  }
 }
 
 class _TextLineElement extends RenderObjectElement {
