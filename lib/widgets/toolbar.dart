@@ -504,13 +504,15 @@ class SectionControlledToolbarState extends State<SectionControlledToolbar> {
 class StyleSectionControl extends SectionControl {
   final ValueNotifier<bool> notifier;
   final QuillController controller;
+  final IconData iconData;
 
   StyleSectionControl({
     Key? key,
     required this.notifier,
     required this.controller,
+    this.iconData = Mdi.informationVariant,
   }) : super(
-          iconData: Mdi.informationVariant,
+          iconData: iconData,
           isCollapsedNotifier: notifier,
           children: [
             ToggleStyleButton(
@@ -540,13 +542,15 @@ class StyleSectionControl extends SectionControl {
 class SizeSectionControl extends SectionControl {
   final ValueNotifier<bool> notifier;
   final QuillController controller;
+  final IconData iconData;
 
   SizeSectionControl({
     Key? key,
     required this.notifier,
     required this.controller,
+    this.iconData = Icons.format_size_outlined,
   }) : super(
-          iconData: Icons.format_size_outlined,
+          iconData: iconData,
           isCollapsedNotifier: notifier,
           children: [
             SizeButton(
@@ -566,13 +570,15 @@ class SizeSectionControl extends SectionControl {
 class IndentSectionControl extends SectionControl {
   final ValueNotifier<bool> notifier;
   final QuillController controller;
+  final IconData iconData;
 
   IndentSectionControl({
     Key? key,
     required this.notifier,
     required this.controller,
+    this.iconData = Icons.format_indent_increase,
   }) : super(
-          iconData: Icons.format_indent_increase,
+          iconData: iconData,
           isCollapsedNotifier: notifier,
           children: [
             IndentButton(
@@ -592,13 +598,15 @@ class IndentSectionControl extends SectionControl {
 class ListSectionControl extends SectionControl {
   final ValueNotifier<bool> notifier;
   final QuillController controller;
+  final IconData iconData;
 
   ListSectionControl({
     Key? key,
     required this.notifier,
     required this.controller,
+    this.iconData = Mdi.viewList,
   }) : super(
-          iconData: Mdi.viewList,
+          iconData: iconData,
           isCollapsedNotifier: notifier,
           children: [
             ToggleStyleButton(
@@ -618,13 +626,15 @@ class ListSectionControl extends SectionControl {
 class BlockSectionControl extends SectionControl {
   final ValueNotifier<bool> notifier;
   final QuillController controller;
+  final IconData iconData;
 
   BlockSectionControl({
     Key? key,
     required this.notifier,
     required this.controller,
+    this.iconData = Mdi.formatSection,
   }) : super(
-          iconData: Mdi.formatSection,
+          iconData: iconData,
           isCollapsedNotifier: notifier,
           children: [
             LinkStyleButton(
