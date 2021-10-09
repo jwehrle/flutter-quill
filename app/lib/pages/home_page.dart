@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 //import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/documents/document.dart';
@@ -30,6 +30,13 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadFromAssets();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _loadFromAssets() async {
@@ -95,52 +102,72 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildWelcomeEditor(BuildContext context) {
     return SafeArea(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
         children: <Widget>[
-          Expanded(
-            flex: 15,
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-              child: QuillEditor(
-                controller: _controller!,
-                scrollController: ScrollController(),
-                scrollable: true,
-                focusNode: _focusNode,
-                autoFocus: false,
-                readOnly: false,
-                placeholder: 'Add content',
-                enableInteractiveSelection: true,
-                expands: false,
-                padding: EdgeInsets.zero,
-                customStyles: DefaultStyles(
-                  h1: DefaultTextBlockStyle(
-                      TextStyle(
-                        fontSize: 32.0,
-                        color: Colors.black,
-                        height: 1.15,
-                        fontWeight: FontWeight.w300,
-                      ),
-                      Tuple2(16.0, 0.0),
-                      Tuple2(0.0, 0.0),
-                      null),
-                  sizeSmall: TextStyle(fontSize: 9.0),
-                ),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+            child: QuillEditor(
+              controller: _controller!,
+              scrollController: ScrollController(),
+              scrollable: true,
+              focusNode: _focusNode,
+              autoFocus: false,
+              readOnly: false,
+              placeholder: 'Add content',
+              enableInteractiveSelection: true,
+              expands: false,
+              padding: EdgeInsets.zero,
+              customStyles: DefaultStyles(
+                h1: DefaultTextBlockStyle(
+                    TextStyle(
+                      fontSize: 32.0,
+                      color: Colors.black,
+                      height: 1.15,
+                      fontWeight: FontWeight.w300,
+                    ),
+                    Tuple2(16.0, 0.0),
+                    Tuple2(0.0, 0.0),
+                    null),
+                sizeSmall: TextStyle(fontSize: 9.0),
               ),
             ),
           ),
-          kIsWeb
-              ? Expanded(
-                  child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                  child: QuillToolbar.basic(
-                      controller: _controller!, focusNode: _focusNode),
-                ))
-              : Container(
-                  child: QuillToolbar.basic(
-                      controller: _controller!, focusNode: _focusNode),
-                ),
+          QuillToolbar(
+            controller: _controller!,
+            builderList: [
+              (context, notifier) {
+                return StyleSectionControl(
+                  notifier: notifier,
+                  controller: _controller!,
+                );
+              },
+              (context, notifier) {
+                return SizeSectionControl(
+                  notifier: notifier,
+                  controller: _controller!,
+                );
+              },
+              (context, notifier) {
+                return IndentSectionControl(
+                  notifier: notifier,
+                  controller: _controller!,
+                );
+              },
+              (context, notifier) {
+                return ListSectionControl(
+                  notifier: notifier,
+                  controller: _controller!,
+                );
+              },
+              (context, notifier) {
+                return BlockSectionControl(
+                  notifier: notifier,
+                  controller: _controller!,
+                );
+              }
+            ],
+          ),
         ],
       ),
     );

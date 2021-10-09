@@ -17,9 +17,40 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
         body: Column(
       children: [
-        QuillToolbar.basic(
+        QuillToolbar(
           controller: _controller,
-          focusNode: _focusNode,
+          builderList: [
+            (context, notifier) {
+              return StyleSectionControl(
+                notifier: notifier,
+                controller: _controller,
+              );
+            },
+            (context, notifier) {
+              return SizeSectionControl(
+                notifier: notifier,
+                controller: _controller,
+              );
+            },
+            (context, notifier) {
+              return IndentSectionControl(
+                notifier: notifier,
+                controller: _controller,
+              );
+            },
+            (context, notifier) {
+              return ListSectionControl(
+                notifier: notifier,
+                controller: _controller,
+              );
+            },
+            (context, notifier) {
+              return BlockSectionControl(
+                notifier: notifier,
+                controller: _controller,
+              );
+            }
+          ],
         ),
         Expanded(
           child: Container(

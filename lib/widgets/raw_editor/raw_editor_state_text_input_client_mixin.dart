@@ -31,7 +31,7 @@ mixin RawEditorStateTextInputClientMixin on EditorState
       _textInputConnection != null && _textInputConnection!.attached;
 
   /// Opens or closes input connection based on the current state of
-  /// [focusNode] and [value].
+  /// [focusNode] and [valueListenable].
   void openOrCloseConnection() {
     if (widget.focusNode.hasFocus && widget.focusNode.consumeKeyboardToken()) {
       openConnectionIfNeeded();

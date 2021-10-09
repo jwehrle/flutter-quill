@@ -1,54 +1,23 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
-import 'package:flutter_quill/models/documents/nodes/embed.dart';
 import 'package:flutter_quill/models/documents/style.dart';
+import 'package:mdi/mdi.dart';
 
 import 'controller.dart';
 
-double iconSize = 18.0;
-double kToolbarHeight = iconSize * 2;
-
-class InsertEmbedButton extends StatelessWidget {
-  final QuillController controller;
-  final IconData icon;
-
-  const InsertEmbedButton({
-    Key? key,
-    required this.controller,
-    required this.icon,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return QuillIconButton(
-      highlightElevation: 0,
-      hoverElevation: 0,
-      size: iconSize * 1.77,
-      icon: Icon(
-        icon,
-        size: iconSize,
-        color: Theme.of(context).iconTheme.color,
-      ),
-      fillColor: Theme.of(context).canvasColor,
-      onPressed: () {
-        final index = controller.selection.baseOffset;
-        final length = controller.selection.extentOffset - index;
-        controller.replaceText(index, length, BlockEmbed.horizontalRule, null);
-      },
-    );
-  }
-}
+const int _kMilliDuration = 500;
 
 class LinkStyleButton extends StatefulWidget {
   final QuillController controller;
-  final IconData? icon;
+  final IconData icon;
 
   const LinkStyleButton({
     Key? key,
     required this.controller,
-    this.icon,
+    required this.icon,
   }) : super(key: key);
 
   @override
@@ -83,20 +52,11 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isEnabled = !widget.controller.selection.isCollapsed;
     final VoidCallback? pressedHandler =
         isEnabled ? () => _openLinkDialog(context) : null;
-    return QuillIconButton(
-      highlightElevation: 0,
-      hoverElevation: 0,
-      size: iconSize * 1.77,
-      icon: Icon(
-        widget.icon ?? Icons.link,
-        size: iconSize,
-        color: isEnabled ? theme.iconTheme.color : theme.disabledColor,
-      ),
-      fillColor: Theme.of(context).canvasColor,
+    return SectionButton(
+      iconData: widget.icon,
       onPressed: pressedHandler,
     );
   }
@@ -156,29 +116,16 @@ class _LinkDialogState extends State<_LinkDialog> {
   }
 }
 
-typedef ToggleStyleButtonBuilder = Widget Function(
-  BuildContext context,
-  Attribute attribute,
-  IconData icon,
-  bool isToggled,
-  VoidCallback? onPressed,
-);
-
 class ToggleStyleButton extends StatefulWidget {
   final Attribute attribute;
-
   final IconData icon;
-
   final QuillController controller;
-
-  final ToggleStyleButtonBuilder childBuilder;
 
   ToggleStyleButton({
     Key? key,
     required this.attribute,
     required this.icon,
     required this.controller,
-    this.childBuilder = defaultToggleStyleButtonBuilder,
   }) : super(key: key);
 
   @override
@@ -186,25 +133,96 @@ class ToggleStyleButton extends StatefulWidget {
 }
 
 class _ToggleStyleButtonState extends State<ToggleStyleButton> {
-  bool? _isToggled;
-
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
-
-  void _didChangeEditingValue() {
-    setState(() {
-      _isToggled =
-          _getIsToggled(widget.controller.getSelectionStyle().attributes);
-    });
-  }
+  late final ValueNotifier<bool> _isToggled = ValueNotifier(false);
+  bool _isFormattingWhileTyping = false;
+  int? _previousCursorPos;
+  late bool _isInCodeBlock;
+  late bool _isEnabled;
 
   @override
   void initState() {
     super.initState();
-    _isToggled = _getIsToggled(_selectionStyle.attributes);
+    _isToggled.value =
+        _isCursorInFormattedSelection() || _isFormattingWhileTyping;
+    _disableIfInCodeBlock();
     widget.controller.addListener(_didChangeEditingValue);
   }
 
-  bool _getIsToggled(Map<String, Attribute> attrs) {
+  @override
+  Widget build(BuildContext context) {
+    return SectionToggleButton(
+      iconData: widget.icon,
+      valueListenable: _isToggled,
+      onChanged: _isEnabled ? _toggleAttribute : null,
+    );
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_didChangeEditingValue);
+    _isToggled.dispose();
+    super.dispose();
+  }
+
+  void _didChangeEditingValue() {
+    setState(() {
+      //Assume formatting while typing == toggle value
+      _isFormattingWhileTyping = _isToggled.value;
+      //Verify that selection is collapsed and cursor position change is no more
+      // one than character
+      _checkIfStillFormattingWhileTyping();
+      //toggle value == true iff cursor is in toggled block or user is
+      //formatting while typing
+      _isToggled.value =
+          _isCursorInFormattedSelection() || _isFormattingWhileTyping;
+      //Disable formatting if in code block
+      _disableIfInCodeBlock();
+    });
+  }
+
+  void _checkIfStillFormattingWhileTyping() {
+    int? currentPos = _collapsedCursorPos();
+    if (currentPos != null && _previousCursorPos != currentPos) {
+      if (_previousCursorPos == null) {
+        _previousCursorPos = currentPos;
+      } else {
+        int diff = 0;
+        if (currentPos < _previousCursorPos!) {
+          diff = _previousCursorPos! - currentPos;
+        } else {
+          diff = currentPos - _previousCursorPos!;
+        }
+        //if moved more than one position then not typing
+        if (diff > 1) {
+          _isFormattingWhileTyping = false;
+        } else if (_isFormattingWhileTyping) {
+          _previousCursorPos = currentPos;
+        }
+      }
+    }
+  }
+
+  void _disableIfInCodeBlock() {
+    _isInCodeBlock = widget.controller
+        .getSelectionStyle()
+        .attributes
+        .containsKey(Attribute.codeBlock.key);
+    _isEnabled =
+        !_isInCodeBlock || widget.attribute.key == Attribute.codeBlock.key;
+  }
+
+  int? _collapsedCursorPos() {
+    if (!widget.controller.selection.isValid) {
+      return null;
+    }
+    if (!widget.controller.selection.isCollapsed) {
+      return null;
+    }
+    return widget.controller.selection.extentOffset;
+  }
+
+  bool _isCursorInFormattedSelection() {
+    final attrs = widget.controller.getSelectionStyle().attributes;
     if (widget.attribute.key == Attribute.list.key) {
       Attribute? attribute = attrs[widget.attribute.key];
       if (attribute == null) {
@@ -215,678 +233,123 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
     return attrs.containsKey(widget.attribute.key);
   }
 
-  @override
-  void didUpdateWidget(covariant ToggleStyleButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      _isToggled = _getIsToggled(_selectionStyle.attributes);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isInCodeBlock =
-        _selectionStyle.attributes.containsKey(Attribute.codeBlock.key);
-    final isEnabled =
-        !isInCodeBlock || widget.attribute.key == Attribute.codeBlock.key;
-    return widget.childBuilder(context, widget.attribute, widget.icon,
-        _isToggled!, isEnabled ? _toggleAttribute : null);
-  }
-
-  _toggleAttribute() {
-    widget.controller.formatSelection(_isToggled!
-        ? Attribute.clone(widget.attribute, null)
-        : widget.attribute);
+  _toggleAttribute(bool value) {
+    setState(() {
+      _isFormattingWhileTyping = value;
+      _isToggled.value = value;
+      widget.controller.formatSelection(
+          value ? widget.attribute : Attribute.clone(widget.attribute, null));
+    });
   }
 }
 
-class ToggleCheckListButton extends StatefulWidget {
+class SizeButton extends StatefulWidget {
   final IconData icon;
-
   final QuillController controller;
+  final bool isIncrease;
 
-  final ToggleStyleButtonBuilder childBuilder;
-
-  final Attribute attribute;
-
-  ToggleCheckListButton({
-    Key? key,
-    required this.icon,
-    required this.controller,
-    this.childBuilder = defaultToggleStyleButtonBuilder,
-    required this.attribute,
-  }) : super(key: key);
-
-  @override
-  _ToggleCheckListButtonState createState() => _ToggleCheckListButtonState();
-}
-
-class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
-  bool? _isToggled;
-
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
-
-  void _didChangeEditingValue() {
-    setState(() {
-      _isToggled =
-          _getIsToggled(widget.controller.getSelectionStyle().attributes);
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _isToggled = _getIsToggled(_selectionStyle.attributes);
-    widget.controller.addListener(_didChangeEditingValue);
-  }
-
-  bool _getIsToggled(Map<String, Attribute> attrs) {
-    if (widget.attribute.key == Attribute.list.key) {
-      Attribute? attribute = attrs[widget.attribute.key];
-      if (attribute == null) {
-        return false;
-      }
-      return attribute.value == widget.attribute.value ||
-          attribute.value == Attribute.checked.value;
-    }
-    return attrs.containsKey(widget.attribute.key);
-  }
-
-  @override
-  void didUpdateWidget(covariant ToggleCheckListButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      _isToggled = _getIsToggled(_selectionStyle.attributes);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isInCodeBlock =
-        _selectionStyle.attributes.containsKey(Attribute.codeBlock.key);
-    final isEnabled =
-        !isInCodeBlock || Attribute.list.key == Attribute.codeBlock.key;
-    return widget.childBuilder(context, Attribute.unchecked, widget.icon,
-        _isToggled!, isEnabled ? _toggleAttribute : null);
-  }
-
-  _toggleAttribute() {
-    widget.controller.formatSelection(_isToggled!
-        ? Attribute.clone(Attribute.unchecked, null)
-        : Attribute.unchecked);
-  }
-}
-
-Widget defaultToggleStyleButtonBuilder(
-  BuildContext context,
-  Attribute attribute,
-  IconData icon,
-  bool isToggled,
-  VoidCallback? onPressed,
-) {
-  final theme = Theme.of(context);
-  final isEnabled = onPressed != null;
-  final iconColor = isEnabled
-      ? isToggled
-          ? theme.primaryIconTheme.color
-          : theme.iconTheme.color
-      : theme.disabledColor;
-  final fillColor = isToggled ? theme.toggleableActiveColor : theme.canvasColor;
-  return QuillIconButton(
-    highlightElevation: 0,
-    hoverElevation: 0,
-    size: iconSize * 1.77,
-    icon: Icon(icon, size: iconSize, color: iconColor),
-    fillColor: fillColor,
-    onPressed: onPressed,
-  );
-}
-
-class SelectHeaderStyleButton extends StatefulWidget {
-  final QuillController controller;
-
-  const SelectHeaderStyleButton({Key? key, required this.controller})
-      : super(key: key);
-
-  @override
-  _SelectHeaderStyleButtonState createState() =>
-      _SelectHeaderStyleButtonState();
-}
-
-class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
-  Attribute? _value;
-
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
-
-  void _didChangeEditingValue() {
-    setState(() {
-      _value =
-          _selectionStyle.attributes[Attribute.header.key] ?? Attribute.header;
-    });
-  }
-
-  void _selectAttribute(value) {
-    widget.controller.formatSelection(value);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    setState(() {
-      _value =
-          _selectionStyle.attributes[Attribute.header.key] ?? Attribute.header;
-    });
-    widget.controller.addListener(_didChangeEditingValue);
-  }
-
-  @override
-  void didUpdateWidget(covariant SelectHeaderStyleButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      _value =
-          _selectionStyle.attributes[Attribute.header.key] ?? Attribute.header;
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _selectHeadingStyleButtonBuilder(context, _value!, _selectAttribute);
-  }
-}
-
-Widget _selectHeadingStyleButtonBuilder(
-  BuildContext context,
-  Attribute value,
-  ValueChanged<Attribute> onSelected,
-) {
-  final Map<Attribute, String> _valueToText = {
-    Attribute.header: 'Normal',
-    Attribute.h1: 'Biggest',
-    Attribute.h2: 'Bigger',
-    Attribute.h3: 'Big',
-  };
-
-  return QuillOptionsButton(
-    highlightElevation: 0,
-    hoverElevation: 0,
-    height: iconSize * 1.77,
-    fillColor: Theme.of(context).canvasColor,
-    initialOption: QuillToolbarOption(
-        title: !kIsWeb
-            ? _valueToText[value]!
-            : _valueToText[value.key == "header"
-                ? Attribute.header
-                : (value.key == "h1")
-                    ? Attribute.h1
-                    : (value.key == "h2")
-                        ? Attribute.h2
-                        : Attribute.h3]!,
-        value: value),
-    description: 'Text: ',
-    items: [
-      QuillToolbarOption(
-        title: _valueToText[Attribute.header]!,
-        value: Attribute.header,
-      ),
-      QuillToolbarOption(
-        title: _valueToText[Attribute.h3]!,
-        value: Attribute.h3,
-      ),
-      QuillToolbarOption(
-        title: _valueToText[Attribute.h2]!,
-        value: Attribute.h2,
-      ),
-      QuillToolbarOption(
-        title: _valueToText[Attribute.h1]!,
-        value: Attribute.h1,
-      ),
-    ],
-    onSelected: onSelected,
-  );
-}
-
-// class ImageButton extends StatefulWidget {
-//   final IconData icon;
-//
-//   final QuillController controller;
-//
-//   final OnImagePickCallback? onImagePickCallback;
-//
-//   //final ImagePickImpl? imagePickImpl;
-//
-//   // final ImageSource imageSource;
-//
-//   ImageButton(
-//       {Key? key,
-//       required this.icon,
-//       required this.controller,
-//       //required this.imageSource,
-//       this.onImagePickCallback,
-//       this.imagePickImpl})
-//       : super(key: key);
-//
-//   @override
-//   _ImageButtonState createState() => _ImageButtonState();
-// }
-//
-// class _ImageButtonState extends State<ImageButton> {
-//   List<PlatformFile>? _paths;
-//   String? _extension;
-//   final _picker = ImagePicker();
-//   FileType _pickingType = FileType.any;
-//
-//   Future<String?> _pickImage(ImageSource imageSource) async {
-//     final PickedFile? pickedFile = await _picker.getImage(source: imageSource);
-//     if (pickedFile == null) return null;
-//
-//     final File? file = File(pickedFile.path);
-//
-//     if (file == null || widget.onImagePickCallback == null) return null;
-//     // We simply return the absolute path to selected file.
-//     try {
-//       String? url = await widget.onImagePickCallback!(file);
-//       print('Image uploaded and its url is $url');
-//       return url;
-//     } catch (error) {
-//       print('Upload image error $error');
-//     }
-//     return null;
-//   }
-//
-//   Future<String?> _pickImageWeb() async {
-//     try {
-//       _paths = (await FilePicker.platform.pickFiles(
-//         type: _pickingType,
-//         allowMultiple: false,
-//         allowedExtensions: (_extension?.isNotEmpty ?? false)
-//             ? _extension?.replaceAll(' ', '').split(',')
-//             : null,
-//       ))
-//           ?.files;
-//     } on PlatformException catch (e) {
-//       print("Unsupported operation" + e.toString());
-//     } catch (ex) {
-//       print(ex);
-//     }
-//     var _fileName =
-//         _paths != null ? _paths!.map((e) => e.name).toString() : '...';
-//
-//     if (_paths != null) {
-//       File file = File(_fileName);
-//       //The condition is never true because File constructor never gives null.
-//       //if (file == null || widget.onImagePickCallback == null) return null;
-//       // We simply return the absolute path to selected file.
-//       try {
-//         String? url = await widget.onImagePickCallback!(file);
-//         print('Image uploaded and its url is $url');
-//         return url;
-//       } catch (error) {
-//         print('Upload image error $error');
-//       }
-//       return null;
-//     } else {
-//       // User canceled the picker
-//     }
-//     return null;
-//   }
-//
-//   Future<String?> _pickImageDesktop() async {
-//     try {
-//       var filePath = await FilesystemPicker.open(
-//         context: context,
-//         rootDirectory: await getApplicationDocumentsDirectory(),
-//         fsType: FilesystemType.file,
-//         fileTileSelectMode: FileTileSelectMode.wholeTile,
-//       );
-//       if (filePath == null || filePath.isEmpty) return null;
-//
-//       final File file = File(filePath);
-//       String? url = await widget.onImagePickCallback!(file);
-//       print('Image uploaded and its url is $url');
-//       return url;
-//     } catch (error) {
-//       print('Upload image error $error');
-//     }
-//     return null;
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final theme = Theme.of(context);
-//     final iconColor = theme.iconTheme.color;
-//     final fillColor = theme.canvasColor;
-//     return QuillIconButton(
-//       highlightElevation: 0,
-//       hoverElevation: 0,
-//       size: iconSize * 1.77,
-//       icon: Icon(widget.icon, size: iconSize, color: iconColor),
-//       fillColor: fillColor,
-//       onPressed: () {
-//         final index = widget.controller.selection.baseOffset;
-//         final length = widget.controller.selection.extentOffset - index;
-//         Future<String?> image;
-//         if (widget.imagePickImpl != null) {
-//           image = widget.imagePickImpl!(widget.imageSource);
-//         } else {
-//           if (kIsWeb) {
-//             image = _pickImageWeb();
-//           } else if (Platform.isAndroid || Platform.isIOS) {
-//             image = _pickImage(widget.imageSource);
-//           } else {
-//             image = _pickImageDesktop();
-//           }
-//         }
-//         image.then((imageUploadUrl) => {
-//               if (imageUploadUrl != null)
-//                 {
-//                   widget.controller.replaceText(
-//                       index, length, BlockEmbed.image(imageUploadUrl), null)
-//                 }
-//             });
-//       },
-//     );
-//   }
-// }
-
-class HideKeyboardButton extends StatefulWidget {
-  final FocusNode focusNode;
-
-  HideKeyboardButton({
-    Key? key,
-    required this.focusNode,
-  }) : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => HideKeyboardButtonState();
-}
-
-class HideKeyboardButtonState extends State<HideKeyboardButton> {
-  late bool _isEnabled;
-
-  @override
-  void initState() {
-    super.initState();
-    _isEnabled = widget.focusNode.hasFocus;
-    widget.focusNode.addListener(_focusListener);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final iconColor = _isEnabled ? theme.iconTheme.color : theme.disabledColor;
-    final fillColor = theme.canvasColor;
-    return QuillIconButton(
-      highlightElevation: 0,
-      hoverElevation: 0,
-      size: iconSize * 1.77,
-      icon: Icon(Icons.keyboard_hide, size: iconSize, color: iconColor),
-      fillColor: fillColor,
-      onPressed: _isEnabled ? _onHide : null,
-    );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    widget.focusNode.removeListener(_focusListener);
-  }
-
-  void _onHide() {
-    widget.focusNode.unfocus();
-  }
-
-  void _focusListener() {
-    if (widget.focusNode.hasFocus) {
-      setState(() {
-        _isEnabled = true;
-      });
-    } else {
-      setState(() {
-        _isEnabled = false;
-      });
-    }
-  }
-}
-
-/// Controls color styles.
-///
-/// When pressed, this button displays overlay toolbar with
-/// buttons for each color.
-// class ColorButton extends StatefulWidget {
-//   final IconData icon;
-//   final bool background;
-//   final QuillController controller;
-//
-//   ColorButton(
-//       {Key? key,
-//       required this.icon,
-//       required this.controller,
-//       required this.background})
-//       : super(key: key);
-//
-//   @override
-//   _ColorButtonState createState() => _ColorButtonState();
-// }
-//
-// class _ColorButtonState extends State<ColorButton> {
-//   bool? _isToggledColor;
-//   bool? _isToggledBackground;
-//   bool? _isWhite;
-//   bool? _isWhitebackground;
-//
-//   Style get _selectionStyle => widget.controller.getSelectionStyle();
-//
-//   void _didChangeEditingValue() {
-//     setState(() {
-//       _isToggledColor =
-//           _getIsToggledColor(widget.controller.getSelectionStyle().attributes);
-//       _isToggledBackground = _getIsToggledBackground(
-//           widget.controller.getSelectionStyle().attributes);
-//       _isWhite = _isToggledColor! &&
-//           _selectionStyle.attributes["color"]!.value == '#ffffff';
-//       _isWhitebackground = _isToggledBackground! &&
-//           _selectionStyle.attributes["background"]!.value == '#ffffff';
-//     });
-//   }
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
-//     _isToggledBackground = _getIsToggledBackground(_selectionStyle.attributes);
-//     _isWhite = _isToggledColor! &&
-//         _selectionStyle.attributes["color"]!.value == '#ffffff';
-//     _isWhitebackground = _isToggledBackground! &&
-//         _selectionStyle.attributes["background"]!.value == '#ffffff';
-//     widget.controller.addListener(_didChangeEditingValue);
-//   }
-//
-//   bool _getIsToggledColor(Map<String, Attribute> attrs) {
-//     return attrs.containsKey(Attribute.color.key);
-//   }
-//
-//   bool _getIsToggledBackground(Map<String, Attribute> attrs) {
-//     return attrs.containsKey(Attribute.background.key);
-//   }
-//
-//   @override
-//   void didUpdateWidget(covariant ColorButton oldWidget) {
-//     super.didUpdateWidget(oldWidget);
-//     if (oldWidget.controller != widget.controller) {
-//       oldWidget.controller.removeListener(_didChangeEditingValue);
-//       widget.controller.addListener(_didChangeEditingValue);
-//       _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
-//       _isToggledBackground =
-//           _getIsToggledBackground(_selectionStyle.attributes);
-//       _isWhite = _isToggledColor! &&
-//           _selectionStyle.attributes["color"]!.value == '#ffffff';
-//       _isWhitebackground = _isToggledBackground! &&
-//           _selectionStyle.attributes["background"]!.value == '#ffffff';
-//     }
-//   }
-//
-//   @override
-//   void dispose() {
-//     widget.controller.removeListener(_didChangeEditingValue);
-//     super.dispose();
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final theme = Theme.of(context);
-//     Color iconColor = _isToggledColor! && !widget.background && !_isWhite!
-//         ? stringToColor(_selectionStyle.attributes["color"]!.value)
-//         : theme.iconTheme.color!;
-//
-//     Color iconColorBackground =
-//         _isToggledBackground! && widget.background && !_isWhitebackground!
-//             ? stringToColor(_selectionStyle.attributes["background"]!.value)
-//             : theme.iconTheme.color!;
-//
-//     Color fillColor = _isToggledColor! && !widget.background && _isWhite!
-//         ? stringToColor('#ffffff')
-//         : theme.canvasColor;
-//     Color fillColorBackground =
-//         _isToggledBackground! && widget.background && _isWhitebackground!
-//             ? stringToColor('#ffffff')
-//             : theme.canvasColor;
-//
-//     return QuillIconButton(
-//       highlightElevation: 0,
-//       hoverElevation: 0,
-//       size: iconSize * 1.77,
-//       icon: Icon(widget.icon,
-//           size: iconSize,
-//           color: widget.background ? iconColorBackground : iconColor),
-//       fillColor: widget.background ? fillColorBackground : fillColor,
-//       onPressed: _showColorPicker,
-//     );
-//   }
-//
-//   void _changeColor(Color color) {
-//     String hex = color.value.toRadixString(16);
-//     if (hex.startsWith('ff')) {
-//       hex = hex.substring(2);
-//     }
-//     hex = '#$hex';
-//     widget.controller.formatSelection(
-//         widget.background ? BackgroundAttribute(hex) : ColorAttribute(hex));
-//     Navigator.of(context).pop();
-//   }
-//
-//   _showColorPicker() {
-//     showDialog(
-//       context: context,
-//       builder: (_) => AlertDialog(
-//           title: const Text('Select Color'),
-//           backgroundColor: Theme.of(context).canvasColor,
-//           content: SingleChildScrollView(
-//             child: MaterialPicker(
-//               pickerColor: Color(0),
-//               onColorChanged: _changeColor,
-//             ),
-//           )),
-//     );
-//   }
-// }
-
-class HistoryButton extends StatefulWidget {
-  final IconData icon;
-  final bool undo;
-  final QuillController controller;
-
-  HistoryButton(
+  SizeButton(
       {Key? key,
       required this.icon,
       required this.controller,
-      required this.undo})
+      required this.isIncrease})
       : super(key: key);
 
   @override
-  _HistoryButtonState createState() => _HistoryButtonState();
+  SizeButtonState createState() => SizeButtonState();
 }
 
-class _HistoryButtonState extends State<HistoryButton> {
-  Color? _iconColor;
-  ThemeData? theme;
+class SizeButtonState extends State<SizeButton> {
+  late Attribute _value;
+
+  Style get _selectionStyle => widget.controller.getSelectionStyle();
+
+  @override
+  void initState() {
+    super.initState();
+    _value =
+        _selectionStyle.attributes[Attribute.header.key] ?? Attribute.header;
+    widget.controller.addListener(_didChangeEditingValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant SizeButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_didChangeEditingValue);
+      widget.controller.addListener(_didChangeEditingValue);
+      _value =
+          _selectionStyle.attributes[Attribute.header.key] ?? Attribute.header;
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_didChangeEditingValue);
+    super.dispose();
+  }
+
+  void _didChangeEditingValue() {
+    setState(() {
+      _value =
+          _selectionStyle.attributes[Attribute.header.key] ?? Attribute.header;
+    });
+  }
+
+  Attribute? _incrementTextSize(Attribute attribute) {
+    if (attribute == Attribute.h1) {
+      return null;
+    }
+    if (attribute == Attribute.h2) {
+      return Attribute.h1;
+    }
+    if (attribute == Attribute.h3) {
+      return Attribute.h2;
+    }
+    if (attribute == Attribute.header) {
+      return Attribute.h3;
+    }
+  }
+
+  Attribute? _decrementTextSize(Attribute attribute) {
+    if (attribute == Attribute.header) {
+      return null;
+    }
+    if (attribute == Attribute.h1) {
+      return Attribute.h2;
+    }
+    if (attribute == Attribute.h2) {
+      return Attribute.h3;
+    }
+    if (attribute == Attribute.h3) {
+      return Attribute.header;
+    }
+  }
+
+  VoidCallback? _onPressedHandler() {
+    Attribute? newSize = widget.isIncrease
+        ? _incrementTextSize(_value)
+        : _decrementTextSize(_value);
+    if (newSize == null) {
+      return null;
+    }
+    return () {
+      widget.controller.formatSelection(newSize);
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    theme = Theme.of(context);
-    _setIconColor();
-
-    final fillColor = theme!.canvasColor;
-    widget.controller.changes.listen((event) async {
-      _setIconColor();
-    });
-    return QuillIconButton(
-      highlightElevation: 0,
-      hoverElevation: 0,
-      size: iconSize * 1.77,
-      icon: Icon(widget.icon, size: iconSize, color: _iconColor),
-      fillColor: fillColor,
-      onPressed: _changeHistory,
+    return SectionButton(
+      iconData: widget.isIncrease
+          ? Mdi.formatFontSizeIncrease
+          : Mdi.formatFontSizeDecrease,
+      onPressed: _onPressedHandler(),
     );
-  }
-
-  void _setIconColor() {
-    if (!mounted) return;
-
-    if (widget.undo) {
-      setState(() {
-        _iconColor = widget.controller.hasUndo
-            ? theme!.iconTheme.color!
-            : theme!.disabledColor;
-      });
-    } else {
-      setState(() {
-        _iconColor = widget.controller.hasRedo
-            ? theme!.iconTheme.color!
-            : theme!.disabledColor;
-      });
-    }
-  }
-
-  void _changeHistory() {
-    if (widget.undo) {
-      if (widget.controller.hasUndo) {
-        widget.controller.undo();
-      }
-    } else {
-      if (widget.controller.hasRedo) {
-        widget.controller.redo();
-      }
-    }
-
-    _setIconColor();
   }
 }
 
-class IndentButton extends StatefulWidget {
+class IndentButton extends StatelessWidget {
   final IconData icon;
   final QuillController controller;
   final bool isIncrease;
@@ -899,438 +362,479 @@ class IndentButton extends StatefulWidget {
       : super(key: key);
 
   @override
-  _IndentButtonState createState() => _IndentButtonState();
-}
-
-class _IndentButtonState extends State<IndentButton> {
-  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final iconColor = theme.iconTheme.color;
-    final fillColor = theme.canvasColor;
-    return QuillIconButton(
-      highlightElevation: 0,
-      hoverElevation: 0,
-      size: iconSize * 1.77,
-      icon: Icon(widget.icon, size: iconSize, color: iconColor),
-      fillColor: fillColor,
+    return SectionButton(
+      iconData: icon,
       onPressed: () {
-        final indent = widget.controller
-            .getSelectionStyle()
-            .attributes[Attribute.indent.key];
+        final indent =
+            controller.getSelectionStyle().attributes[Attribute.indent.key];
         if (indent == null) {
-          if (widget.isIncrease) {
-            widget.controller.formatSelection(Attribute.indentL1);
+          if (isIncrease) {
+            controller.formatSelection(Attribute.indentL1);
           }
           return;
         }
-        if (indent.value == 1 && !widget.isIncrease) {
-          widget.controller
-              .formatSelection(Attribute.clone(Attribute.indentL1, null));
+        if (indent.value == 1 && !isIncrease) {
+          controller.formatSelection(Attribute.clone(Attribute.indentL1, null));
           return;
         }
-        if (widget.isIncrease) {
-          widget.controller
+        if (isIncrease) {
+          controller
               .formatSelection(Attribute.getIndentLevel(indent.value + 1));
           return;
         }
-        widget.controller
-            .formatSelection(Attribute.getIndentLevel(indent.value - 1));
+        controller.formatSelection(Attribute.getIndentLevel(indent.value - 1));
       },
     );
   }
 }
 
-class ClearFormatButton extends StatefulWidget {
-  final IconData icon;
-
+class QuillToolbar extends StatefulWidget {
   final QuillController controller;
+  final List<SectionControlBuilder> builderList;
 
-  ClearFormatButton({Key? key, required this.icon, required this.controller})
-      : super(key: key);
-
-  @override
-  _ClearFormatButtonState createState() => _ClearFormatButtonState();
-}
-
-class _ClearFormatButtonState extends State<ClearFormatButton> {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final iconColor = theme.iconTheme.color;
-    final fillColor = theme.canvasColor;
-    return QuillIconButton(
-        highlightElevation: 0,
-        hoverElevation: 0,
-        size: iconSize * 1.77,
-        icon: Icon(widget.icon, size: iconSize, color: iconColor),
-        fillColor: fillColor,
-        onPressed: () {
-          for (Attribute k
-              in widget.controller.getSelectionStyle().attributes.values) {
-            widget.controller.formatSelection(Attribute.clone(k, null));
-          }
-        });
-  }
-}
-
-class QuillToolbar extends StatefulWidget implements PreferredSizeWidget {
-  final List<Widget> children;
-
-  const QuillToolbar({Key? key, required this.children}) : super(key: key);
-
-  factory QuillToolbar.basic(
-      {Key? key,
-      required QuillController controller,
-      required FocusNode focusNode,
-      double toolbarIconSize = 18.0,
-      bool showBoldButton = true,
-      bool showItalicButton = true,
-      bool showUnderLineButton = true,
-      bool showStrikeThrough = true,
-      bool showColorButton = true,
-      bool showBackgroundColorButton = true,
-      bool showClearFormat = true,
-      bool showHeaderStyle = true,
-      bool showListNumbers = true,
-      bool showListBullets = true,
-      bool showListCheck = true,
-      bool showCodeBlock = true,
-      bool showQuote = true,
-      bool showIndent = true,
-      bool showLink = true,
-      bool showHistory = true,
-      bool showHorizontalRule = false}) {
-    iconSize = toolbarIconSize;
-    return QuillToolbar(key: key, children: [
-      HideKeyboardButton(
-        focusNode: focusNode,
-      ),
-      Visibility(
-        visible: showHistory,
-        child: HistoryButton(
-          icon: Icons.undo_outlined,
-          controller: controller,
-          undo: true,
-        ),
-      ),
-      Visibility(
-        visible: showHistory,
-        child: HistoryButton(
-          icon: Icons.redo_outlined,
-          controller: controller,
-          undo: false,
-        ),
-      ),
-      SizedBox(width: 0.6),
-      Visibility(
-        visible: showBoldButton,
-        child: ToggleStyleButton(
-          attribute: Attribute.bold,
-          icon: Icons.format_bold,
-          controller: controller,
-        ),
-      ),
-      SizedBox(width: 0.6),
-      Visibility(
-        visible: showItalicButton,
-        child: ToggleStyleButton(
-          attribute: Attribute.italic,
-          icon: Icons.format_italic,
-          controller: controller,
-        ),
-      ),
-      SizedBox(width: 0.6),
-      Visibility(
-        visible: showUnderLineButton,
-        child: ToggleStyleButton(
-          attribute: Attribute.underline,
-          icon: Icons.format_underline,
-          controller: controller,
-        ),
-      ),
-      SizedBox(width: 0.6),
-      Visibility(
-        visible: showStrikeThrough,
-        child: ToggleStyleButton(
-          attribute: Attribute.strikeThrough,
-          icon: Icons.format_strikethrough,
-          controller: controller,
-        ),
-      ),
-      SizedBox(width: 0.6),
-      Visibility(
-        visible: showClearFormat,
-        child: ClearFormatButton(
-          icon: Icons.format_clear,
-          controller: controller,
-        ),
-      ),
-      Visibility(
-          visible: showHeaderStyle,
-          child: VerticalDivider(
-              indent: 16, endIndent: 16, color: Colors.grey.shade400)),
-      Visibility(
-          visible: showHeaderStyle,
-          child: SelectHeaderStyleButton(controller: controller)),
-      VerticalDivider(indent: 16, endIndent: 16, color: Colors.grey.shade400),
-      Visibility(
-        visible: showListNumbers,
-        child: ToggleStyleButton(
-          attribute: Attribute.ol,
-          controller: controller,
-          icon: Icons.format_list_numbered,
-        ),
-      ),
-      Visibility(
-        visible: showListBullets,
-        child: ToggleStyleButton(
-          attribute: Attribute.ul,
-          controller: controller,
-          icon: Icons.format_list_bulleted,
-        ),
-      ),
-      Visibility(
-        visible: showListCheck,
-        child: ToggleCheckListButton(
-          attribute: Attribute.unchecked,
-          controller: controller,
-          icon: Icons.check_box,
-        ),
-      ),
-      Visibility(
-        visible: showCodeBlock,
-        child: ToggleStyleButton(
-          attribute: Attribute.codeBlock,
-          controller: controller,
-          icon: Icons.code,
-        ),
-      ),
-      Visibility(
-          visible: !showListNumbers &&
-              !showListBullets &&
-              !showListCheck &&
-              !showCodeBlock,
-          child: VerticalDivider(
-              indent: 16, endIndent: 16, color: Colors.grey.shade400)),
-      Visibility(
-        visible: showQuote,
-        child: ToggleStyleButton(
-          attribute: Attribute.blockQuote,
-          controller: controller,
-          icon: Icons.format_quote,
-        ),
-      ),
-      Visibility(
-        visible: showIndent,
-        child: IndentButton(
-          icon: Icons.format_indent_increase,
-          controller: controller,
-          isIncrease: true,
-        ),
-      ),
-      Visibility(
-        visible: showIndent,
-        child: IndentButton(
-          icon: Icons.format_indent_decrease,
-          controller: controller,
-          isIncrease: false,
-        ),
-      ),
-      Visibility(
-          visible: showQuote,
-          child: VerticalDivider(
-              indent: 16, endIndent: 16, color: Colors.grey.shade400)),
-      Visibility(
-          visible: showLink, child: LinkStyleButton(controller: controller)),
-      Visibility(
-        visible: showHorizontalRule,
-        child: InsertEmbedButton(
-          controller: controller,
-          icon: Icons.horizontal_rule,
-        ),
-      ),
-    ]);
-  }
+  const QuillToolbar({
+    Key? key,
+    required this.controller,
+    required this.builderList,
+  }) : super(key: key);
 
   @override
   _QuillToolbarState createState() => _QuillToolbarState();
-
-  @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }
 
 class _QuillToolbarState extends State<QuillToolbar> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8),
-      constraints: BoxConstraints.tightFor(height: widget.preferredSize.height),
-      color: Theme.of(context).canvasColor,
-      child: CustomScrollView(
-        scrollDirection: Axis.horizontal,
-        slivers: [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: widget.children,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class QuillIconButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final Widget? icon;
-  final double size;
-  final Color? fillColor;
-  final double hoverElevation;
-  final double highlightElevation;
-
-  const QuillIconButton({
-    Key? key,
-    required this.onPressed,
-    this.icon,
-    this.size = 40,
-    this.fillColor,
-    this.hoverElevation = 1,
-    this.highlightElevation = 1,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints.tightFor(width: size, height: size),
-      child: RawMaterialButton(
-        child: icon,
-        visualDensity: VisualDensity.compact,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-        padding: EdgeInsets.zero,
-        fillColor: fillColor,
-        elevation: 0,
-        hoverElevation: hoverElevation,
-        highlightElevation: hoverElevation,
-        onPressed: onPressed,
-      ),
-    );
-  }
-}
-
-class QuillOptionsButton extends StatefulWidget {
-  final double height;
-  final Color? fillColor;
-  final double hoverElevation;
-  final double highlightElevation;
-  final QuillToolbarOption initialOption;
-  final String description;
-  final List<QuillToolbarOption> items;
-  final ValueChanged<Attribute>? onSelected;
-
-  const QuillOptionsButton({
-    Key? key,
-    this.height = 40,
-    this.fillColor,
-    this.hoverElevation = 1,
-    this.highlightElevation = 1,
-    required this.initialOption,
-    required this.description,
-    required this.items,
-    required this.onSelected,
-  }) : super(key: key);
-
-  @override
-  _QuillOptionsButtonState createState() => _QuillOptionsButtonState();
-}
-
-class _QuillOptionsButtonState extends State<QuillOptionsButton> {
-  bool _showingMenu = false;
-  Attribute? _selected;
+  double _opacity = 0.0;
 
   @override
   void initState() {
+    var keyboardVisibilityController = KeyboardVisibilityController();
+    _opacity = keyboardVisibilityController.isVisible ? 1.0 : 0.0;
+    keyboardVisibilityController.onChange.listen((bool visible) {
+      _opacity = visible ? 1.0 : 0.0;
+    });
     super.initState();
-    _selected = widget.initialOption.value;
   }
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints.tightFor(height: widget.height),
-      child: RawMaterialButton(
-        child: _buildContent(context),
-        visualDensity: VisualDensity.compact,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-        padding: EdgeInsets.zero,
-        fillColor: widget.fillColor,
-        elevation: 0,
-        hoverElevation: widget.hoverElevation,
-        highlightElevation: widget.highlightElevation,
-        onPressed: _showMenu,
+    return AnimatedOpacity(
+      duration: Duration(milliseconds: _kMilliDuration),
+      opacity: _opacity,
+      child: SectionControlledToolbar(
+        builderList: widget.builderList,
       ),
-    );
-  }
-
-  void _showMenu() {
-    setState(() {
-      _showingMenu = true;
-    });
-  }
-
-  Widget _buildContent(BuildContext context) {
-    return _showingMenu ? _options() : _selection();
-  }
-
-  Widget _selection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Row(
-        children: [
-          Text(widget.description),
-          Text(widget.initialOption.title),
-        ],
-      ),
-    );
-  }
-
-  Widget _options() {
-    List<Widget> children = [Text(widget.description)];
-    widget.items.forEach((QuillToolbarOption e) {
-      children.add(GestureDetector(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: e.value == _selected!
-              ? Text(
-                  e.title,
-                  style: TextStyle(fontStyle: FontStyle.italic),
-                )
-              : Text(e.title),
-        ),
-        onTap: () {
-          if (widget.onSelected != null &&
-              e.value != widget.initialOption.value) {
-            widget.onSelected!(e.value);
-          }
-          setState(() {
-            _showingMenu = false;
-            _selected = e.value;
-          });
-        },
-      ));
-    });
-    return Container(
-      height: kToolbarHeight,
-      child: Row(mainAxisSize: MainAxisSize.min, children: children),
     );
   }
 }
 
-class QuillToolbarOption {
-  final String title;
-  final Attribute value;
+typedef SectionControlBuilder = SectionControl Function(
+    BuildContext, ValueNotifier<bool>);
 
-  QuillToolbarOption({required this.title, required this.value});
+class SectionControlledToolbar extends StatefulWidget {
+  final List<SectionControlBuilder> builderList;
+
+  const SectionControlledToolbar({
+    Key? key,
+    required this.builderList,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => SectionControlledToolbarState();
+}
+
+class SectionControlledToolbarState extends State<SectionControlledToolbar> {
+  int? _isExpanded;
+  late final List<ValueNotifier<bool>> _notifierList = [];
+  late final List<Widget> _children = [];
+
+  @override
+  void initState() {
+    for (int i = 0; i < widget.builderList.length; i++) {
+      ValueNotifier<bool> notifier = ValueNotifier<bool>(true);
+      notifier.addListener(() {
+        if (!notifier.value) {
+          _notifierListener(i);
+        }
+      });
+      _notifierList.add(notifier);
+      _children.add(widget.builderList[i](context, notifier));
+      if (i != widget.builderList.length - 1) {
+        _children.add(Padding(padding: EdgeInsets.only(right: 4.0)));
+      }
+    }
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.none,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: _children,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _notifierList.forEach((notifier) => notifier.dispose());
+    super.dispose();
+  }
+
+  void _notifierListener(int expandedIndex) {
+    _isExpanded = expandedIndex;
+    for (int i = 0; i < _notifierList.length; i++) {
+      if (i != _isExpanded) {
+        _notifierList[i].value = true;
+      }
+    }
+  }
+}
+
+class StyleSectionControl extends SectionControl {
+  final ValueNotifier<bool> notifier;
+  final QuillController controller;
+
+  StyleSectionControl({
+    Key? key,
+    required this.notifier,
+    required this.controller,
+  }) : super(
+          iconData: Mdi.informationVariant,
+          isCollapsedNotifier: notifier,
+          children: [
+            ToggleStyleButton(
+              attribute: Attribute.bold,
+              icon: Icons.format_bold,
+              controller: controller,
+            ),
+            ToggleStyleButton(
+              attribute: Attribute.italic,
+              icon: Icons.format_italic,
+              controller: controller,
+            ),
+            ToggleStyleButton(
+              attribute: Attribute.underline,
+              icon: Icons.format_underline,
+              controller: controller,
+            ),
+            ToggleStyleButton(
+              attribute: Attribute.strikeThrough,
+              icon: Icons.format_strikethrough,
+              controller: controller,
+            ),
+          ],
+        );
+}
+
+class SizeSectionControl extends SectionControl {
+  final ValueNotifier<bool> notifier;
+  final QuillController controller;
+
+  SizeSectionControl({
+    Key? key,
+    required this.notifier,
+    required this.controller,
+  }) : super(
+          iconData: Icons.format_size_outlined,
+          isCollapsedNotifier: notifier,
+          children: [
+            SizeButton(
+              icon: Mdi.formatFontSizeIncrease,
+              controller: controller,
+              isIncrease: true,
+            ),
+            SizeButton(
+              icon: Mdi.formatFontSizeDecrease,
+              controller: controller,
+              isIncrease: false,
+            ),
+          ],
+        );
+}
+
+class IndentSectionControl extends SectionControl {
+  final ValueNotifier<bool> notifier;
+  final QuillController controller;
+
+  IndentSectionControl({
+    Key? key,
+    required this.notifier,
+    required this.controller,
+  }) : super(
+          iconData: Icons.format_indent_increase,
+          isCollapsedNotifier: notifier,
+          children: [
+            IndentButton(
+              icon: Icons.arrow_back,
+              controller: controller,
+              isIncrease: false,
+            ),
+            IndentButton(
+              icon: Icons.arrow_forward,
+              controller: controller,
+              isIncrease: true,
+            ),
+          ],
+        );
+}
+
+class ListSectionControl extends SectionControl {
+  final ValueNotifier<bool> notifier;
+  final QuillController controller;
+
+  ListSectionControl({
+    Key? key,
+    required this.notifier,
+    required this.controller,
+  }) : super(
+          iconData: Mdi.viewList,
+          isCollapsedNotifier: notifier,
+          children: [
+            ToggleStyleButton(
+              attribute: Attribute.ol,
+              controller: controller,
+              icon: Icons.format_list_numbered,
+            ),
+            ToggleStyleButton(
+              attribute: Attribute.ul,
+              controller: controller,
+              icon: Icons.format_list_bulleted,
+            ),
+          ],
+        );
+}
+
+class BlockSectionControl extends SectionControl {
+  final ValueNotifier<bool> notifier;
+  final QuillController controller;
+
+  BlockSectionControl({
+    Key? key,
+    required this.notifier,
+    required this.controller,
+  }) : super(
+          iconData: Mdi.formatSection,
+          isCollapsedNotifier: notifier,
+          children: [
+            LinkStyleButton(
+              controller: controller,
+              icon: Icons.link,
+            ),
+            ToggleStyleButton(
+              attribute: Attribute.blockQuote,
+              controller: controller,
+              icon: Icons.format_quote,
+            ),
+            ToggleStyleButton(
+              attribute: Attribute.codeBlock,
+              controller: controller,
+              icon: Icons.code,
+            ),
+          ],
+        );
+}
+
+class SectionControl extends StatefulWidget {
+  final IconData iconData;
+  final ValueNotifier<bool> isCollapsedNotifier;
+  final List<Widget> children;
+
+  const SectionControl({
+    Key? key,
+    required this.iconData,
+    required this.isCollapsedNotifier,
+    required this.children,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => SectionControlState();
+}
+
+class SectionControlState extends State<SectionControl>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _expandController;
+
+  @override
+  void initState() {
+    _expandController = AnimationController(
+      vsync: this,
+      value: 0.0, //begin collapsed
+      upperBound: 1.0,
+      duration: Duration(milliseconds: _kMilliDuration),
+    );
+    widget.isCollapsedNotifier.addListener(_collapseListener);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
+    Color accentContrast = themeData.accentIconTheme.color!;
+    return PhysicalShape(
+      elevation: 4.0,
+      color: Theme.of(context).accentColor,
+      clipper: ShapeBorderClipper(
+        shape: StadiumBorder(),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GestureDetector(
+              child: Container(
+                height: 56.0,
+                width: 56.0,
+                decoration: ShapeDecoration(shape: CircleBorder()),
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: widget.isCollapsedNotifier,
+                  builder: (context, value, child) {
+                    return Container(
+                      margin: EdgeInsets.all(8.0),
+                      decoration: ShapeDecoration(
+                        shape: value
+                            ? CircleBorder()
+                            : CircleBorder(
+                                side: BorderSide(color: accentContrast),
+                              ),
+                      ),
+                      child: Icon(widget.iconData, color: accentContrast),
+                    );
+                  },
+                ),
+              ),
+              onTap: () {
+                if (_expandController.isCompleted) {
+                  widget.isCollapsedNotifier.value = true;
+                } else {
+                  widget.isCollapsedNotifier.value = false;
+                }
+              },
+            ),
+            SizeTransition(
+              axis: Axis.horizontal,
+              sizeFactor: _expandController,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: widget.children,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    widget.isCollapsedNotifier.removeListener(_collapseListener);
+    _expandController.dispose();
+    super.dispose();
+  }
+
+  void _collapseListener() {
+    if (widget.isCollapsedNotifier.value) {
+      _expandController.reverse();
+    } else {
+      _expandController.forward();
+    }
+  }
+}
+
+class SectionButton extends StatelessWidget {
+  final IconData iconData;
+  final VoidCallback? onPressed;
+
+  const SectionButton({
+    Key? key,
+    required this.iconData,
+    this.onPressed,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
+    Color _accentContrastColor = themeData.accentIconTheme.color!;
+    Color _disabledColor = _accentContrastColor.withOpacity(0.67);
+    bool isDisabled = onPressed == null;
+    return Center(
+      child: GestureDetector(
+        onTap: isDisabled ? null : () => onPressed!(),
+        child: Container(
+          height: 48.0,
+          width: 48.0,
+          margin: EdgeInsets.only(right: 8.0),
+          decoration: ShapeDecoration(
+            shape: CircleBorder(),
+          ),
+          child: Center(
+            child: Icon(
+              iconData,
+              color: isDisabled ? _disabledColor : _accentContrastColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SectionToggleButton extends StatelessWidget {
+  final ValueChanged<bool>? onChanged;
+  final ValueListenable<bool> valueListenable;
+  final IconData iconData;
+
+  const SectionToggleButton({
+    Key? key,
+    required this.onChanged,
+    required this.valueListenable,
+    required this.iconData,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
+    Color _accentColor = themeData.accentColor;
+    Color _accentContrastColor = themeData.accentIconTheme.color!;
+    Color _disabledColor = _accentContrastColor.withOpacity(0.67);
+    bool isDisabled = onChanged == null;
+    return ValueListenableBuilder<bool>(
+        valueListenable: valueListenable,
+        builder: (context, value, child) {
+          return Center(
+            child: GestureDetector(
+              onTap: isDisabled ? null : () => onChanged!(!value),
+              child: Container(
+                height: 48.0,
+                width: 48.0,
+                margin: EdgeInsets.only(right: 8.0),
+                decoration: ShapeDecoration(
+                  color: value ? _accentContrastColor : null,
+                  shape: CircleBorder(),
+                ),
+                child: Center(
+                  child: Icon(iconData,
+                      color: isDisabled
+                          ? _disabledColor
+                          : value
+                              ? _accentColor
+                              : _accentContrastColor),
+                ),
+              ),
+            ),
+          );
+        });
+  }
 }
