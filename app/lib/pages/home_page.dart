@@ -133,40 +133,43 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          QuillToolbar(
-            controller: _controller!,
-            builderList: [
-              (context, notifier) {
-                return StyleSectionControl(
-                  notifier: notifier,
-                  controller: _controller!,
-                );
-              },
-              (context, notifier) {
-                return SizeSectionControl(
-                  notifier: notifier,
-                  controller: _controller!,
-                );
-              },
-              (context, notifier) {
-                return IndentSectionControl(
-                  notifier: notifier,
-                  controller: _controller!,
-                );
-              },
-              (context, notifier) {
-                return ListSectionControl(
-                  notifier: notifier,
-                  controller: _controller!,
-                );
-              },
-              (context, notifier) {
-                return BlockSectionControl(
-                  notifier: notifier,
-                  controller: _controller!,
-                );
-              }
-            ],
+          Align(
+            alignment: Alignment.bottomRight,
+            child: QuillToolbar(
+              //controller: _controller!,
+              builderList: [
+                (context, notifier) {
+                  return StyleSectionControl(
+                    notifier: notifier,
+                    controller: _controller!,
+                  );
+                },
+                (context, notifier) {
+                  return SizeSectionControl(
+                    notifier: notifier,
+                    controller: _controller!,
+                  );
+                },
+                (context, notifier) {
+                  return IndentSectionControl(
+                    notifier: notifier,
+                    controller: _controller!,
+                  );
+                },
+                (context, notifier) {
+                  return ListSectionControl(
+                    notifier: notifier,
+                    controller: _controller!,
+                  );
+                },
+                (context, notifier) {
+                  return BlockSectionControl(
+                    notifier: notifier,
+                    controller: _controller!,
+                  );
+                }
+              ],
+            ),
           ),
         ],
       ),

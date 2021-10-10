@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
         body: Column(
       children: [
         QuillToolbar(
-          controller: _controller,
+          // controller: _controller,
           builderList: [
             (context, notifier) {
               return StyleSectionControl(

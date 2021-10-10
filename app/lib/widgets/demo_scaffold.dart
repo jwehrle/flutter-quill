@@ -95,7 +95,7 @@ class _DemoScaffoldState extends State<DemoScaffold> {
         title: _loading || widget.showToolbar == false
             ? null
             : QuillToolbar(
-                controller: _controller!,
+                // controller: _controller!,
                 builderList: [
                   (context, notifier) {
                     return StyleSectionControl(
