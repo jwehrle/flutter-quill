@@ -5,6 +5,9 @@ import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/documents/style.dart';
 import 'package:mdi/mdi.dart';
 
+import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
+
 import 'controller.dart';
 
 const int _kAnimationDuration = 500;
@@ -227,7 +230,7 @@ class StyleSectionControl extends SectionControl {
     Key? key,
     required ValueNotifier<bool> notifier,
     required QuillController controller,
-    IconData iconData = Mdi.informationVariant,
+    IconData iconData = Mdi.formatLetterCase,
     double? elevation,
     Duration? duration,
     double? diameter,
@@ -245,21 +248,25 @@ class StyleSectionControl extends SectionControl {
             AttributeToggleButton(
               attribute: Attribute.bold,
               icon: Icons.format_bold,
+              label: 'Bold',
               controller: controller,
             ),
             AttributeToggleButton(
               attribute: Attribute.italic,
               icon: Icons.format_italic,
+              label: 'Italic',
               controller: controller,
             ),
             AttributeToggleButton(
               attribute: Attribute.underline,
               icon: Icons.format_underline,
+              label: 'Underline',
               controller: controller,
             ),
             AttributeToggleButton(
               attribute: Attribute.strikeThrough,
               icon: Icons.format_strikethrough,
+              label: 'Strikethrough',
               controller: controller,
             ),
             CollapsibleSizeButton(
@@ -306,11 +313,13 @@ class BlockSectionControl extends SectionControl {
               attribute: Attribute.blockQuote,
               controller: controller,
               icon: Icons.format_quote,
+              label: 'Quote',
             ),
             AttributeToggleButton(
               attribute: Attribute.codeBlock,
               controller: controller,
               icon: Icons.code,
+              label: 'Code',
             ),
           ],
         );
@@ -318,6 +327,7 @@ class BlockSectionControl extends SectionControl {
 
 class CollapsibleButton extends StatefulWidget {
   final IconData iconData;
+  final String? label;
   final QuillController controller;
   final List<Widget> children;
   final ValueNotifier<bool> isCollapsedNotifier;
@@ -328,6 +338,7 @@ class CollapsibleButton extends StatefulWidget {
     required this.controller,
     required this.children,
     required this.isCollapsedNotifier,
+    this.label,
   }) : super(key: key);
 
   @override
@@ -357,6 +368,10 @@ class _CollapsibleButtonState extends State<CollapsibleButton>
   Widget build(BuildContext context) {
     ThemeData themeData = Theme.of(context);
     Color contrast = themeData.accentIconTheme.color!;
+    TextStyle style = themeData.textTheme.subtitle1!.copyWith(color: contrast);
+    final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
+    final double gap =
+        scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
     return Container(
       margin: EdgeInsets.only(right: _isCollapsed ? 0.0 : 4.0),
       height: _kButtonDiameter,
@@ -371,7 +386,16 @@ class _CollapsibleButtonState extends State<CollapsibleButton>
           GestureDetector(
             child: Container(
               padding: EdgeInsets.only(left: 8.0, right: 16.0),
-              child: Icon(widget.iconData, color: contrast),
+              child: widget.label != null
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(widget.iconData, color: contrast),
+                        SizedBox(width: gap),
+                        Text(widget.label!, style: style)
+                      ],
+                    )
+                  : Icon(widget.iconData, color: contrast),
             ),
             onTap: () {
               if (_expandController.isCompleted) {
@@ -432,6 +456,7 @@ class CollapsibleSizeButton extends CollapsibleButton {
           key: key,
           controller: controller,
           iconData: Icons.format_size_outlined,
+          label: 'Size',
           isCollapsedNotifier: notifier,
           children: [
             SizeButton(
@@ -458,6 +483,7 @@ class CollapsibleIndentButton extends CollapsibleButton {
           controller: controller,
           isCollapsedNotifier: notifier,
           iconData: Icons.format_indent_increase,
+          label: 'Tab',
           children: [
             IndentButton(
               icon: Icons.arrow_back,
@@ -537,8 +563,10 @@ class ExclusiveCollapsibleButton extends CollapsibleButton {
     required QuillController controller,
     required ValueNotifier<bool> notifier,
     required _ExclusiveButtonGroup exclusiveAttributeGroup,
+    String? label,
   }) : super(
           iconData: iconData,
+          label: label,
           controller: controller,
           isCollapsedNotifier: notifier,
           children: [exclusiveAttributeGroup],
@@ -552,6 +580,7 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
     required ValueNotifier<bool> notifier,
   }) : super(
             iconData: Mdi.viewList,
+            label: 'List',
             controller: controller,
             notifier: notifier,
             exclusiveAttributeGroup: _ExclusiveButtonGroup(
@@ -561,6 +590,7 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
                     attribute: Attribute.ol,
                     controller: controller,
                     icon: Icons.format_list_numbered,
+                    label: 'Numbered',
                     groupNotifier: notifier,
                     buttonDiameter: _kInnerButtonDiameter,
                   );
@@ -570,6 +600,7 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
                     attribute: Attribute.ul,
                     controller: controller,
                     icon: Icons.format_list_bulleted,
+                    label: 'Bulleted',
                     groupNotifier: notifier,
                     buttonDiameter: _kInnerButtonDiameter,
                   );
@@ -585,6 +616,7 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
 /// [IndentButton]
 class SectionButton extends StatelessWidget {
   final IconData iconData;
+  final String? label;
   final VoidCallback? onPressed;
   final double? buttonDiameter;
 
@@ -592,6 +624,7 @@ class SectionButton extends StatelessWidget {
     Key? key,
     required this.iconData,
     this.onPressed,
+    this.label,
     this.buttonDiameter = _kButtonDiameter,
   }) : super(key: key);
 
@@ -601,21 +634,34 @@ class SectionButton extends StatelessWidget {
     Color _accentContrastColor = themeData.accentIconTheme.color!;
     Color _disabledColor = _accentContrastColor.withOpacity(_kDisabledOpacity);
     bool isDisabled = onPressed == null;
+    Color color = isDisabled ? _disabledColor : _accentContrastColor;
+    TextStyle style = themeData.textTheme.subtitle1!.copyWith(color: color);
+    final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
+    final double gap =
+        scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
     return Center(
       child: GestureDetector(
         onTap: isDisabled ? null : () => onPressed!(),
         child: Container(
           height: buttonDiameter,
-          width: buttonDiameter,
           margin: EdgeInsets.only(right: 8.0),
           decoration: ShapeDecoration(
-            shape: CircleBorder(),
+            shape: StadiumBorder(),
           ),
           child: Center(
-            child: Icon(
-              iconData,
-              color: isDisabled ? _disabledColor : _accentContrastColor,
-            ),
+            child: label != null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(iconData, color: color),
+                        SizedBox(width: gap),
+                        Text(label!, style: style)
+                      ],
+                    ),
+                  )
+                : Icon(iconData, color: color),
           ),
         ),
       ),
@@ -865,6 +911,7 @@ class _LinkButtonState extends State<LinkButton> {
         isEnabled ? () => _openLinkDialog(context) : null;
     return SectionButton(
       iconData: widget.icon,
+      label: 'Link',
       onPressed: pressedHandler,
       buttonDiameter: widget.buttonDiameter,
     );
@@ -934,6 +981,7 @@ class SectionToggleButton extends StatelessWidget {
   final ValueChanged<bool>? onChanged;
   final ValueListenable<bool> valueListenable;
   final IconData iconData;
+  final String? label;
   final double? buttonDiameter;
 
   const SectionToggleButton({
@@ -941,6 +989,7 @@ class SectionToggleButton extends StatelessWidget {
     required this.onChanged,
     required this.valueListenable,
     required this.iconData,
+    this.label,
     this.buttonDiameter = _kButtonDiameter,
   }) : super(key: key);
 
@@ -951,27 +1000,43 @@ class SectionToggleButton extends StatelessWidget {
     Color _accentContrastColor = themeData.accentIconTheme.color!;
     Color _disabledColor = _accentContrastColor.withOpacity(_kDisabledOpacity);
     bool isDisabled = onChanged == null;
+    final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
+    final double gap =
+        scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
     return ValueListenableBuilder<bool>(
         valueListenable: valueListenable,
         builder: (context, value, child) {
+          Color color = isDisabled
+              ? _disabledColor
+              : value
+                  ? _accentColor
+                  : _accentContrastColor;
+          TextStyle style =
+              themeData.textTheme.subtitle1!.copyWith(color: color);
           return Center(
             child: GestureDetector(
               onTap: isDisabled ? null : () => onChanged!(!value),
               child: Container(
                 height: buttonDiameter,
-                width: buttonDiameter,
                 margin: EdgeInsets.only(right: 8.0),
                 decoration: ShapeDecoration(
                   color: value ? _accentContrastColor : null,
-                  shape: CircleBorder(),
+                  shape: StadiumBorder(),
                 ),
                 child: Center(
-                  child: Icon(iconData,
-                      color: isDisabled
-                          ? _disabledColor
-                          : value
-                              ? _accentColor
-                              : _accentContrastColor),
+                  child: label != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Icon(iconData, color: color),
+                              SizedBox(width: gap),
+                              Text(label!, style: style)
+                            ],
+                          ),
+                        )
+                      : Icon(iconData, color: color),
                 ),
               ),
             ),
@@ -987,6 +1052,7 @@ class SectionToggleButton extends StatelessWidget {
 class AttributeToggleButton extends StatefulWidget {
   final Attribute attribute;
   final IconData icon;
+  final String? label;
   final QuillController controller;
   final double? buttonDiameter;
   final ValueNotifier<bool>? groupNotifier;
@@ -998,6 +1064,7 @@ class AttributeToggleButton extends StatefulWidget {
     required this.controller,
     this.buttonDiameter = _kButtonDiameter,
     this.groupNotifier,
+    this.label,
   }) : super(key: key);
 
   @override
@@ -1028,6 +1095,7 @@ class _AttributeToggleButtonState extends State<AttributeToggleButton> {
   Widget build(BuildContext context) {
     return SectionToggleButton(
       iconData: widget.icon,
+      label: widget.label,
       valueListenable: _isToggled,
       buttonDiameter: widget.buttonDiameter,
       onChanged: _isEnabled ? _toggleAttribute : null,
