@@ -23,6 +23,42 @@ const double _kInnerButtonDiameter = 42.0;
 ///can be wrapped, for instance with feature discovery widget.
 typedef NotifierBuilder = Widget Function(BuildContext, ValueNotifier<bool>);
 
+///Copied from TextButton.icon() with asymmetric padding to make row end look right
+Widget _labelledIcon(
+  BuildContext context,
+  IconData iconData,
+  String label,
+  Color color,
+) {
+  final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
+  final double gap = scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
+  TextStyle style =
+      Theme.of(context).textTheme.subtitle1!.copyWith(color: color);
+  return Padding(
+    padding: const EdgeInsets.only(left: 8.0, right: 16.0),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Icon(iconData, color: color),
+        SizedBox(width: gap),
+        Text(label, style: style)
+      ],
+    ),
+  );
+}
+
+///Same as _labelledIcon but without a label
+Widget _unLabelledIcon(
+  BuildContext context,
+  IconData iconData,
+  Color color,
+) {
+  return Padding(
+    padding: const EdgeInsets.only(left: 8.0, right: 16.0),
+    child: Icon(iconData, color: color),
+  );
+}
+
 /// Provides a scrollable toolbar of [SelectionControl] that allows one control
 /// to be expanded at a time. Intended to be placed in a Stack above a [QuillEditor]
 /// and probably within an [Align] for positioning.
@@ -197,10 +233,13 @@ class SectionControlState extends State<SectionControl>
             SizeTransition(
               axis: Axis.horizontal,
               sizeFactor: _expandController,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: widget.children,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: widget.children,
+                ),
               ),
             ),
           ],
@@ -368,12 +407,7 @@ class _CollapsibleButtonState extends State<CollapsibleButton>
   Widget build(BuildContext context) {
     ThemeData themeData = Theme.of(context);
     Color contrast = themeData.accentIconTheme.color!;
-    TextStyle style = themeData.textTheme.subtitle1!.copyWith(color: contrast);
-    final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
-    final double gap =
-        scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
     return Container(
-      margin: EdgeInsets.only(right: _isCollapsed ? 0.0 : 4.0),
       height: _kButtonDiameter,
       decoration: ShapeDecoration(
           shape: _isCollapsed
@@ -385,18 +419,14 @@ class _CollapsibleButtonState extends State<CollapsibleButton>
         children: [
           GestureDetector(
             child: Container(
-              padding: EdgeInsets.only(left: 8.0, right: 16.0),
-              child: widget.label != null
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(widget.iconData, color: contrast),
-                        SizedBox(width: gap),
-                        Text(widget.label!, style: style)
-                      ],
-                    )
-                  : Icon(widget.iconData, color: contrast),
-            ),
+                child: widget.label != null
+                    ? _labelledIcon(
+                        context,
+                        widget.iconData,
+                        widget.label!,
+                        contrast,
+                      )
+                    : _unLabelledIcon(context, widget.iconData, contrast)),
             onTap: () {
               if (_expandController.isCompleted) {
                 _expandController.reverse();
@@ -635,34 +665,21 @@ class SectionButton extends StatelessWidget {
     Color _disabledColor = _accentContrastColor.withOpacity(_kDisabledOpacity);
     bool isDisabled = onPressed == null;
     Color color = isDisabled ? _disabledColor : _accentContrastColor;
-    TextStyle style = themeData.textTheme.subtitle1!.copyWith(color: color);
-    final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
-    final double gap =
-        scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
     return Center(
       child: GestureDetector(
         onTap: isDisabled ? null : () => onPressed!(),
         child: Container(
           height: buttonDiameter,
-          margin: EdgeInsets.only(right: 8.0),
+          //margin: EdgeInsets.only(right: 16.0),
           decoration: ShapeDecoration(
             shape: StadiumBorder(),
           ),
           child: Center(
-            child: label != null
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(iconData, color: color),
-                        SizedBox(width: gap),
-                        Text(label!, style: style)
-                      ],
-                    ),
-                  )
-                : Icon(iconData, color: color),
-          ),
+              child: label != null
+                  ? _labelledIcon(context, iconData, label!, color)
+                  : _unLabelledIcon(
+                      context, iconData, color) //Icon(iconData, color: color),
+              ),
         ),
       ),
     );
@@ -1000,9 +1017,6 @@ class SectionToggleButton extends StatelessWidget {
     Color _accentContrastColor = themeData.accentIconTheme.color!;
     Color _disabledColor = _accentContrastColor.withOpacity(_kDisabledOpacity);
     bool isDisabled = onChanged == null;
-    final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
-    final double gap =
-        scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
     return ValueListenableBuilder<bool>(
         valueListenable: valueListenable,
         builder: (context, value, child) {
@@ -1011,33 +1025,22 @@ class SectionToggleButton extends StatelessWidget {
               : value
                   ? _accentColor
                   : _accentContrastColor;
-          TextStyle style =
-              themeData.textTheme.subtitle1!.copyWith(color: color);
           return Center(
             child: GestureDetector(
               onTap: isDisabled ? null : () => onChanged!(!value),
               child: Container(
                 height: buttonDiameter,
-                margin: EdgeInsets.only(right: 8.0),
+                //margin: EdgeInsets.only(right: 8.0),
                 decoration: ShapeDecoration(
                   color: value ? _accentContrastColor : null,
                   shape: StadiumBorder(),
                 ),
                 child: Center(
-                  child: label != null
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Icon(iconData, color: color),
-                              SizedBox(width: gap),
-                              Text(label!, style: style)
-                            ],
-                          ),
-                        )
-                      : Icon(iconData, color: color),
-                ),
+                    child: label != null
+                        ? _labelledIcon(context, iconData, label!, color)
+                        : _unLabelledIcon(context, iconData,
+                            color) //Icon(iconData, color: color),
+                    ),
               ),
             ),
           );
