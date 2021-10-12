@@ -146,24 +146,6 @@ class _HomePageState extends State<HomePage> {
                     controller: _controller!,
                   );
                 },
-                // (context, notifier) {
-                //   return SizeSectionControl(
-                //     notifier: notifier,
-                //     controller: _controller!,
-                //   );
-                // },
-                // (context, notifier) {
-                //   return IndentSectionControl(
-                //     notifier: notifier,
-                //     controller: _controller!,
-                //   );
-                // },
-                // (context, notifier) {
-                //   return ListSectionControl(
-                //     notifier: notifier,
-                //     controller: _controller!,
-                //   );
-                // },
                 (context, notifier) {
                   return BlockSectionControl(
                     notifier: notifier,

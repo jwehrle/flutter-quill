@@ -14,6 +14,7 @@ const double _kToolbarPadding = 4.0;
 const double _kControlSpacing = 8.0;
 const double _kDisabledOpacity = 0.67;
 const double _kButtonDiameter = 48.0;
+const double _kInnerButtonDiameter = 42.0;
 
 ///Builder for [SectionControl]. Returns generic Widget so that so that control
 ///can be wrapped, for instance with feature discovery widget.
@@ -144,112 +145,113 @@ class StyleSectionControl extends SectionControl {
             ),
             CollapsibleSizeButton(
               controller: controller,
+              notifier: notifier,
             ),
           ],
         );
 }
 
-class SizeSectionControl extends SectionControl {
-  SizeSectionControl({
-    Key? key,
-    required ValueNotifier<bool> notifier,
-    required QuillController controller,
-    IconData iconData = Icons.format_size_outlined,
-    double? elevation,
-    Duration? duration,
-    double? diameter,
-    Color? background,
-    Color? contrast,
-  }) : super(
-          iconData: iconData,
-          isCollapsedNotifier: notifier,
-          elevation: elevation,
-          duration: duration,
-          diameter: diameter,
-          background: background,
-          contrast: contrast,
-          children: [
-            SizeButton(
-              icon: Mdi.formatFontSizeIncrease,
-              controller: controller,
-              isIncrease: true,
-            ),
-            SizeButton(
-              icon: Mdi.formatFontSizeDecrease,
-              controller: controller,
-              isIncrease: false,
-            ),
-          ],
-        );
-}
-
-class IndentSectionControl extends SectionControl {
-  IndentSectionControl({
-    Key? key,
-    required ValueNotifier<bool> notifier,
-    required QuillController controller,
-    IconData iconData = Icons.format_indent_increase,
-    double? elevation,
-    Duration? duration,
-    double? diameter,
-    Color? background,
-    Color? contrast,
-  }) : super(
-          iconData: iconData,
-          isCollapsedNotifier: notifier,
-          elevation: elevation,
-          duration: duration,
-          diameter: diameter,
-          background: background,
-          contrast: contrast,
-          children: [
-            IndentButton(
-              icon: Icons.arrow_back,
-              controller: controller,
-              isIncrease: false,
-            ),
-            IndentButton(
-              icon: Icons.arrow_forward,
-              controller: controller,
-              isIncrease: true,
-            ),
-          ],
-        );
-}
-
-class ListSectionControl extends SectionControl {
-  ListSectionControl({
-    Key? key,
-    required ValueNotifier<bool> notifier,
-    required QuillController controller,
-    IconData iconData = Mdi.viewList,
-    double? elevation,
-    Duration? duration,
-    double? diameter,
-    Color? background,
-    Color? contrast,
-  }) : super(
-          iconData: iconData,
-          isCollapsedNotifier: notifier,
-          elevation: elevation,
-          duration: duration,
-          diameter: diameter,
-          background: background,
-          contrast: contrast,
-          children: [
-            AttributeToggleButton(
-              attribute: Attribute.ol,
-              controller: controller,
-              icon: Icons.format_list_numbered,
-            ),
-            AttributeToggleButton(
-              attribute: Attribute.ul,
-              controller: controller,
-              icon: Icons.format_list_bulleted,
-            ),
-          ],
-        );
-}
+// class SizeSectionControl extends SectionControl {
+//   SizeSectionControl({
+//     Key? key,
+//     required ValueNotifier<bool> notifier,
+//     required QuillController controller,
+//     IconData iconData = Icons.format_size_outlined,
+//     double? elevation,
+//     Duration? duration,
+//     double? diameter,
+//     Color? background,
+//     Color? contrast,
+//   }) : super(
+//           iconData: iconData,
+//           isCollapsedNotifier: notifier,
+//           elevation: elevation,
+//           duration: duration,
+//           diameter: diameter,
+//           background: background,
+//           contrast: contrast,
+//           children: [
+//             SizeButton(
+//               icon: Mdi.formatFontSizeIncrease,
+//               controller: controller,
+//               isIncrease: true,
+//             ),
+//             SizeButton(
+//               icon: Mdi.formatFontSizeDecrease,
+//               controller: controller,
+//               isIncrease: false,
+//             ),
+//           ],
+//         );
+// }
+//
+// class IndentSectionControl extends SectionControl {
+//   IndentSectionControl({
+//     Key? key,
+//     required ValueNotifier<bool> notifier,
+//     required QuillController controller,
+//     IconData iconData = Icons.format_indent_increase,
+//     double? elevation,
+//     Duration? duration,
+//     double? diameter,
+//     Color? background,
+//     Color? contrast,
+//   }) : super(
+//           iconData: iconData,
+//           isCollapsedNotifier: notifier,
+//           elevation: elevation,
+//           duration: duration,
+//           diameter: diameter,
+//           background: background,
+//           contrast: contrast,
+//           children: [
+//             IndentButton(
+//               icon: Icons.arrow_back,
+//               controller: controller,
+//               isIncrease: false,
+//             ),
+//             IndentButton(
+//               icon: Icons.arrow_forward,
+//               controller: controller,
+//               isIncrease: true,
+//             ),
+//           ],
+//         );
+// }
+//
+// class ListSectionControl extends SectionControl {
+//   ListSectionControl({
+//     Key? key,
+//     required ValueNotifier<bool> notifier,
+//     required QuillController controller,
+//     IconData iconData = Mdi.viewList,
+//     double? elevation,
+//     Duration? duration,
+//     double? diameter,
+//     Color? background,
+//     Color? contrast,
+//   }) : super(
+//           iconData: iconData,
+//           isCollapsedNotifier: notifier,
+//           elevation: elevation,
+//           duration: duration,
+//           diameter: diameter,
+//           background: background,
+//           contrast: contrast,
+//           children: [
+//             AttributeToggleButton(
+//               attribute: Attribute.ol,
+//               controller: controller,
+//               icon: Icons.format_list_numbered,
+//             ),
+//             AttributeToggleButton(
+//               attribute: Attribute.ul,
+//               controller: controller,
+//               icon: Icons.format_list_bulleted,
+//             ),
+//           ],
+//         );
+// }
 
 class BlockSectionControl extends SectionControl {
   BlockSectionControl({
@@ -271,6 +273,14 @@ class BlockSectionControl extends SectionControl {
           background: background,
           contrast: contrast,
           children: [
+            CollapsibleIndentButton(
+              controller: controller,
+              notifier: notifier,
+            ),
+            ListExclusiveCollapsibleButton(
+              controller: controller,
+              notifier: notifier,
+            ),
             LinkButton(
               controller: controller,
               icon: Icons.link,
@@ -285,10 +295,6 @@ class BlockSectionControl extends SectionControl {
               controller: controller,
               icon: Icons.code,
             ),
-            CollapsibleIndentButton(controller: controller),
-            ListExclusiveCollapsibleButton(
-              controller: controller,
-            )
           ],
         );
 }
@@ -296,11 +302,8 @@ class BlockSectionControl extends SectionControl {
 /// Organizes a list of buttons by expanding and collapsing and by using a
 /// standard theme.
 /// See also:
-/// [StyleSectionControl] handles bold, italic, underline, strikethrough
-/// [SizeSectionControl] handles text size changes
-/// [IndentSectionControl] handles indentation changes
-/// [ListSectionControl] handles bulleted and numbered lists
-/// [BlockSectionControl] handles links, quote blocks, and code blocks
+/// [StyleSectionControl] handles bold, italic, underline, strikethrough, text size
+/// [BlockSectionControl] handles indents, lists, links, quote and code blocks
 class SectionControl extends StatefulWidget {
   final IconData iconData;
   final ValueNotifier<bool> isCollapsedNotifier;
@@ -419,12 +422,14 @@ class CollapsibleButton extends StatefulWidget {
   final IconData iconData;
   final QuillController controller;
   final List<Widget> children;
+  final ValueNotifier<bool> isCollapsedNotifier;
 
   CollapsibleButton({
     Key? key,
     required this.iconData,
     required this.controller,
     required this.children,
+    required this.isCollapsedNotifier,
   }) : super(key: key);
 
   @override
@@ -444,7 +449,9 @@ class CollapsibleButtonState extends State<CollapsibleButton>
       upperBound: 1.0,
       duration: Duration(milliseconds: _kAnimationDuration),
     );
+    _expandController.addListener(_animationListener);
     widget.children.add(Padding(padding: EdgeInsets.only(right: 4.0)));
+    widget.isCollapsedNotifier.addListener(_collapseListener);
     super.initState();
   }
 
@@ -468,15 +475,13 @@ class CollapsibleButtonState extends State<CollapsibleButton>
               padding: EdgeInsets.only(left: 8.0, right: 16.0),
               child: Icon(widget.iconData, color: contrast),
             ),
-            onTap: () => setState(() {
+            onTap: () {
               if (_expandController.isCompleted) {
-                _expandController.reverse().then(
-                    (value) => setState(() => _isCollapsed = !_isCollapsed));
+                _expandController.reverse();
               } else {
-                _expandController.forward().then(
-                    (value) => setState(() => _isCollapsed = !_isCollapsed));
+                _expandController.forward();
               }
-            }),
+            },
           ),
           SizeTransition(
             axis: Axis.horizontal,
@@ -494,8 +499,29 @@ class CollapsibleButtonState extends State<CollapsibleButton>
 
   @override
   void dispose() {
+    widget.isCollapsedNotifier.removeListener(_collapseListener);
+    _expandController.removeListener(_animationListener);
     _expandController.dispose();
     super.dispose();
+  }
+
+  void _collapseListener() {
+    if (widget.isCollapsedNotifier.value) {
+      _expandController.reverse();
+    }
+  }
+
+  void _animationListener() {
+    if (_expandController.isCompleted) {
+      setState(() {
+        _isCollapsed = false;
+      });
+    }
+    if (_expandController.isDismissed) {
+      setState(() {
+        _isCollapsed = true;
+      });
+    }
   }
 }
 
@@ -503,10 +529,12 @@ class CollapsibleSizeButton extends CollapsibleButton {
   CollapsibleSizeButton({
     Key? key,
     required QuillController controller,
+    required ValueNotifier<bool> notifier,
   }) : super(
           key: key,
           controller: controller,
           iconData: Icons.format_size_outlined,
+          isCollapsedNotifier: notifier,
           children: [
             SizeButton(
               icon: Mdi.formatFontSizeIncrease,
@@ -526,9 +554,11 @@ class CollapsibleIndentButton extends CollapsibleButton {
   CollapsibleIndentButton({
     Key? key,
     required QuillController controller,
+    required ValueNotifier<bool> notifier,
   }) : super(
           key: key,
           controller: controller,
+          isCollapsedNotifier: notifier,
           iconData: Icons.format_indent_increase,
           children: [
             IndentButton(
@@ -545,28 +575,28 @@ class CollapsibleIndentButton extends CollapsibleButton {
         );
 }
 
-class CollapsibleListButton extends CollapsibleButton {
-  CollapsibleListButton({
-    Key? key,
-    required QuillController controller,
-  }) : super(
-          key: key,
-          controller: controller,
-          iconData: Mdi.viewList,
-          children: [
-            AttributeToggleButton(
-              attribute: Attribute.ol,
-              controller: controller,
-              icon: Icons.format_list_numbered,
-            ),
-            AttributeToggleButton(
-              attribute: Attribute.ul,
-              controller: controller,
-              icon: Icons.format_list_bulleted,
-            ),
-          ],
-        );
-}
+// class CollapsibleListButton extends CollapsibleButton {
+//   CollapsibleListButton({
+//     Key? key,
+//     required QuillController controller,
+//   }) : super(
+//           key: key,
+//           controller: controller,
+//           iconData: Mdi.viewList,
+//           children: [
+//             AttributeToggleButton(
+//               attribute: Attribute.ol,
+//               controller: controller,
+//               icon: Icons.format_list_numbered,
+//             ),
+//             AttributeToggleButton(
+//               attribute: Attribute.ul,
+//               controller: controller,
+//               icon: Icons.format_list_bulleted,
+//             ),
+//           ],
+//         );
+// }
 
 class LinkButton extends StatefulWidget {
   final QuillController controller;
@@ -681,9 +711,11 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
   ListExclusiveCollapsibleButton({
     Key? key,
     required QuillController controller,
+    required ValueNotifier<bool> notifier,
   }) : super(
             iconData: Mdi.viewList,
             controller: controller,
+            notifier: notifier,
             exclusiveAttributeGroup: ExclusiveAttributeGroup(
               notifierBuilderList: [
                 (context, notifier) {
@@ -692,6 +724,7 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
                     controller: controller,
                     icon: Icons.format_list_numbered,
                     groupNotifier: notifier,
+                    buttonDiameter: _kInnerButtonDiameter,
                   );
                 },
                 (context, notifier) {
@@ -700,6 +733,7 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
                     controller: controller,
                     icon: Icons.format_list_bulleted,
                     groupNotifier: notifier,
+                    buttonDiameter: _kInnerButtonDiameter,
                   );
                 },
               ],
@@ -711,10 +745,12 @@ class ExclusiveCollapsibleButton extends CollapsibleButton {
     Key? key,
     required IconData iconData,
     required QuillController controller,
+    required ValueNotifier<bool> notifier,
     required ExclusiveAttributeGroup exclusiveAttributeGroup,
   }) : super(
           iconData: iconData,
           controller: controller,
+          isCollapsedNotifier: notifier,
           children: [exclusiveAttributeGroup],
         );
 }

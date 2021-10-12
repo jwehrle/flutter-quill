@@ -104,24 +104,6 @@ class _DemoScaffoldState extends State<DemoScaffold> {
                     );
                   },
                   (context, notifier) {
-                    return SizeSectionControl(
-                      notifier: notifier,
-                      controller: _controller!,
-                    );
-                  },
-                  (context, notifier) {
-                    return IndentSectionControl(
-                      notifier: notifier,
-                      controller: _controller!,
-                    );
-                  },
-                  (context, notifier) {
-                    return ListSectionControl(
-                      notifier: notifier,
-                      controller: _controller!,
-                    );
-                  },
-                  (context, notifier) {
                     return BlockSectionControl(
                       notifier: notifier,
                       controller: _controller!,
