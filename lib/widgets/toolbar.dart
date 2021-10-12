@@ -11,28 +11,29 @@ const int _kAnimationDuration = 500;
 const double _kElevation = 4.0;
 const double _kCollapsedDiameter = 56.0;
 const double _kToolbarPadding = 4.0;
-const double _kControlSpacing = 4.0;
+const double _kControlSpacing = 8.0;
 const double _kDisabledOpacity = 0.67;
 const double _kButtonDiameter = 48.0;
 
 ///Builder for [SectionControl]. Returns generic Widget so that so that control
 ///can be wrapped, for instance with feature discovery widget.
-typedef SectionControlBuilder = Widget Function(
-    BuildContext, ValueNotifier<bool>);
+typedef NotifierBuilder = Widget Function(BuildContext, ValueNotifier<bool>);
 
 /// Provides a scrollable toolbar of [SelectionControl] that allows one control
 /// to be expanded at a time. Intended to be placed in a Stack above a [QuillEditor]
 /// and probably within an [Align] for positioning.
 class QuillToolbar extends StatefulWidget {
-  final List<SectionControlBuilder> builderList;
+  final List<NotifierBuilder> notifierBuilderList;
   final double padding;
   final double spacing;
+  final KeyboardHideButton? keyboardHideButton;
 
   const QuillToolbar({
     Key? key,
-    required this.builderList,
+    required this.notifierBuilderList,
     this.padding = _kToolbarPadding,
     this.spacing = _kControlSpacing,
+    this.keyboardHideButton,
   }) : super(key: key);
 
   @override
@@ -46,7 +47,12 @@ class _QuillToolbarState extends State<QuillToolbar> {
 
   @override
   void initState() {
-    for (int i = 0; i < widget.builderList.length; i++) {
+    bool showHide = widget.keyboardHideButton != null;
+    if (showHide) {
+      _children.add(widget.keyboardHideButton!);
+      _children.add(Padding(padding: EdgeInsets.only(right: widget.spacing)));
+    }
+    for (int i = 0; i < widget.notifierBuilderList.length; i++) {
       ValueNotifier<bool> notifier = ValueNotifier<bool>(true);
       notifier.addListener(() {
         if (!notifier.value) {
@@ -54,8 +60,8 @@ class _QuillToolbarState extends State<QuillToolbar> {
         }
       });
       _notifierList.add(notifier);
-      _children.add(widget.builderList[i](context, notifier));
-      if (i != widget.builderList.length - 1) {
+      _children.add(widget.notifierBuilderList[i](context, notifier));
+      if (i != widget.notifierBuilderList.length - 1) {
         _children.add(Padding(padding: EdgeInsets.only(right: widget.spacing)));
       }
     }
@@ -66,14 +72,15 @@ class _QuillToolbarState extends State<QuillToolbar> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(widget.padding),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        clipBehavior: Clip.none,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: _children,
+      child: IntrinsicHeight(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.none,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: _children,
+          ),
         ),
       ),
     );
@@ -133,6 +140,9 @@ class StyleSectionControl extends SectionControl {
             AttributeToggleButton(
               attribute: Attribute.strikeThrough,
               icon: Icons.format_strikethrough,
+              controller: controller,
+            ),
+            CollapsibleSizeButton(
               controller: controller,
             ),
           ],
@@ -246,7 +256,7 @@ class BlockSectionControl extends SectionControl {
     Key? key,
     required ValueNotifier<bool> notifier,
     required QuillController controller,
-    IconData iconData = Mdi.formatSection,
+    IconData iconData = Mdi.text, //Mdi.formatSection,
     double? elevation,
     Duration? duration,
     double? diameter,
@@ -275,6 +285,10 @@ class BlockSectionControl extends SectionControl {
               controller: controller,
               icon: Icons.code,
             ),
+            CollapsibleIndentButton(controller: controller),
+            ListExclusiveCollapsibleButton(
+              controller: controller,
+            )
           ],
         );
 }
@@ -401,6 +415,159 @@ class SectionControlState extends State<SectionControl>
   }
 }
 
+class CollapsibleButton extends StatefulWidget {
+  final IconData iconData;
+  final QuillController controller;
+  final List<Widget> children;
+
+  CollapsibleButton({
+    Key? key,
+    required this.iconData,
+    required this.controller,
+    required this.children,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => CollapsibleButtonState();
+}
+
+class CollapsibleButtonState extends State<CollapsibleButton>
+    with SingleTickerProviderStateMixin {
+  bool _isCollapsed = true;
+  late final AnimationController _expandController;
+
+  @override
+  void initState() {
+    _expandController = AnimationController(
+      vsync: this,
+      value: 0.0, //begin collapsed
+      upperBound: 1.0,
+      duration: Duration(milliseconds: _kAnimationDuration),
+    );
+    widget.children.add(Padding(padding: EdgeInsets.only(right: 4.0)));
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
+    Color contrast = themeData.accentIconTheme.color!;
+    return Container(
+      margin: EdgeInsets.only(right: _isCollapsed ? 0.0 : 4.0),
+      height: _kButtonDiameter,
+      decoration: ShapeDecoration(
+          shape: _isCollapsed
+              ? StadiumBorder()
+              : StadiumBorder(side: BorderSide(color: contrast))),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          GestureDetector(
+            child: Container(
+              padding: EdgeInsets.only(left: 8.0, right: 16.0),
+              child: Icon(widget.iconData, color: contrast),
+            ),
+            onTap: () => setState(() {
+              if (_expandController.isCompleted) {
+                _expandController.reverse().then(
+                    (value) => setState(() => _isCollapsed = !_isCollapsed));
+              } else {
+                _expandController.forward().then(
+                    (value) => setState(() => _isCollapsed = !_isCollapsed));
+              }
+            }),
+          ),
+          SizeTransition(
+            axis: Axis.horizontal,
+            sizeFactor: _expandController,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: widget.children,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _expandController.dispose();
+    super.dispose();
+  }
+}
+
+class CollapsibleSizeButton extends CollapsibleButton {
+  CollapsibleSizeButton({
+    Key? key,
+    required QuillController controller,
+  }) : super(
+          key: key,
+          controller: controller,
+          iconData: Icons.format_size_outlined,
+          children: [
+            SizeButton(
+              icon: Mdi.formatFontSizeIncrease,
+              controller: controller,
+              isIncrease: true,
+            ),
+            SizeButton(
+              icon: Mdi.formatFontSizeDecrease,
+              controller: controller,
+              isIncrease: false,
+            ),
+          ],
+        );
+}
+
+class CollapsibleIndentButton extends CollapsibleButton {
+  CollapsibleIndentButton({
+    Key? key,
+    required QuillController controller,
+  }) : super(
+          key: key,
+          controller: controller,
+          iconData: Icons.format_indent_increase,
+          children: [
+            IndentButton(
+              icon: Icons.arrow_back,
+              controller: controller,
+              isIncrease: false,
+            ),
+            IndentButton(
+              icon: Icons.arrow_forward,
+              controller: controller,
+              isIncrease: true,
+            ),
+          ],
+        );
+}
+
+class CollapsibleListButton extends CollapsibleButton {
+  CollapsibleListButton({
+    Key? key,
+    required QuillController controller,
+  }) : super(
+          key: key,
+          controller: controller,
+          iconData: Mdi.viewList,
+          children: [
+            AttributeToggleButton(
+              attribute: Attribute.ol,
+              controller: controller,
+              icon: Icons.format_list_numbered,
+            ),
+            AttributeToggleButton(
+              attribute: Attribute.ul,
+              controller: controller,
+              icon: Icons.format_list_bulleted,
+            ),
+          ],
+        );
+}
+
 class LinkButton extends StatefulWidget {
   final QuillController controller;
   final IconData icon;
@@ -510,6 +677,105 @@ class _LinkDialogState extends State<_LinkDialog> {
   }
 }
 
+class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
+  ListExclusiveCollapsibleButton({
+    Key? key,
+    required QuillController controller,
+  }) : super(
+            iconData: Mdi.viewList,
+            controller: controller,
+            exclusiveAttributeGroup: ExclusiveAttributeGroup(
+              notifierBuilderList: [
+                (context, notifier) {
+                  return AttributeToggleButton(
+                    attribute: Attribute.ol,
+                    controller: controller,
+                    icon: Icons.format_list_numbered,
+                    groupNotifier: notifier,
+                  );
+                },
+                (context, notifier) {
+                  return AttributeToggleButton(
+                    attribute: Attribute.ul,
+                    controller: controller,
+                    icon: Icons.format_list_bulleted,
+                    groupNotifier: notifier,
+                  );
+                },
+              ],
+            ));
+}
+
+class ExclusiveCollapsibleButton extends CollapsibleButton {
+  ExclusiveCollapsibleButton({
+    Key? key,
+    required IconData iconData,
+    required QuillController controller,
+    required ExclusiveAttributeGroup exclusiveAttributeGroup,
+  }) : super(
+          iconData: iconData,
+          controller: controller,
+          children: [exclusiveAttributeGroup],
+        );
+}
+
+class ExclusiveAttributeGroup extends StatefulWidget {
+  final List<NotifierBuilder> notifierBuilderList;
+
+  const ExclusiveAttributeGroup({
+    Key? key,
+    required this.notifierBuilderList,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => ExclusiveAttributeGroupState();
+}
+
+class ExclusiveAttributeGroupState extends State<ExclusiveAttributeGroup> {
+  int? _isOn;
+  late final List<ValueNotifier<bool>> _notifierList = [];
+  late final List<Widget> _children = [];
+
+  @override
+  void initState() {
+    for (int i = 0; i < widget.notifierBuilderList.length; i++) {
+      ValueNotifier<bool> notifier = ValueNotifier<bool>(false);
+      notifier.addListener(() {
+        if (notifier.value) {
+          _notifyChildren(i);
+        }
+      });
+      _notifierList.add(notifier);
+      _children.add(widget.notifierBuilderList[i](context, notifier));
+    }
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: _children,
+    );
+  }
+
+  @override
+  void dispose() {
+    _notifierList.forEach((notifier) => notifier.dispose());
+    super.dispose();
+  }
+
+  void _notifyChildren(int isOnIndex) {
+    _isOn = isOnIndex;
+    for (int i = 0; i < _notifierList.length; i++) {
+      if (i != _isOn) {
+        _notifierList[i].value = false;
+      }
+    }
+  }
+}
+
 /// Toggles an [Attribute] on or off based on either cursor location in document
 /// or button-press.
 /// See also:
@@ -519,6 +785,7 @@ class AttributeToggleButton extends StatefulWidget {
   final IconData icon;
   final QuillController controller;
   final double? buttonDiameter;
+  final ValueNotifier<bool>? groupNotifier;
 
   AttributeToggleButton({
     Key? key,
@@ -526,6 +793,7 @@ class AttributeToggleButton extends StatefulWidget {
     required this.icon,
     required this.controller,
     this.buttonDiameter = _kButtonDiameter,
+    this.groupNotifier,
   }) : super(key: key);
 
   @override
@@ -542,6 +810,10 @@ class _AttributeToggleButtonState extends State<AttributeToggleButton> {
   @override
   void initState() {
     super.initState();
+    if (widget.groupNotifier != null) {
+      widget.groupNotifier!.addListener(_groupListener);
+      _isToggled.addListener(_toggleListener);
+    }
     _isToggled.value =
         _isCursorInFormattedSelection() || _isFormattingWhileTyping;
     _disableIfInCodeBlock();
@@ -561,8 +833,24 @@ class _AttributeToggleButtonState extends State<AttributeToggleButton> {
   @override
   void dispose() {
     widget.controller.removeListener(_didChangeEditingValue);
+    if (widget.groupNotifier != null) {
+      widget.groupNotifier!.removeListener(_groupListener);
+      _isToggled.removeListener(_toggleListener);
+    }
     _isToggled.dispose();
     super.dispose();
+  }
+
+  void _groupListener() {
+    if (!widget.groupNotifier!.value) {
+      _toggleAttribute(false);
+    }
+  }
+
+  void _toggleListener() {
+    if (_isToggled.value) {
+      widget.groupNotifier?.value = true;
+    }
   }
 
   void _didChangeEditingValue() {
@@ -753,7 +1041,7 @@ class _SizeButtonState extends State<SizeButton> {
   }
 }
 
-class IndentButton extends StatelessWidget {
+class IndentButton extends StatefulWidget {
   final IconData icon;
   final QuillController controller;
   final bool isIncrease;
@@ -768,30 +1056,96 @@ class IndentButton extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<StatefulWidget> createState() => IndentButtonState();
+}
+
+class IndentButtonState extends State<IndentButton> {
+  late Attribute? _value;
+
+  Style get _selectionStyle => widget.controller.getSelectionStyle();
+
+  @override
+  void initState() {
+    _value = _selectionStyle.attributes[Attribute.indent.key];
+    widget.controller.addListener(_didChangeEditingValue);
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant IndentButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_didChangeEditingValue);
+      widget.controller.addListener(_didChangeEditingValue);
+      _value = _selectionStyle.attributes[Attribute.indent.key];
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    bool disable = _value == null && !widget.isIncrease;
     return SectionButton(
-      iconData: icon,
-      buttonDiameter: this.buttonDiameter,
-      onPressed: () {
-        final indent =
-            controller.getSelectionStyle().attributes[Attribute.indent.key];
-        if (indent == null) {
-          if (isIncrease) {
-            controller.formatSelection(Attribute.indentL1);
-          }
-          return;
-        }
-        if (indent.value == 1 && !isIncrease) {
-          controller.formatSelection(Attribute.clone(Attribute.indentL1, null));
-          return;
-        }
-        if (isIncrease) {
-          controller
-              .formatSelection(Attribute.getIndentLevel(indent.value + 1));
-          return;
-        }
-        controller.formatSelection(Attribute.getIndentLevel(indent.value - 1));
-      },
+      iconData: widget.icon,
+      buttonDiameter: widget.buttonDiameter,
+      onPressed: disable
+          ? null
+          : () {
+              if (_value == null) {
+                if (widget.isIncrease) {
+                  widget.controller.formatSelection(Attribute.indentL1);
+                }
+                return;
+              }
+              if (_value!.value == 1 && !widget.isIncrease) {
+                widget.controller
+                    .formatSelection(Attribute.clone(Attribute.indentL1, null));
+                return;
+              }
+              if (widget.isIncrease) {
+                widget.controller.formatSelection(
+                    Attribute.getIndentLevel(_value!.value + 1));
+                return;
+              }
+              widget.controller
+                  .formatSelection(Attribute.getIndentLevel(_value!.value - 1));
+            },
+    );
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_didChangeEditingValue);
+    super.dispose();
+  }
+
+  void _didChangeEditingValue() {
+    setState(() {
+      _value = _selectionStyle.attributes[Attribute.indent.key];
+    });
+  }
+}
+
+class KeyboardHideButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  KeyboardHideButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return PhysicalShape(
+      elevation: _kElevation,
+      color: Theme.of(context).accentColor,
+      clipper: ShapeBorderClipper(shape: CircleBorder()),
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          height: _kButtonDiameter,
+          width: _kButtonDiameter,
+          child: Icon(
+            Icons.keyboard_hide,
+            color: Theme.of(context).accentIconTheme.color,
+          ),
+        ),
+      ),
     );
   }
 }

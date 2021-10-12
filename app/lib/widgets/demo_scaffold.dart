@@ -96,7 +96,7 @@ class _DemoScaffoldState extends State<DemoScaffold> {
             ? null
             : QuillToolbar(
                 // controller: _controller!,
-                builderList: [
+                notifierBuilderList: [
                   (context, notifier) {
                     return StyleSectionControl(
                       notifier: notifier,

@@ -388,11 +388,11 @@ class RenderEditableTextLine extends RenderEditableBox {
     markNeedsLayout();
   }
 
-  setLeading(RenderBox l) {
+  setLeading(RenderBox? l) {
     _leading = _updateChild(_leading, l, TextLineSlot.LEADING);
   }
 
-  setBody(RenderContentProxyBox b) {
+  setBody(RenderContentProxyBox? b) {
     _body = _updateChild(_body, b, TextLineSlot.BODY) as RenderContentProxyBox;
   }
 
@@ -407,7 +407,10 @@ class RenderEditableTextLine extends RenderEditableBox {
   }
 
   RenderBox? _updateChild(
-      RenderBox? old, RenderBox? newChild, TextLineSlot slot) {
+    RenderBox? old,
+    RenderBox? newChild,
+    TextLineSlot slot,
+  ) {
     if (old != null) {
       dropChild(old);
       children.remove(slot);
@@ -872,10 +875,11 @@ class _TextLineElement extends RenderObjectElement {
   _updateRenderObject(RenderObject? child, TextLineSlot slot) {
     switch (slot) {
       case TextLineSlot.LEADING:
-        renderObject.setLeading(child as RenderBox);
+        renderObject.setLeading(child != null ? child as RenderBox : null);
         break;
       case TextLineSlot.BODY:
-        renderObject.setBody(child as RenderContentProxyBox);
+        renderObject
+            .setBody(child != null ? child as RenderContentProxyBox : null);
         break;
       default:
         throw UnimplementedError();

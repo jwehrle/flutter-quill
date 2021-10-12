@@ -134,34 +134,36 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Align(
-            alignment: Alignment.bottomRight,
+            alignment: Alignment.bottomCenter,
             child: QuillToolbar(
-              //controller: _controller!,
-              builderList: [
+              keyboardHideButton: KeyboardHideButton(
+                onPressed: _focusNode.unfocus,
+              ),
+              notifierBuilderList: [
                 (context, notifier) {
                   return StyleSectionControl(
                     notifier: notifier,
                     controller: _controller!,
                   );
                 },
-                (context, notifier) {
-                  return SizeSectionControl(
-                    notifier: notifier,
-                    controller: _controller!,
-                  );
-                },
-                (context, notifier) {
-                  return IndentSectionControl(
-                    notifier: notifier,
-                    controller: _controller!,
-                  );
-                },
-                (context, notifier) {
-                  return ListSectionControl(
-                    notifier: notifier,
-                    controller: _controller!,
-                  );
-                },
+                // (context, notifier) {
+                //   return SizeSectionControl(
+                //     notifier: notifier,
+                //     controller: _controller!,
+                //   );
+                // },
+                // (context, notifier) {
+                //   return IndentSectionControl(
+                //     notifier: notifier,
+                //     controller: _controller!,
+                //   );
+                // },
+                // (context, notifier) {
+                //   return ListSectionControl(
+                //     notifier: notifier,
+                //     controller: _controller!,
+                //   );
+                // },
                 (context, notifier) {
                   return BlockSectionControl(
                     notifier: notifier,
