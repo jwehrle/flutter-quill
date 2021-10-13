@@ -206,6 +206,7 @@ class SectionControlState extends State<SectionControl>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               child: Container(
                 height: widget.diameter ?? _kCollapsedDiameter,
                 width: widget.diameter ?? _kCollapsedDiameter,
@@ -418,6 +419,7 @@ class _CollapsibleButtonState extends State<CollapsibleButton>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
+            behavior: HitTestBehavior.opaque,
             child: Container(
                 child: widget.label != null
                     ? _labelledIcon(
@@ -667,6 +669,7 @@ class SectionButton extends StatelessWidget {
     Color color = isDisabled ? _disabledColor : _accentContrastColor;
     return Center(
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: isDisabled ? null : () => onPressed!(),
         child: Container(
           height: buttonDiameter,
@@ -1027,6 +1030,7 @@ class SectionToggleButton extends StatelessWidget {
                   : _accentContrastColor;
           return Center(
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: isDisabled ? null : () => onChanged!(!value),
               child: Container(
                 height: buttonDiameter,
@@ -1218,6 +1222,7 @@ class KeyboardHideButton extends StatelessWidget {
       color: Theme.of(context).accentColor,
       clipper: ShapeBorderClipper(shape: CircleBorder()),
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onPressed,
         child: Container(
           height: _kButtonDiameter,
