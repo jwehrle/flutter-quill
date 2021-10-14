@@ -12,11 +12,11 @@ import 'controller.dart';
 
 const int _kAnimationDuration = 500;
 const double _kElevation = 4.0;
-const double _kCollapsedDiameter = 56.0;
+const double _kCollapsedDiameter = 48.0;
 const double _kToolbarPadding = 4.0;
 const double _kControlSpacing = 8.0;
 const double _kDisabledOpacity = 0.67;
-const double _kButtonDiameter = 48.0;
+const double _kButtonDiameter = 40.0;
 const double _kInnerButtonDiameter = 42.0;
 
 ///Builder for [SectionControl]. Returns generic Widget so that so that control
@@ -34,7 +34,7 @@ Widget _labelledIcon({
   final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
   final double gap = scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
   TextStyle style =
-      Theme.of(context).textTheme.subtitle1!.copyWith(color: color);
+      Theme.of(context).textTheme.subtitle2!.copyWith(color: color);
   return Padding(
     padding: padding ?? EdgeInsets.only(left: 8.0, right: 16.0),
     child: Row(
