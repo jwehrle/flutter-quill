@@ -24,18 +24,19 @@ const double _kInnerButtonDiameter = 42.0;
 typedef NotifierBuilder = Widget Function(BuildContext, ValueNotifier<bool>);
 
 ///Copied from TextButton.icon() with asymmetric padding to make row end look right
-Widget _labelledIcon(
-  BuildContext context,
-  IconData iconData,
-  String label,
-  Color color,
-) {
+Widget _labelledIcon({
+  required BuildContext context,
+  required IconData iconData,
+  required String label,
+  required Color color,
+  EdgeInsets? padding,
+}) {
   final double scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
   final double gap = scale <= 1 ? 8 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
   TextStyle style =
       Theme.of(context).textTheme.subtitle1!.copyWith(color: color);
   return Padding(
-    padding: const EdgeInsets.only(left: 8.0, right: 16.0),
+    padding: padding ?? EdgeInsets.only(left: 8.0, right: 16.0),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -48,13 +49,14 @@ Widget _labelledIcon(
 }
 
 ///Same as _labelledIcon but without a label
-Widget _unLabelledIcon(
-  BuildContext context,
-  IconData iconData,
-  Color color,
-) {
+Widget _unLabelledIcon({
+  required BuildContext context,
+  required IconData iconData,
+  required Color color,
+  EdgeInsets? padding,
+}) {
   return Padding(
-    padding: const EdgeInsets.only(left: 8.0, right: 16.0),
+    padding: padding ?? EdgeInsets.only(left: 8.0, right: 16.0),
     child: Icon(iconData, color: color),
   );
 }
@@ -151,6 +153,7 @@ class SectionControl extends StatefulWidget {
   final IconData iconData;
   final ValueNotifier<bool> isCollapsedNotifier;
   final List<Widget> children;
+  final String? label;
   final double? elevation;
   final Duration? duration;
   final double? diameter;
@@ -162,6 +165,7 @@ class SectionControl extends StatefulWidget {
     required this.iconData,
     required this.isCollapsedNotifier,
     required this.children,
+    this.label,
     this.elevation,
     this.duration,
     this.diameter,
@@ -209,21 +213,35 @@ class SectionControlState extends State<SectionControl>
               behavior: HitTestBehavior.opaque,
               child: Container(
                 height: widget.diameter ?? _kCollapsedDiameter,
-                width: widget.diameter ?? _kCollapsedDiameter,
                 decoration: ShapeDecoration(shape: CircleBorder()),
                 child: ValueListenableBuilder<bool>(
                   valueListenable: widget.isCollapsedNotifier,
                   builder: (context, value, child) {
                     return Container(
-                      margin: EdgeInsets.all(8.0),
+                      margin: EdgeInsets.all(4.0),
                       decoration: ShapeDecoration(
                         shape: value
-                            ? CircleBorder()
-                            : CircleBorder(
+                            ? StadiumBorder()
+                            : StadiumBorder(
                                 side: BorderSide(color: contrast),
                               ),
                       ),
-                      child: Icon(widget.iconData, color: contrast),
+                      child: Center(
+                        child: widget.label != null
+                            ? _labelledIcon(
+                                context: context,
+                                iconData: widget.iconData,
+                                label: widget.label!,
+                                color: contrast,
+                                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                              )
+                            : _unLabelledIcon(
+                                context: context,
+                                iconData: widget.iconData,
+                                color: contrast,
+                                padding: EdgeInsets.symmetric(horizontal: 12.0),
+                              ),
+                      ),
                     );
                   },
                 ),
@@ -278,6 +296,7 @@ class StyleSectionControl extends SectionControl {
     Color? contrast,
   }) : super(
           iconData: iconData,
+          label: 'Text',
           isCollapsedNotifier: notifier,
           elevation: elevation,
           duration: duration,
@@ -330,6 +349,7 @@ class BlockSectionControl extends SectionControl {
     Color? contrast,
   }) : super(
           iconData: iconData,
+          label: 'Block',
           isCollapsedNotifier: notifier,
           elevation: elevation,
           duration: duration,
@@ -421,14 +441,19 @@ class _CollapsibleButtonState extends State<CollapsibleButton>
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             child: Container(
-                child: widget.label != null
-                    ? _labelledIcon(
-                        context,
-                        widget.iconData,
-                        widget.label!,
-                        contrast,
-                      )
-                    : _unLabelledIcon(context, widget.iconData, contrast)),
+              child: widget.label != null
+                  ? _labelledIcon(
+                      context: context,
+                      iconData: widget.iconData,
+                      label: widget.label!,
+                      color: contrast,
+                    )
+                  : _unLabelledIcon(
+                      context: context,
+                      iconData: widget.iconData,
+                      color: contrast,
+                    ),
+            ),
             onTap: () {
               if (_expandController.isCompleted) {
                 _expandController.reverse();
@@ -679,9 +704,17 @@ class SectionButton extends StatelessWidget {
           ),
           child: Center(
               child: label != null
-                  ? _labelledIcon(context, iconData, label!, color)
+                  ? _labelledIcon(
+                      context: context,
+                      iconData: iconData,
+                      label: label!,
+                      color: color,
+                    )
                   : _unLabelledIcon(
-                      context, iconData, color) //Icon(iconData, color: color),
+                      context: context,
+                      iconData: iconData,
+                      color: color,
+                    ) //Icon(iconData, color: color),
               ),
         ),
       ),
@@ -1041,10 +1074,17 @@ class SectionToggleButton extends StatelessWidget {
                 ),
                 child: Center(
                     child: label != null
-                        ? _labelledIcon(context, iconData, label!, color)
-                        : _unLabelledIcon(context, iconData,
-                            color) //Icon(iconData, color: color),
-                    ),
+                        ? _labelledIcon(
+                            context: context,
+                            iconData: iconData,
+                            label: label!,
+                            color: color,
+                          )
+                        : _unLabelledIcon(
+                            context: context,
+                            iconData: iconData,
+                            color: color,
+                          )),
               ),
             ),
           );
