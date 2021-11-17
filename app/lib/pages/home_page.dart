@@ -112,6 +112,8 @@ class _HomePageState extends State<HomePage> {
               scrollController: ScrollController(),
               scrollable: true,
               focusNode: _focusNode,
+              // cursorColor: Colors.lightGreenAccent,
+              // selectionColor: Colors.deepOrangeAccent,
               autoFocus: false,
               readOnly: false,
               placeholder: 'Add content',

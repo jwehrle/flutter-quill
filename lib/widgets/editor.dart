@@ -163,6 +163,8 @@ class QuillEditor extends StatefulWidget {
   final ScrollPhysics? scrollPhysics;
   final ValueChanged<String>? onLaunchUrl;
   final EmbedBuilder? embedBuilder;
+  Color? cursorColor;
+  Color? selectionColor;
 
   QuillEditor(
       {required this.controller,
@@ -172,6 +174,8 @@ class QuillEditor extends StatefulWidget {
       required this.padding,
       required this.autoFocus,
       this.showCursor,
+      this.cursorColor,
+      this.selectionColor,
       required this.readOnly,
       this.placeholder,
       this.enableInteractiveSelection = true,
@@ -237,8 +241,11 @@ class _QuillEditorState extends State<QuillEditor>
         textSelectionControls = materialTextSelectionControls;
         paintCursorAboveText = false;
         cursorOpacityAnimates = false;
-        cursorColor ??= selectionTheme.cursorColor ?? theme.colorScheme.primary;
-        selectionColor = selectionTheme.selectionColor ??
+        cursorColor ??= widget.cursorColor ??
+            selectionTheme.cursorColor ??
+            theme.colorScheme.primary;
+        selectionColor = widget.selectionColor ??
+            selectionTheme.selectionColor ??
             theme.colorScheme.primary.withOpacity(0.40);
         break;
       case TargetPlatform.iOS:
@@ -247,9 +254,11 @@ class _QuillEditorState extends State<QuillEditor>
         textSelectionControls = cupertinoTextSelectionControls;
         paintCursorAboveText = true;
         cursorOpacityAnimates = true;
-        cursorColor ??=
-            selectionTheme.cursorColor ?? cupertinoTheme.primaryColor;
-        selectionColor = selectionTheme.selectionColor ??
+        cursorColor ??= widget.cursorColor ??
+            selectionTheme.cursorColor ??
+            cupertinoTheme.primaryColor;
+        selectionColor = widget.selectionColor ??
+            selectionTheme.selectionColor ??
             cupertinoTheme.primaryColor.withOpacity(0.40);
         cursorRadius ??= const Radius.circular(2.0);
         cursorOffset = Offset(
