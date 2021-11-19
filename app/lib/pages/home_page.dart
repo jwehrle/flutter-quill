@@ -146,12 +146,16 @@ class _HomePageState extends State<HomePage> {
                   return StyleSectionControl(
                     notifier: notifier,
                     controller: _controller!,
+                    secondary: Colors.grey.shade700,
+                    primary: Colors.lightGreenAccent,
                   );
                 },
                 (context, notifier) {
                   return BlockSectionControl(
                     notifier: notifier,
                     controller: _controller!,
+                    secondary: Colors.grey.shade700,
+                    primary: Colors.lightGreenAccent,
                   );
                 }
               ],

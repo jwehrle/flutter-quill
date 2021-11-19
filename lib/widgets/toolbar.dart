@@ -157,8 +157,8 @@ class SectionControl extends StatefulWidget {
   final double? elevation;
   final Duration? duration;
   final double? diameter;
-  final Color? background;
-  final Color? contrast;
+  final Color? secondary;
+  final Color? primary;
 
   const SectionControl({
     Key? key,
@@ -169,8 +169,8 @@ class SectionControl extends StatefulWidget {
     this.elevation,
     this.duration,
     this.diameter,
-    this.background,
-    this.contrast,
+    this.secondary,
+    this.primary,
   }) : super(key: key);
 
   @override
@@ -196,8 +196,8 @@ class SectionControlState extends State<SectionControl>
   @override
   Widget build(BuildContext context) {
     ThemeData themeData = Theme.of(context);
-    Color background = widget.background ?? themeData.accentColor;
-    Color contrast = widget.contrast ?? themeData.accentIconTheme.color!;
+    Color background = widget.secondary ?? themeData.accentColor;
+    Color contrast = widget.primary ?? themeData.accentIconTheme.color!;
     return PhysicalShape(
       elevation: widget.elevation ?? _kElevation,
       color: background,
@@ -292,8 +292,8 @@ class StyleSectionControl extends SectionControl {
     double? elevation,
     Duration? duration = const Duration(milliseconds: 2 * _kAnimationDuration),
     double? diameter,
-    Color? background,
-    Color? contrast,
+    Color? secondary,
+    Color? primary,
   }) : super(
           iconData: iconData,
           label: 'Text',
@@ -301,36 +301,45 @@ class StyleSectionControl extends SectionControl {
           elevation: elevation,
           duration: duration,
           diameter: diameter,
-          background: background,
-          contrast: contrast,
+          secondary: secondary,
+          primary: primary,
           children: [
             AttributeToggleButton(
               attribute: Attribute.bold,
               icon: Icons.format_bold,
               label: 'Bold',
               controller: controller,
+              primary: secondary,
+              secondary: primary,
             ),
             AttributeToggleButton(
               attribute: Attribute.italic,
               icon: Icons.format_italic,
               label: 'Italic',
               controller: controller,
+              primary: secondary,
+              secondary: primary,
             ),
             AttributeToggleButton(
               attribute: Attribute.underline,
               icon: Icons.format_underline,
               label: 'Underline',
               controller: controller,
+              primary: secondary,
+              secondary: primary,
             ),
             AttributeToggleButton(
               attribute: Attribute.strikeThrough,
               icon: Icons.format_strikethrough,
               label: 'Strikethrough',
               controller: controller,
+              primary: secondary,
+              secondary: primary,
             ),
             CollapsibleSizeButton(
               controller: controller,
               notifier: notifier,
+              foreground: primary,
             ),
           ],
         );
@@ -345,8 +354,8 @@ class BlockSectionControl extends SectionControl {
     double? elevation,
     Duration? duration = const Duration(milliseconds: 2 * _kAnimationDuration),
     double? diameter,
-    Color? background,
-    Color? contrast,
+    Color? secondary,
+    Color? primary,
   }) : super(
           iconData: iconData,
           label: 'Block',
@@ -354,32 +363,40 @@ class BlockSectionControl extends SectionControl {
           elevation: elevation,
           duration: duration,
           diameter: diameter,
-          background: background,
-          contrast: contrast,
+          secondary: secondary,
+          primary: primary,
           children: [
             CollapsibleIndentButton(
               controller: controller,
               notifier: notifier,
+              foreground: primary,
             ),
             ListExclusiveCollapsibleButton(
               controller: controller,
               notifier: notifier,
+              primary: primary,
+              secondary: secondary,
             ),
             LinkButton(
               controller: controller,
               icon: Icons.link,
+              foreground: primary,
             ),
             AttributeToggleButton(
               attribute: Attribute.blockQuote,
               controller: controller,
               icon: Icons.format_quote,
               label: 'Quote',
+              primary: secondary,
+              secondary: primary,
             ),
             AttributeToggleButton(
               attribute: Attribute.codeBlock,
               controller: controller,
               icon: Icons.code,
               label: 'Code',
+              primary: secondary,
+              secondary: primary,
             ),
           ],
         );
@@ -391,6 +408,7 @@ class CollapsibleButton extends StatefulWidget {
   final QuillController controller;
   final List<Widget> children;
   final ValueNotifier<bool> isCollapsedNotifier;
+  final Color? foreground;
 
   CollapsibleButton({
     Key? key,
@@ -399,6 +417,7 @@ class CollapsibleButton extends StatefulWidget {
     required this.children,
     required this.isCollapsedNotifier,
     this.label,
+    this.foreground,
   }) : super(key: key);
 
   @override
@@ -426,8 +445,8 @@ class _CollapsibleButtonState extends State<CollapsibleButton>
 
   @override
   Widget build(BuildContext context) {
-    ThemeData themeData = Theme.of(context);
-    Color contrast = themeData.accentIconTheme.color!;
+    Color contrast =
+        widget.foreground ?? Theme.of(context).accentIconTheme.color!;
     return Container(
       height: _kButtonDiameter,
       decoration: ShapeDecoration(
@@ -509,22 +528,26 @@ class CollapsibleSizeButton extends CollapsibleButton {
     Key? key,
     required QuillController controller,
     required ValueNotifier<bool> notifier,
+    Color? foreground,
   }) : super(
           key: key,
           controller: controller,
           iconData: Icons.format_size_outlined,
           label: 'Size',
+          foreground: foreground,
           isCollapsedNotifier: notifier,
           children: [
             SizeButton(
               icon: Mdi.formatFontSizeIncrease,
               controller: controller,
               isIncrease: true,
+              foreground: foreground,
             ),
             SizeButton(
               icon: Mdi.formatFontSizeDecrease,
               controller: controller,
               isIncrease: false,
+              foreground: foreground,
             ),
           ],
         );
@@ -535,22 +558,26 @@ class CollapsibleIndentButton extends CollapsibleButton {
     Key? key,
     required QuillController controller,
     required ValueNotifier<bool> notifier,
+    Color? foreground,
   }) : super(
           key: key,
           controller: controller,
           isCollapsedNotifier: notifier,
           iconData: Icons.format_indent_increase,
           label: 'Tab',
+          foreground: foreground,
           children: [
             IndentButton(
               icon: Icons.arrow_back,
               controller: controller,
               isIncrease: false,
+              foreground: foreground,
             ),
             IndentButton(
               icon: Icons.arrow_forward,
               controller: controller,
               isIncrease: true,
+              foreground: foreground,
             ),
           ],
         );
@@ -621,12 +648,14 @@ class ExclusiveCollapsibleButton extends CollapsibleButton {
     required ValueNotifier<bool> notifier,
     required _ExclusiveButtonGroup exclusiveAttributeGroup,
     String? label,
+    Color? foreground,
   }) : super(
           iconData: iconData,
           label: label,
           controller: controller,
           isCollapsedNotifier: notifier,
           children: [exclusiveAttributeGroup],
+          foreground: foreground,
         );
 }
 
@@ -635,9 +664,12 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
     Key? key,
     required QuillController controller,
     required ValueNotifier<bool> notifier,
+    Color? primary,
+    Color? secondary,
   }) : super(
             iconData: Mdi.viewList,
             label: 'List',
+            foreground: primary,
             controller: controller,
             notifier: notifier,
             exclusiveAttributeGroup: _ExclusiveButtonGroup(
@@ -650,6 +682,8 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
                     label: 'Numbered',
                     groupNotifier: notifier,
                     buttonDiameter: _kInnerButtonDiameter,
+                    primary: secondary,
+                    secondary: primary,
                   );
                 },
                 (context, notifier) {
@@ -660,6 +694,8 @@ class ListExclusiveCollapsibleButton extends ExclusiveCollapsibleButton {
                     label: 'Bulleted',
                     groupNotifier: notifier,
                     buttonDiameter: _kInnerButtonDiameter,
+                    primary: secondary,
+                    secondary: primary,
                   );
                 },
               ],
@@ -676,6 +712,7 @@ class SectionButton extends StatelessWidget {
   final String? label;
   final VoidCallback? onPressed;
   final double? buttonDiameter;
+  final Color? foreground;
 
   const SectionButton({
     Key? key,
@@ -683,12 +720,13 @@ class SectionButton extends StatelessWidget {
     this.onPressed,
     this.label,
     this.buttonDiameter = _kButtonDiameter,
+    this.foreground,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     ThemeData themeData = Theme.of(context);
-    Color _accentContrastColor = themeData.accentIconTheme.color!;
+    Color _accentContrastColor = foreground ?? themeData.accentIconTheme.color!;
     Color _disabledColor = _accentContrastColor.withOpacity(_kDisabledOpacity);
     bool isDisabled = onPressed == null;
     Color color = isDisabled ? _disabledColor : _accentContrastColor;
@@ -727,6 +765,7 @@ class SizeButton extends StatefulWidget {
   final QuillController controller;
   final bool isIncrease;
   final double? buttonDiameter;
+  final Color? foreground;
 
   SizeButton({
     Key? key,
@@ -734,6 +773,7 @@ class SizeButton extends StatefulWidget {
     required this.controller,
     required this.isIncrease,
     this.buttonDiameter = _kButtonDiameter,
+    this.foreground,
   }) : super(key: key);
 
   @override
@@ -826,6 +866,7 @@ class _SizeButtonState extends State<SizeButton> {
           ? Mdi.formatFontSizeIncrease
           : Mdi.formatFontSizeDecrease,
       buttonDiameter: widget.buttonDiameter,
+      foreground: widget.foreground,
       onPressed: _onPressedHandler(),
     );
   }
@@ -836,6 +877,7 @@ class IndentButton extends StatefulWidget {
   final QuillController controller;
   final bool isIncrease;
   final double? buttonDiameter;
+  final Color? foreground;
 
   IndentButton({
     Key? key,
@@ -843,6 +885,7 @@ class IndentButton extends StatefulWidget {
     required this.controller,
     required this.isIncrease,
     this.buttonDiameter,
+    this.foreground,
   }) : super(key: key);
 
   @override
@@ -877,6 +920,7 @@ class _IndentButtonState extends State<IndentButton> {
     return SectionButton(
       iconData: widget.icon,
       buttonDiameter: widget.buttonDiameter,
+      foreground: widget.foreground,
       onPressed: disable
           ? null
           : () {
@@ -919,12 +963,14 @@ class LinkButton extends StatefulWidget {
   final QuillController controller;
   final IconData icon;
   final double? buttonDiameter;
+  final Color? foreground;
 
   const LinkButton({
     Key? key,
     required this.controller,
     required this.icon,
     this.buttonDiameter = _kButtonDiameter,
+    this.foreground,
   }) : super(key: key);
 
   @override
@@ -967,6 +1013,7 @@ class _LinkButtonState extends State<LinkButton> {
       label: 'Link',
       onPressed: pressedHandler,
       buttonDiameter: widget.buttonDiameter,
+      foreground: widget.foreground,
     );
   }
 
@@ -1034,6 +1081,8 @@ class SectionToggleButton extends StatelessWidget {
   final ValueChanged<bool>? onChanged;
   final ValueListenable<bool> valueListenable;
   final IconData iconData;
+  final Color? primary;
+  final Color? secondary;
   final String? label;
   final double? buttonDiameter;
 
@@ -1042,6 +1091,8 @@ class SectionToggleButton extends StatelessWidget {
     required this.onChanged,
     required this.valueListenable,
     required this.iconData,
+    this.primary,
+    this.secondary,
     this.label,
     this.buttonDiameter = _kButtonDiameter,
   }) : super(key: key);
@@ -1049,8 +1100,8 @@ class SectionToggleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ThemeData themeData = Theme.of(context);
-    Color _accentColor = themeData.accentColor;
-    Color _accentContrastColor = themeData.accentIconTheme.color!;
+    Color _accentColor = primary ?? themeData.accentColor;
+    Color _accentContrastColor = secondary ?? themeData.accentIconTheme.color!;
     Color _disabledColor = _accentContrastColor.withOpacity(_kDisabledOpacity);
     bool isDisabled = onChanged == null;
     return ValueListenableBuilder<bool>(
@@ -1099,6 +1150,8 @@ class SectionToggleButton extends StatelessWidget {
 class AttributeToggleButton extends StatefulWidget {
   final Attribute attribute;
   final IconData icon;
+  final Color? primary;
+  final Color? secondary;
   final String? label;
   final QuillController controller;
   final double? buttonDiameter;
@@ -1112,6 +1165,8 @@ class AttributeToggleButton extends StatefulWidget {
     this.buttonDiameter = _kButtonDiameter,
     this.groupNotifier,
     this.label,
+    this.primary,
+    this.secondary,
   }) : super(key: key);
 
   @override
@@ -1146,6 +1201,8 @@ class _AttributeToggleButtonState extends State<AttributeToggleButton> {
       valueListenable: _isToggled,
       buttonDiameter: widget.buttonDiameter,
       onChanged: _isEnabled ? _toggleAttribute : null,
+      primary: widget.primary,
+      secondary: widget.secondary,
     );
   }
 
