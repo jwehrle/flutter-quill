@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_quill/models/documents/nodes/block.dart';
 import 'package:flutter_quill/models/documents/nodes/container.dart';
@@ -24,6 +25,8 @@ class Document {
 
   Delta _delta;
 
+  String? _json;
+
   Delta toDelta() => Delta.from(_delta);
 
   final Rules _rules = Rules.getInstance();
@@ -36,10 +39,22 @@ class Document {
   Stream<Tuple3<Delta, Delta, ChangeSource>> get changes => _observer.stream;
 
   Document() : _delta = Delta()..insert('\n') {
+    _json = jsonEncode(_delta.toJson());
     _loadDocument(_delta);
   }
 
   Document.fromJson(List data) : _delta = _transform(Delta.fromJson(data)) {
+    _json = jsonEncode(_delta.toJson());
+    _loadDocument(_delta);
+  }
+
+  Document.fromJsonString(String json)
+      : _delta = _transform(
+          Delta.fromJson(
+            listFromJsonString(json),
+          ),
+        ) {
+    _json = jsonEncode(_delta.toJson());
     _loadDocument(_delta);
   }
 
@@ -206,6 +221,28 @@ class Document {
       return data;
     }
     return Embeddable.fromJson((data as Map<String, dynamic>));
+  }
+
+  static List listFromJsonString(String jsonDeltaList) {
+    jsonDeltaList
+        .replaceAll('/\n/g', '\\\\n')
+        .replaceAll('/\r/g', '\\\\r')
+        .replaceAll('/\t/g', '\\\\t');
+    return jsonDecode(jsonDeltaList) as List;
+  }
+
+  String get json => _json = jsonEncode(_delta.toJson());
+
+  set json(String value) {
+    _resetRootHistory();
+    _json = value;
+    _delta = _transform(Delta.fromJson(listFromJsonString(_json!)));
+    _loadDocument(_delta);
+  }
+
+  _resetRootHistory() {
+    _root.clear();
+    _history.clear();
   }
 
   close() {

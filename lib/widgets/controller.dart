@@ -10,11 +10,21 @@ import 'package:flutter_quill/utils/diff_delta.dart';
 import 'package:tuple/tuple.dart';
 
 class QuillController extends ChangeNotifier {
-  final Document document;
+  Document document;
   TextSelection selection;
   Style toggledStyle = Style();
 
+  String get json => document.json;
+  set json(String value) => document.json = value;
+
   QuillController({required this.document, required this.selection});
+
+  factory QuillController.json(String? value) {
+    return QuillController(
+      document: value == null ? Document() : Document.fromJsonString(value),
+      selection: TextSelection.collapsed(offset: 0),
+    );
+  }
 
   factory QuillController.basic() {
     return QuillController(

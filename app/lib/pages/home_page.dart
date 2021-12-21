@@ -42,10 +42,8 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadFromAssets() async {
     try {
       final result = await rootBundle.loadString('assets/sample_data.json');
-      final doc = Document.fromJson(jsonDecode(result));
       setState(() {
-        _controller = QuillController(
-            document: doc, selection: TextSelection.collapsed(offset: 0));
+        _controller = QuillController.json(result);
       });
     } catch (error) {
       final doc = Document()..insert(0, 'Empty asset');

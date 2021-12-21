@@ -120,4 +120,9 @@ class Root extends Container<Container<Node>> {
   Node newInstance() {
     return Root();
   }
+
+  void clear() {
+    children.clear();
+    clearStyle();
+  }
 }
