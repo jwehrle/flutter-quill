@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/models/documents/document.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/sliding/sliding_toolbar.dart';
 
 typedef DemoContentBuilder = Widget Function(
     BuildContext context, QuillController controller);
@@ -94,7 +94,7 @@ class _DemoScaffoldState extends State<DemoScaffold> {
         ),
         title: _loading || widget.showToolbar == false
             ? null
-            : QuillToolbar(
+            : SlidingToolbar(
                 // controller: _controller!,
                 notifierBuilderList: [
                   (context, notifier) {

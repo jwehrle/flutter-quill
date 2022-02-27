@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
+// import 'dart:convert';
+// import 'dart:io';
 //import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -10,9 +11,11 @@ import 'package:flutter_quill/models/documents/document.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/default_styles.dart';
 import 'package:flutter_quill/widgets/editor.dart';
-import 'package:flutter_quill/widgets/toolbar.dart';
+// import 'package:flutter_quill/widgets/toolbar/sliding_toolbar.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
+import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 import 'package:tuple/tuple.dart';
 
 import 'read_only_page.dart';
@@ -25,11 +28,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   QuillController? _controller;
   final FocusNode _focusNode = FocusNode();
+  ToolbarAlignment _toolbarAlignment = ToolbarAlignment.leftTop;
 
   @override
   void initState() {
     super.initState();
     _loadFromAssets();
+    Future.delayed(Duration(seconds: 30),
+        () => setState(() => _toolbarAlignment = ToolbarAlignment.rightTop));
   }
 
   @override
@@ -133,32 +139,50 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: QuillToolbar(
-              keyboardHideButton: KeyboardHideButton(
-                onPressed: _focusNode.unfocus,
-              ),
-              notifierBuilderList: [
-                (context, notifier) {
-                  return StyleSectionControl(
-                    notifier: notifier,
-                    controller: _controller!,
-                    secondary: Colors.grey.shade700,
-                    primary: Colors.lightGreenAccent,
-                  );
-                },
-                (context, notifier) {
-                  return BlockSectionControl(
-                    notifier: notifier,
-                    controller: _controller!,
-                    secondary: Colors.grey.shade700,
-                    primary: Colors.lightGreenAccent,
-                  );
-                }
-              ],
-            ),
+          OrientationBuilder(
+            builder: (context, orientation) {
+              return Toolbar(
+                type: orientation == Orientation.portrait
+                    ? ToolbarType.condensed
+                    : ToolbarType.expanded,
+                focusNode: _focusNode,
+                controller: _controller!,
+                foreground: orientation == Orientation.portrait
+                    ? Colors.lightGreenAccent
+                    : Colors.deepOrangeAccent,
+                background: orientation == Orientation.portrait
+                    ? Colors.blueGrey
+                    : Colors.indigo,
+                alignment: ToolbarAlignment.leftCenter,
+              );
+            },
           ),
+          // Align(
+          //   alignment: Alignment.center,
+          //   child: QuillToolbar(
+          //     keyboardHideButton: KeyboardHideButton(
+          //       onPressed: _focusNode.unfocus,
+          //     ),
+          //     notifierBuilderList: [
+          //       (context, notifier) {
+          //         return StyleSectionControl(
+          //           notifier: notifier,
+          //           controller: _controller!,
+          //           secondary: Colors.grey.shade700,
+          //           primary: Colors.lightGreenAccent,
+          //         );
+          //       },
+          //       (context, notifier) {
+          //         return BlockSectionControl(
+          //           notifier: notifier,
+          //           controller: _controller!,
+          //           secondary: Colors.grey.shade700,
+          //           primary: Colors.lightGreenAccent,
+          //         );
+          //       }
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );
