@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 
@@ -23,7 +23,7 @@ class KeyboardButtonState extends State<KeyboardButton> {
   late ToolbarAlignment _alignment;
   late Color _foreground;
   late Color _background;
-  late final ToolbarState _toolbar;
+  late final RichTextToolbarState _toolbar;
 
   void _alignmentListener() =>
       setState(() => _alignment = _toolbar.alignmentNotifier.value);
@@ -40,7 +40,7 @@ class KeyboardButtonState extends State<KeyboardButton> {
     _toggleState =
         widget.focusNode.hasFocus ? ToggleState.off : ToggleState.disabled;
     widget.focusNode.addListener(_focusListener);
-    _toolbar = Toolbar.of(context);
+    _toolbar = RichTextToolbar.of(context);
     _alignment = _toolbar.alignmentNotifier.value;
     _toolbar.alignmentNotifier.addListener(_alignmentListener);
     _foreground = _toolbar.foregroundColor.value;

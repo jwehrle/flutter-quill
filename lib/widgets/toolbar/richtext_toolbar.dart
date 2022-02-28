@@ -6,7 +6,7 @@ import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_button_bar.dart';
 import 'package:flutter_quill/widgets/toolbar/popup/popup_positioned_buttons.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 
-class Toolbar extends StatefulWidget {
+class RichTextToolbar extends StatefulWidget {
   final QuillController controller;
   final ToolbarType type;
   final Color foreground;
@@ -15,7 +15,7 @@ class Toolbar extends StatefulWidget {
   final FocusNode? focusNode;
   final Color disabled;
 
-  const Toolbar({
+  const RichTextToolbar({
     Key? key,
     required this.type,
     required this.background,
@@ -27,10 +27,10 @@ class Toolbar extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => ToolbarState();
+  State<StatefulWidget> createState() => RichTextToolbarState();
 
-  static ToolbarState of(BuildContext context) {
-    final result = context.findAncestorStateOfType<ToolbarState>();
+  static RichTextToolbarState of(BuildContext context) {
+    final result = context.findAncestorStateOfType<RichTextToolbarState>();
     assert(result != null,
         'ToolbarFrameState is not an ancestor of the calling widget.');
     return result!;
@@ -39,7 +39,7 @@ class Toolbar extends StatefulWidget {
 
 final double kToolbarMargin = 4.0;
 
-class ToolbarState extends State<Toolbar> {
+class RichTextToolbarState extends State<RichTextToolbar> {
   late final ValueNotifier<Color> foregroundColor;
   late final ValueNotifier<Color> backgroundColor;
   late final ValueNotifier<Color> disabledColor;
@@ -107,7 +107,7 @@ class ToolbarState extends State<Toolbar> {
   }
 
   @override
-  void didUpdateWidget(covariant Toolbar oldWidget) {
+  void didUpdateWidget(covariant RichTextToolbar oldWidget) {
     super.didUpdateWidget(oldWidget);
     toolbarTypeNotifier.value = widget.type;
     alignmentNotifier.value = layoutAlignment(

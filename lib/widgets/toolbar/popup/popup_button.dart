@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_button.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 import 'package:mdi/mdi.dart';
@@ -60,7 +60,7 @@ class PopupButtonState extends State<PopupButton> {
   late Color _foreground;
   late Color _background;
   late Color _disabled;
-  late final ToolbarState _toolbar;
+  late final RichTextToolbarState _toolbar;
 
   ToggleState get toggleState =>
       _selectionNotifier.value == _itemKey ? ToggleState.on : ToggleState.off;
@@ -109,7 +109,7 @@ class PopupButtonState extends State<PopupButton> {
         _iconData = Mdi.viewList;
         break;
     }
-    _toolbar = Toolbar.of(context);
+    _toolbar = RichTextToolbar.of(context);
     _selectionNotifier = _toolbar.selectionNotifier;
     _toggleState = ValueNotifier(toggleState);
     _selectionNotifier.addListener(_selectionListener);
@@ -136,7 +136,7 @@ class PopupButtonState extends State<PopupButton> {
       direction: toolbarAxisFromAlignment(_alignment),
       toggleState: _toggleState,
       onPressed: () {
-        final popupNotifier = Toolbar.of(context).selectionNotifier;
+        final popupNotifier = RichTextToolbar.of(context).selectionNotifier;
         if (popupNotifier.value == _itemKey) {
           popupNotifier.value = null;
         } else {

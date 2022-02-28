@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_button.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 
@@ -85,7 +85,7 @@ class ToggleButtonState extends State<ToggleButton> with AttributeToggle {
   late Color _foreground;
   late Color _background;
   late Color _disabled;
-  late final ToolbarState _toolbar;
+  late final RichTextToolbarState _toolbar;
 
   void _alignmentListener() =>
       setState(() => _alignment = _toolbar.alignmentNotifier.value);
@@ -98,7 +98,7 @@ class ToggleButtonState extends State<ToggleButton> with AttributeToggle {
 
   @override
   void initState() {
-    _toolbar = Toolbar.of(context);
+    _toolbar = RichTextToolbar.of(context);
     _selectionNotifier = _toolbar.selectionNotifier;
     _foreground = _toolbar.foregroundColor.value;
     _toolbar.foregroundColor.addListener(_foregroundListener);

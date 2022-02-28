@@ -3,7 +3,7 @@ import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/popup/option_button.dart';
 import 'package:flutter_quill/widgets/toolbar/popup/popup_button.dart';
 import 'package:flutter_quill/widgets/toolbar/popup/popup_toggle.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toggle_button.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
@@ -195,7 +195,7 @@ class PopupFlexState extends State<PopupFlex>
       upperBound: 1.0,
       duration: kThemeAnimationDuration,
     );
-    final toolbar = Toolbar.of(context);
+    final toolbar = RichTextToolbar.of(context);
     _selectionNotifier = toolbar.selectionNotifier;
     _selectionNotifier.addListener(_selectionListener);
     _alignmentNotifier = toolbar.alignmentNotifier;

@@ -14,7 +14,7 @@ import 'package:flutter_quill/widgets/editor.dart';
 // import 'package:flutter_quill/widgets/toolbar/sliding_toolbar.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 import 'package:tuple/tuple.dart';
 
@@ -141,7 +141,7 @@ class _HomePageState extends State<HomePage> {
           ),
           OrientationBuilder(
             builder: (context, orientation) {
-              return Toolbar(
+              return RichTextToolbar(
                 type: orientation == Orientation.portrait
                     ? ToolbarType.condensed
                     : ToolbarType.expanded,

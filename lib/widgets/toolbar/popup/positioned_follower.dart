@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 
 class PositionedFollower extends StatefulWidget {
@@ -17,7 +17,7 @@ class PositionedFollower extends StatefulWidget {
 }
 
 class PositionedFollowerState extends State<PositionedFollower> {
-  late ToolbarState _toolbar;
+  late RichTextToolbarState _toolbar;
   late ToolbarAlignment _alignment;
   late ToolbarType _type;
 
@@ -28,7 +28,7 @@ class PositionedFollowerState extends State<PositionedFollower> {
 
   @override
   void initState() {
-    _toolbar = Toolbar.of(context);
+    _toolbar = RichTextToolbar.of(context);
     _alignment = _toolbar.alignmentNotifier.value;
     _toolbar.alignmentNotifier.addListener(_alignmentListener);
     _type = _toolbar.toolbarTypeNotifier.value;

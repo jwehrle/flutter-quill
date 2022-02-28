@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_item.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
@@ -18,10 +18,10 @@ class ButtonFlex extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ToolbarAlignment>(
-      valueListenable: Toolbar.of(context).alignmentNotifier,
+      valueListenable: RichTextToolbar.of(context).alignmentNotifier,
       builder: (context, alignment, child) {
         return ValueListenableBuilder<ToolbarType>(
-          valueListenable: Toolbar.of(context).toolbarTypeNotifier,
+          valueListenable: RichTextToolbar.of(context).toolbarTypeNotifier,
           builder: (context, type, child) {
             final List<ToolbarItem> items = toolbarItems(
               type: type,

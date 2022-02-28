@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 
@@ -26,7 +26,7 @@ class _LinkToolbarButtonState extends State<LinkToolbarButton> {
   late Color _foreground;
   late Color _background;
   late Color _disabled;
-  late final ToolbarState _toolbar;
+  late final RichTextToolbarState _toolbar;
 
   void _alignmentListener() =>
       setState(() => _alignment = _toolbar.alignmentNotifier.value);
@@ -50,7 +50,7 @@ class _LinkToolbarButtonState extends State<LinkToolbarButton> {
         ? ToggleState.disabled
         : ToggleState.off);
     widget.controller.addListener(_didChangeSelection);
-    _toolbar = Toolbar.of(context);
+    _toolbar = RichTextToolbar.of(context);
     _alignment = _toolbar.alignmentNotifier.value;
     _toolbar.alignmentNotifier.addListener(_alignmentListener);
     _foreground = _toolbar.foregroundColor.value;

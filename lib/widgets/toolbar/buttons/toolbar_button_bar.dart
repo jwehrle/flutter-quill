@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/button_flex.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 
 class ToolbarButtonBar extends StatelessWidget {
@@ -19,7 +19,7 @@ class ToolbarButtonBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ToolbarAlignment>(
-      valueListenable: Toolbar.of(context).alignmentNotifier,
+      valueListenable: RichTextToolbar.of(context).alignmentNotifier,
       builder: (context, alignment, child) {
         return Align(
           alignment: convertAlignment(alignment),
@@ -29,7 +29,7 @@ class ToolbarButtonBar extends StatelessWidget {
             reverse: isReverse(alignment),
             clipBehavior: Clip.none,
             child: ValueListenableBuilder<Color>(
-                valueListenable: Toolbar.of(context).backgroundColor,
+                valueListenable: RichTextToolbar.of(context).backgroundColor,
                 builder: (context, background, child) {
                   return Card(
                     margin: EdgeInsets.all(kToolbarMargin),
