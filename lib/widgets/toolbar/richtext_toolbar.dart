@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_quill/widgets/controller.dart';
+import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_button_bar.dart';
 import 'package:flutter_quill/widgets/toolbar/popup/popup_positioned_buttons.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
@@ -12,8 +13,11 @@ class RichTextToolbar extends StatefulWidget {
   final Color foreground;
   final Color background;
   final ToolbarAlignment alignment;
-  final FocusNode? focusNode;
   final Color disabled;
+  final IconData? optionIconData;
+  final String? optionLabel;
+  final VoidCallback? optionOnPressed;
+  final ValueNotifier<ToggleState>? optionToggleStateNotifier;
 
   const RichTextToolbar({
     Key? key,
@@ -23,7 +27,10 @@ class RichTextToolbar extends StatefulWidget {
     required this.controller,
     this.alignment = ToolbarAlignment.bottomCenter,
     this.disabled = Colors.grey,
-    this.focusNode,
+    this.optionIconData,
+    this.optionLabel,
+    this.optionOnPressed,
+    this.optionToggleStateNotifier,
   }) : super(key: key);
 
   @override
@@ -93,12 +100,14 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           children: [
             PopupPositionedButtons(
               controller: widget.controller,
-              focusNode: widget.focusNode,
             ),
             ToolbarButtonBar(
               controller: widget.controller,
-              focusNode: widget.focusNode,
               scrollController: _scrollController,
+              optionIconData: widget.optionIconData,
+              optionLabel: widget.optionLabel,
+              optionOnPressed: widget.optionOnPressed,
+              optionToggleStateNotifier: widget.optionToggleStateNotifier,
             ),
           ],
         ),

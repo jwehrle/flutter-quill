@@ -4,42 +4,47 @@ import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 
-const String kKeyboardItemKey = 'keyboard_toolbar_item';
+const String kOptionItemKey = 'option_toolbar_item';
 
-class KeyboardButton extends StatefulWidget {
-  final FocusNode focusNode;
+class OptionButton extends StatefulWidget {
+  final IconData iconData;
+  final String label;
+  final VoidCallback onPressed;
+  final ValueNotifier<ToggleState> toggleStateNotifier;
 
-  const KeyboardButton({
+  const OptionButton({
     Key? key,
-    required this.focusNode,
+    required this.iconData,
+    required this.label,
+    required this.onPressed,
+    required this.toggleStateNotifier,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => KeyboardButtonState();
+  State<StatefulWidget> createState() => OptionButtonState();
 }
 
-class KeyboardButtonState extends State<KeyboardButton> {
+class OptionButtonState extends State<OptionButton> {
   late ToggleState _toggleState;
   late ToolbarAlignment _alignment;
   late Color _foreground;
   late Color _background;
   late final RichTextToolbarState _toolbar;
 
+  void _toggleListener() =>
+      setState(() => _toggleState = widget.toggleStateNotifier.value);
   void _alignmentListener() =>
       setState(() => _alignment = _toolbar.alignmentNotifier.value);
   void _foregroundListener() =>
       setState(() => _foreground = _toolbar.foregroundColor.value);
   void _backgroundListener() =>
       setState(() => _background = _toolbar.backgroundColor.value);
-  void _focusListener() => setState(() => _toggleState =
-      widget.focusNode.hasFocus ? ToggleState.off : ToggleState.disabled);
 
   @override
   void initState() {
     super.initState();
-    _toggleState =
-        widget.focusNode.hasFocus ? ToggleState.off : ToggleState.disabled;
-    widget.focusNode.addListener(_focusListener);
+    _toggleState = widget.toggleStateNotifier.value;
+    widget.toggleStateNotifier.addListener(_toggleListener);
     _toolbar = RichTextToolbar.of(context);
     _alignment = _toolbar.alignmentNotifier.value;
     _toolbar.alignmentNotifier.addListener(_alignmentListener);
@@ -53,10 +58,10 @@ class KeyboardButtonState extends State<KeyboardButton> {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => widget.focusNode.unfocus(),
+      onTap: widget.onPressed,
       child: ToolbarTile(
-        iconData: Icons.keyboard_hide,
-        label: 'Done',
+        iconData: widget.iconData,
+        label: widget.label,
         state: _toggleState,
         accent: _foreground,
         background: _background,
@@ -68,7 +73,7 @@ class KeyboardButtonState extends State<KeyboardButton> {
 
   @override
   void dispose() {
-    widget.focusNode.removeListener(_focusListener);
+    widget.toggleStateNotifier.removeListener(_toggleListener);
     _toolbar.alignmentNotifier.removeListener(_alignmentListener);
     _toolbar.foregroundColor.removeListener(_foregroundListener);
     _toolbar.backgroundColor.removeListener(_backgroundListener);

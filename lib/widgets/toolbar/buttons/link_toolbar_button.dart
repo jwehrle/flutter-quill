@@ -36,7 +36,6 @@ class _LinkToolbarButtonState extends State<LinkToolbarButton> {
       setState(() => _background = _toolbar.backgroundColor.value);
   void _disabledListener() =>
       setState(() => _disabled = _toolbar.disabledColor.value);
-
   void _didChangeSelection() {
     _toggleStateNotifier.value = widget.controller.selection.isCollapsed
         ? ToggleState.disabled

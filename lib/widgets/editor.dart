@@ -163,8 +163,8 @@ class QuillEditor extends StatefulWidget {
   final ScrollPhysics? scrollPhysics;
   final ValueChanged<String>? onLaunchUrl;
   final EmbedBuilder? embedBuilder;
-  Color? cursorColor;
-  Color? selectionColor;
+  final Color? cursorColor;
+  final Color? selectionColor;
 
   QuillEditor(
       {required this.controller,

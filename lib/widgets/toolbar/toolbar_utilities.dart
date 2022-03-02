@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
+import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
+import 'package:flutter_quill/widgets/toolbar/buttons/option_button.dart';
+import 'package:flutter_quill/widgets/toolbar/buttons/link_toolbar_button.dart';
+import 'package:flutter_quill/widgets/toolbar/buttons/toggle_button.dart';
+import 'package:flutter_quill/widgets/toolbar/popup/popup_button.dart';
+import 'package:flutter_quill/widgets/toolbar/popup/popup_flex.dart';
 import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_item.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
@@ -67,7 +73,7 @@ Axis toolbarAxisFromAlignment(ToolbarAlignment alignment) {
   }
 }
 
-enum ToolbarType { condensed, expanded, condensedHide, expandedHide }
+enum ToolbarType { condensed, expanded, condensedOption, expandedOption }
 
 int toolbarItemCount(ToolbarType type) {
   switch (type) {
@@ -75,17 +81,178 @@ int toolbarItemCount(ToolbarType type) {
       return 6;
     case ToolbarType.expanded:
       return 11;
-    case ToolbarType.condensedHide:
+    case ToolbarType.condensedOption:
       return 7;
-    case ToolbarType.expandedHide:
+    case ToolbarType.expandedOption:
       return 12;
+  }
+}
+
+List<Widget> toolbarButtons({
+  required ToolbarType type,
+  required QuillController controller,
+  IconData? optionIconData,
+  String? optionLabel,
+  VoidCallback? optionOnPressed,
+  ValueNotifier<ToggleState>? optionToggleStateNotifier,
+}) {
+  switch (type) {
+    case ToolbarType.condensed:
+      return List<Widget>.unmodifiable([
+        PopupButton.style(controller: controller),
+        PopupButton.size(controller: controller),
+        PopupButton.indent(controller: controller),
+        PopupButton.list(controller: controller),
+        PopupButton.block(controller: controller),
+        LinkToolbarButton(controller: controller),
+      ]);
+    case ToolbarType.expanded:
+      return List<Widget>.unmodifiable([
+        ToggleButton.bold(controller: controller),
+        ToggleButton.italic(controller: controller),
+        ToggleButton.under(controller: controller),
+        ToggleButton.strike(controller: controller),
+        PopupButton.size(controller: controller),
+        PopupButton.indent(controller: controller),
+        ToggleButton.bullet(controller: controller),
+        ToggleButton.number(controller: controller),
+        ToggleButton.quote(controller: controller),
+        ToggleButton.code(controller: controller),
+        LinkToolbarButton(controller: controller),
+      ]);
+    case ToolbarType.condensedOption:
+      assert(
+        optionIconData != null,
+        'optionIconData must not be null',
+      );
+      assert(
+        optionLabel != null,
+        'optionLabel must not be null',
+      );
+      assert(
+        optionOnPressed != null,
+        'optionOnPressed must not be null',
+      );
+      assert(
+        optionToggleStateNotifier != null,
+        'optionToggleStateNotifier must not be null',
+      );
+      return List<Widget>.unmodifiable([
+        OptionButton(
+          iconData: optionIconData!,
+          label: optionLabel!,
+          onPressed: optionOnPressed!,
+          toggleStateNotifier: optionToggleStateNotifier!,
+        ),
+        PopupButton.style(controller: controller),
+        PopupButton.size(controller: controller),
+        PopupButton.indent(controller: controller),
+        PopupButton.list(controller: controller),
+        PopupButton.block(controller: controller),
+        LinkToolbarButton(controller: controller),
+      ]);
+    case ToolbarType.expandedOption:
+      assert(
+        optionIconData != null,
+        'optionIconData must not be null',
+      );
+      assert(
+        optionLabel != null,
+        'optionLabel must not be null',
+      );
+      assert(
+        optionOnPressed != null,
+        'optionOnPressed must not be null',
+      );
+      assert(
+        optionToggleStateNotifier != null,
+        'optionToggleStateNotifier must not be null',
+      );
+      return List<Widget>.unmodifiable([
+        OptionButton(
+          iconData: optionIconData!,
+          label: optionLabel!,
+          onPressed: optionOnPressed!,
+          toggleStateNotifier: optionToggleStateNotifier!,
+        ),
+        ToggleButton.bold(controller: controller),
+        ToggleButton.italic(controller: controller),
+        ToggleButton.under(controller: controller),
+        ToggleButton.strike(controller: controller),
+        PopupButton.size(controller: controller),
+        PopupButton.indent(controller: controller),
+        ToggleButton.bullet(controller: controller),
+        ToggleButton.number(controller: controller),
+        ToggleButton.quote(controller: controller),
+        ToggleButton.code(controller: controller),
+        LinkToolbarButton(controller: controller),
+      ]);
+  }
+}
+
+List<PopupFlex> toolbarPopups({
+  required ToolbarType type,
+  required QuillController controller,
+}) {
+  switch (type) {
+    case ToolbarType.condensed:
+      return List<PopupFlex>.unmodifiable([
+        PopupFlex.style(controller: controller),
+        PopupFlex.size(controller: controller),
+        PopupFlex.indent(controller: controller),
+        PopupFlex.list(controller: controller),
+        PopupFlex.block(controller: controller),
+        PopupFlex.empty(itemKey: kLinkItemKey),
+      ]);
+    case ToolbarType.expanded:
+      return List<PopupFlex>.unmodifiable([
+        PopupFlex.bold(),
+        PopupFlex.italic(),
+        PopupFlex.under(),
+        PopupFlex.strike(),
+        PopupFlex.size(controller: controller),
+        PopupFlex.indent(controller: controller),
+        PopupFlex.bullet(),
+        PopupFlex.number(),
+        PopupFlex.quote(),
+        PopupFlex.code(),
+        PopupFlex.empty(itemKey: kLinkItemKey),
+      ]);
+    case ToolbarType.condensedOption:
+      return List<PopupFlex>.unmodifiable([
+        PopupFlex.empty(itemKey: kOptionItemKey),
+        PopupFlex.style(controller: controller),
+        PopupFlex.size(controller: controller),
+        PopupFlex.indent(controller: controller),
+        PopupFlex.list(controller: controller),
+        PopupFlex.block(controller: controller),
+        PopupFlex.empty(itemKey: kLinkItemKey),
+      ]);
+    case ToolbarType.expandedOption:
+      return List<PopupFlex>.unmodifiable([
+        PopupFlex.empty(itemKey: kOptionItemKey),
+        PopupFlex.bold(),
+        PopupFlex.italic(),
+        PopupFlex.under(),
+        PopupFlex.strike(),
+        PopupFlex.size(controller: controller),
+        PopupFlex.indent(controller: controller),
+        PopupFlex.bullet(),
+        PopupFlex.number(),
+        PopupFlex.quote(),
+        PopupFlex.code(),
+        PopupFlex.empty(itemKey: kLinkItemKey),
+      ]);
   }
 }
 
 List<ToolbarItem> toolbarItems({
   required ToolbarType type,
   required QuillController controller,
-  FocusNode? focusNode,
+  IconData? optionIconData,
+  String? optionLabel,
+  VoidCallback? optionOnPressed,
+  ValueNotifier<ToggleState>? optionToggleStateNotifier,
 }) {
   switch (type) {
     case ToolbarType.condensed:
@@ -111,13 +278,30 @@ List<ToolbarItem> toolbarItems({
         ToolbarItem.code(controller: controller),
         ToolbarItem.link(controller: controller),
       ]);
-    case ToolbarType.condensedHide:
+    case ToolbarType.condensedOption:
       assert(
-        focusNode != null,
-        'ToolbarType condensedHide requires non-null FocusNode',
+        optionIconData != null,
+        'optionIconData must not be null',
+      );
+      assert(
+        optionLabel != null,
+        'optionLabel must not be null',
+      );
+      assert(
+        optionOnPressed != null,
+        'optionOnPressed must not be null',
+      );
+      assert(
+        optionToggleStateNotifier != null,
+        'optionToggleStateNotifier must not be null',
       );
       return List<ToolbarItem>.unmodifiable([
-        ToolbarItem.keyboard(focusNode: focusNode!),
+        ToolbarItem.option(
+          iconData: optionIconData!,
+          label: optionLabel!,
+          onPressed: optionOnPressed!,
+          toggleStateNotifier: optionToggleStateNotifier!,
+        ),
         ToolbarItem.style(controller: controller),
         ToolbarItem.size(controller: controller),
         ToolbarItem.indent(controller: controller),
@@ -125,13 +309,30 @@ List<ToolbarItem> toolbarItems({
         ToolbarItem.block(controller: controller),
         ToolbarItem.link(controller: controller),
       ]);
-    case ToolbarType.expandedHide:
+    case ToolbarType.expandedOption:
       assert(
-        focusNode != null,
-        'ToolbarType expandedHide requires non-null FocusNode',
+        optionIconData != null,
+        'optionIconData must not be null',
+      );
+      assert(
+        optionLabel != null,
+        'optionLabel must not be null',
+      );
+      assert(
+        optionOnPressed != null,
+        'optionOnPressed must not be null',
+      );
+      assert(
+        optionToggleStateNotifier != null,
+        'optionToggleStateNotifier must not be null',
       );
       return List<ToolbarItem>.unmodifiable([
-        ToolbarItem.keyboard(focusNode: focusNode!),
+        ToolbarItem.option(
+          iconData: optionIconData!,
+          label: optionLabel!,
+          onPressed: optionOnPressed!,
+          toggleStateNotifier: optionToggleStateNotifier!,
+        ),
         ToolbarItem.bold(controller: controller),
         ToolbarItem.italic(controller: controller),
         ToolbarItem.under(controller: controller),

@@ -11,6 +11,7 @@ import 'package:flutter_quill/models/documents/document.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/default_styles.dart';
 import 'package:flutter_quill/widgets/editor.dart';
+import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
 // import 'package:flutter_quill/widgets/toolbar/sliding_toolbar.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
@@ -28,20 +29,22 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   QuillController? _controller;
   final FocusNode _focusNode = FocusNode();
-  ToolbarAlignment _toolbarAlignment = ToolbarAlignment.leftTop;
+  //ToolbarAlignment _toolbarAlignment = ToolbarAlignment.leftTop;
+  ValueNotifier<ToggleState> _toggleNotifier = ValueNotifier(ToggleState.off);
 
   @override
   void initState() {
     super.initState();
     _loadFromAssets();
-    Future.delayed(Duration(seconds: 30),
-        () => setState(() => _toolbarAlignment = ToolbarAlignment.rightTop));
+    // Future.delayed(Duration(seconds: 30),
+    //     () => setState(() => _toolbarAlignment = ToolbarAlignment.rightTop));
   }
 
   @override
   void dispose() {
     _controller?.dispose();
     _focusNode.dispose();
+    _toggleNotifier.dispose();
     super.dispose();
   }
 
@@ -139,23 +142,31 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          OrientationBuilder(
-            builder: (context, orientation) {
-              return RichTextToolbar(
-                type: orientation == Orientation.portrait
-                    ? ToolbarType.condensed
-                    : ToolbarType.expanded,
-                focusNode: _focusNode,
-                controller: _controller!,
-                foreground: orientation == Orientation.portrait
-                    ? Colors.lightGreenAccent
-                    : Colors.deepOrangeAccent,
-                background: orientation == Orientation.portrait
-                    ? Colors.blueGrey
-                    : Colors.indigo,
-                alignment: ToolbarAlignment.leftCenter,
-              );
+          RichTextToolbar(
+            type: ToolbarType.condensedOption,
+            controller: _controller!,
+            foreground: Colors.deepOrangeAccent,
+            background: Colors.indigo,
+            alignment: ToolbarAlignment.leftCenter,
+            optionIconData: Icons.details,
+            optionLabel: 'Option',
+            optionOnPressed: () {
+              _toggleNotifier.value = ToggleState.on;
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Option Button'),
+                  content: Text('Yada yada yada'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('Done'),
+                    )
+                  ],
+                ),
+              ).then((value) => _toggleNotifier.value = ToggleState.off);
             },
+            optionToggleStateNotifier: _toggleNotifier,
           ),
           // Align(
           //   alignment: Alignment.center,

@@ -151,6 +151,7 @@ class EditorTextSelectionOverlay {
       default:
         throw ('Invalid position');
     }
+    //todo update
     selectionDelegate!.textEditingValue =
         value.copyWith(selection: newSelection, composing: TextRange.empty);
     selectionDelegate!.bringIntoView(textPosition);

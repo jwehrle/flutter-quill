@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/keyboard_button.dart';
+import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
+import 'package:flutter_quill/widgets/toolbar/buttons/option_button.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/link_toolbar_button.dart';
 import 'package:flutter_quill/widgets/toolbar/popup/popup_button.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toggle_button.dart';
@@ -89,10 +90,19 @@ class ToolbarItem {
         this.button = ToggleButton.code(controller: controller),
         this.popUp = PopupFlex.code();
 
-  ToolbarItem.keyboard({required FocusNode focusNode})
-      : this.itemKey = kKeyboardItemKey,
-        this.button = KeyboardButton(focusNode: focusNode),
-        this.popUp = PopupFlex.empty(itemKey: kKeyboardItemKey);
+  ToolbarItem.option({
+    required IconData iconData,
+    required String label,
+    required VoidCallback onPressed,
+    required ValueNotifier<ToggleState> toggleStateNotifier,
+  })  : this.itemKey = kOptionItemKey,
+        this.button = OptionButton(
+          iconData: iconData,
+          label: label,
+          onPressed: onPressed,
+          toggleStateNotifier: toggleStateNotifier,
+        ),
+        this.popUp = PopupFlex.empty(itemKey: kOptionItemKey);
 
   ToolbarItem.link({required QuillController controller})
       : this.itemKey = kLinkItemKey,

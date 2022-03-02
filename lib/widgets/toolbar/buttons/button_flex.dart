@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
+import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
 import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_item.dart';
 import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 
 class ButtonFlex extends StatelessWidget {
   final QuillController controller;
-  final FocusNode? focusNode;
+  final IconData? optionIconData;
+  final String? optionLabel;
+  final VoidCallback? optionOnPressed;
+  final ValueNotifier<ToggleState>? optionToggleStateNotifier;
 
   const ButtonFlex({
     Key? key,
     required this.controller,
-    this.focusNode,
+    this.optionIconData,
+    this.optionLabel,
+    this.optionOnPressed,
+    this.optionToggleStateNotifier,
   }) : super(key: key);
 
   @override
@@ -23,12 +29,14 @@ class ButtonFlex extends StatelessWidget {
         return ValueListenableBuilder<ToolbarType>(
           valueListenable: RichTextToolbar.of(context).toolbarTypeNotifier,
           builder: (context, type, child) {
-            final List<ToolbarItem> items = toolbarItems(
+            List<Widget> buttons = toolbarButtons(
               type: type,
               controller: controller,
-              focusNode: focusNode,
+              optionIconData: optionIconData,
+              optionLabel: optionLabel,
+              optionOnPressed: optionOnPressed,
+              optionToggleStateNotifier: optionToggleStateNotifier,
             );
-            List<Widget> buttons = items.map((e) => e.button).toList();
             Axis direction = toolbarAxisFromAlignment(alignment);
             EdgeInsets padding;
             switch (direction) {
