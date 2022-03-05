@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-
-const double kToolbarIconSize = 24.0;
-const double kToolbarTilePadding = 2.0;
-const double kToolbarTileWidth = 45.0;
-const double kToolbarTileHeight = 40.0;
-const double kToolbarCellWidth = kToolbarTileWidth + kToolbarTilePadding;
-const double kToolbarCellHeight = kToolbarTileHeight + kToolbarTilePadding;
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 
 class ToolbarTile extends StatelessWidget {
   final ToggleState state;
@@ -16,7 +10,7 @@ class ToolbarTile extends StatelessWidget {
   final IconData iconData;
   final String label;
   final String? tooltip;
-  final Axis direction;
+  final ToolbarAlignment alignment;
 
   const ToolbarTile({
     Key? key,
@@ -26,7 +20,7 @@ class ToolbarTile extends StatelessWidget {
     required this.disabled,
     required this.iconData,
     required this.label,
-    required this.direction,
+    required this.alignment,
     this.tooltip,
   }) : super(key: key);
 
@@ -49,19 +43,28 @@ class ToolbarTile extends StatelessWidget {
         decoration = background;
         break;
     }
-    EdgeInsets edgeInsets;
-    switch (direction) {
-      case Axis.horizontal:
-        edgeInsets = EdgeInsets.symmetric(vertical: kToolbarTilePadding);
+    bool preferBelow;
+    switch (alignment) {
+      case ToolbarAlignment.topLeft:
+      case ToolbarAlignment.topCenter:
+      case ToolbarAlignment.topRight:
+      case ToolbarAlignment.leftTop:
+      case ToolbarAlignment.rightTop:
+        preferBelow = true;
         break;
-      case Axis.vertical:
-        edgeInsets = EdgeInsets.symmetric(horizontal: kToolbarTilePadding);
+      case ToolbarAlignment.bottomLeft:
+      case ToolbarAlignment.bottomCenter:
+      case ToolbarAlignment.bottomRight:
+      case ToolbarAlignment.leftCenter:
+      case ToolbarAlignment.leftBottom:
+      case ToolbarAlignment.rightCenter:
+      case ToolbarAlignment.rightBottom:
+        preferBelow = false;
         break;
     }
     Widget result = Container(
       height: kToolbarTileHeight,
       width: kToolbarTileWidth,
-      margin: edgeInsets,
       decoration: BoxDecoration(
         color: decoration,
         borderRadius: BorderRadius.all(Radius.circular(4.0)),
@@ -78,9 +81,10 @@ class ToolbarTile extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               label,
-              style: Theme.of(context).textTheme.caption!.copyWith(
-                    color: iconText,
-                  ),
+              style: Theme.of(context)
+                  .textTheme
+                  .caption!
+                  .copyWith(color: iconText),
               maxLines: 1,
             ),
           ),
@@ -91,8 +95,8 @@ class ToolbarTile extends StatelessWidget {
     if (effectiveTooltip != null) {
       result = Tooltip(
         message: effectiveTooltip,
-        preferBelow: false,
-        verticalOffset: kToolbarTileHeight,
+        preferBelow: preferBelow,
+        verticalOffset: (kToolbarTileHeight / 2.0) + kToolbarTilePadding,
         excludeFromSemantics: true,
         child: result,
       );
@@ -103,9 +107,7 @@ class ToolbarTile extends StatelessWidget {
       child: Stack(
         children: <Widget>[
           result,
-          Semantics(
-            label: tooltip,
-          ),
+          Semantics(label: tooltip),
         ],
       ),
     );

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/operations.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 class ButtonFlex extends StatelessWidget {
   final QuillController controller;
   final IconData? optionIconData;
   final String? optionLabel;
+  final String? optionTooltip;
   final VoidCallback? optionOnPressed;
   final ValueNotifier<ToggleState>? optionToggleStateNotifier;
 
@@ -17,6 +18,7 @@ class ButtonFlex extends StatelessWidget {
     required this.controller,
     this.optionIconData,
     this.optionLabel,
+    this.optionTooltip,
     this.optionOnPressed,
     this.optionToggleStateNotifier,
   }) : super(key: key);
@@ -34,6 +36,7 @@ class ButtonFlex extends StatelessWidget {
               controller: controller,
               optionIconData: optionIconData,
               optionLabel: optionLabel,
+              optionTooltip: optionTooltip,
               optionOnPressed: optionOnPressed,
               optionToggleStateNotifier: optionToggleStateNotifier,
             );

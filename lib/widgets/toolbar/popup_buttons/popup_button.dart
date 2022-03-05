@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/tiles/popup_tile.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 
-class BasePopup extends StatelessWidget {
+class PopupButton extends StatelessWidget {
   final IconData iconData;
   final VoidCallback? onPressed;
   final Color background;
@@ -10,8 +11,9 @@ class BasePopup extends StatelessWidget {
   final Color disabled;
   final ToggleState state;
   final ToolbarAlignment alignment;
+  final String tooltip;
 
-  const BasePopup({
+  const PopupButton({
     Key? key,
     required this.iconData,
     this.onPressed,
@@ -20,6 +22,7 @@ class BasePopup extends StatelessWidget {
     required this.disabled,
     required this.state,
     required this.alignment,
+    required this.tooltip,
   }) : super(key: key);
 
   @override
@@ -41,52 +44,52 @@ class BasePopup extends StatelessWidget {
         break;
     }
     EdgeInsets edgeInsets;
+    bool preferBelow;
     switch (alignment) {
       case ToolbarAlignment.topLeft:
       case ToolbarAlignment.topCenter:
       case ToolbarAlignment.topRight:
-        edgeInsets = EdgeInsets.only(top: 8.0);
+        edgeInsets = EdgeInsets.only(top: kPopupPadding);
+        preferBelow = true;
         break;
       case ToolbarAlignment.bottomLeft:
       case ToolbarAlignment.bottomCenter:
       case ToolbarAlignment.bottomRight:
-        edgeInsets = EdgeInsets.only(bottom: 8.0);
+        edgeInsets = EdgeInsets.only(bottom: kPopupPadding);
+        preferBelow = false;
         break;
       case ToolbarAlignment.leftTop:
+        preferBelow = true;
+        edgeInsets = EdgeInsets.only(left: kPopupPadding);
+        break;
       case ToolbarAlignment.leftCenter:
       case ToolbarAlignment.leftBottom:
-        edgeInsets = EdgeInsets.only(left: 8.0);
+        edgeInsets = EdgeInsets.only(left: kPopupPadding);
+        preferBelow = false;
         break;
       case ToolbarAlignment.rightTop:
+        edgeInsets = EdgeInsets.only(right: kPopupPadding);
+        preferBelow = true;
+        break;
       case ToolbarAlignment.rightCenter:
       case ToolbarAlignment.rightBottom:
-        edgeInsets = EdgeInsets.only(right: 8.0);
+        edgeInsets = EdgeInsets.only(right: kPopupPadding);
+        preferBelow = false;
         break;
     }
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: state == ToggleState.disabled ? null : onPressed,
-      child: Padding(
-        padding: edgeInsets,
-        child: Container(
-          width: 40.0,
-          height: 40.0,
-          child: Material(
-            color: background,
-            shape: CircleBorder(),
-            elevation: 2.0,
-            child: Container(
-              margin: EdgeInsets.all(2.0),
-              decoration: ShapeDecoration(
-                shape: CircleBorder(),
-                color: decoration,
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Icon(iconData, color: iconColor),
-              ),
-            ),
-          ),
+      child: Tooltip(
+        message: tooltip,
+        verticalOffset: (kPopupSize / 2.0) + kPopupPadding,
+        preferBelow: preferBelow,
+        child: PopupTile(
+          edgeInsets: edgeInsets,
+          background: background,
+          decoration: decoration,
+          iconColor: iconColor,
+          iconData: iconData,
         ),
       ),
     );

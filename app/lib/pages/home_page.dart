@@ -11,12 +11,9 @@ import 'package:flutter_quill/models/documents/document.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/default_styles.dart';
 import 'package:flutter_quill/widgets/editor.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-// import 'package:flutter_quill/widgets/toolbar/sliding_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
 import 'package:tuple/tuple.dart';
 
 import 'read_only_page.dart';
@@ -29,7 +26,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   QuillController? _controller;
   final FocusNode _focusNode = FocusNode();
-  //ToolbarAlignment _toolbarAlignment = ToolbarAlignment.leftTop;
+  // ToolbarAlignment _toolbarAlignment = ToolbarAlignment.leftTop;
   ValueNotifier<ToggleState> _toggleNotifier = ValueNotifier(ToggleState.off);
 
   @override
@@ -147,9 +144,10 @@ class _HomePageState extends State<HomePage> {
             controller: _controller!,
             foreground: Colors.deepOrangeAccent,
             background: Colors.indigo,
-            alignment: ToolbarAlignment.leftCenter,
+            alignment: ToolbarAlignment.bottomCenter,
             optionIconData: Icons.details,
             optionLabel: 'Option',
+            optionTooltip: 'See an important alert',
             optionOnPressed: () {
               _toggleNotifier.value = ToggleState.on;
               showDialog(

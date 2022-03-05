@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/tiles/toolbar_tile.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
-const String kOptionItemKey = 'option_toolbar_item';
-
-class OptionButton extends StatefulWidget {
+class ToolbarOptionButton extends StatefulWidget {
   final IconData iconData;
   final String label;
+  final String? tooltip;
   final VoidCallback onPressed;
   final ValueNotifier<ToggleState> toggleStateNotifier;
 
-  const OptionButton({
+  const ToolbarOptionButton({
     Key? key,
     required this.iconData,
     required this.label,
+    this.tooltip,
     required this.onPressed,
     required this.toggleStateNotifier,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => OptionButtonState();
+  State<StatefulWidget> createState() => ToolbarOptionButtonState();
 }
 
-class OptionButtonState extends State<OptionButton> {
+class ToolbarOptionButtonState extends State<ToolbarOptionButton> {
   late ToggleState _toggleState;
   late ToolbarAlignment _alignment;
   late Color _foreground;
@@ -62,11 +61,12 @@ class OptionButtonState extends State<OptionButton> {
       child: ToolbarTile(
         iconData: widget.iconData,
         label: widget.label,
+        tooltip: widget.tooltip,
         state: _toggleState,
         accent: _foreground,
         background: _background,
         disabled: _foreground,
-        direction: toolbarAxisFromAlignment(_alignment),
+        alignment: _alignment,
       ),
     );
   }

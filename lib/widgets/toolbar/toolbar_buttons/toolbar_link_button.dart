@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/tiles/toolbar_tile.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
-const String kLinkItemKey = 'toolbar_item_key_link';
-
-class LinkToolbarButton extends StatefulWidget {
+class ToolbarLinkButton extends StatefulWidget {
   final QuillController controller;
 
-  const LinkToolbarButton({
+  const ToolbarLinkButton({
     Key? key,
     required this.controller,
   }) : super(key: key);
 
   @override
-  _LinkToolbarButtonState createState() => _LinkToolbarButtonState();
+  _ToolbarLinkButtonState createState() => _ToolbarLinkButtonState();
 }
 
-class _LinkToolbarButtonState extends State<LinkToolbarButton> {
+class _ToolbarLinkButtonState extends State<ToolbarLinkButton> {
   late final ValueNotifier<ToggleState> _toggleStateNotifier;
   late ToolbarAlignment _alignment;
   late Color _foreground;
@@ -61,7 +58,7 @@ class _LinkToolbarButtonState extends State<LinkToolbarButton> {
   }
 
   @override
-  void didUpdateWidget(covariant LinkToolbarButton oldWidget) {
+  void didUpdateWidget(covariant ToolbarLinkButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_didChangeSelection);
@@ -92,11 +89,12 @@ class _LinkToolbarButtonState extends State<LinkToolbarButton> {
           child: ToolbarTile(
             iconData: Icons.link,
             label: 'Link',
+            tooltip: 'Format text as a link',
             state: value,
             accent: _foreground,
             background: _background,
             disabled: _disabled,
-            direction: toolbarAxisFromAlignment(_alignment),
+            alignment: _alignment,
           ),
         );
       },

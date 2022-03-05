@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/base_popup.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_button.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
-class PopupOption extends StatefulWidget {
+class PopupToolbarButton extends StatefulWidget {
   final IconData iconData;
   final VoidCallback? onPressed;
+  final String tooltip;
 
-  const PopupOption({
+  const PopupToolbarButton({
     Key? key,
     required this.iconData,
     required this.onPressed,
+    required this.tooltip,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => PopupOptionState();
+  State<StatefulWidget> createState() => PopupToolbarButtonState();
 }
 
-class PopupOptionState extends State<PopupOption> {
+class PopupToolbarButtonState extends State<PopupToolbarButton> {
   late ToolbarAlignment _alignment;
   late Color _foreground;
   late Color _background;
@@ -50,7 +51,7 @@ class PopupOptionState extends State<PopupOption> {
 
   @override
   Widget build(BuildContext context) {
-    return BasePopup(
+    return PopupButton(
       iconData: widget.iconData,
       foreground: _foreground,
       background: _background,
@@ -58,6 +59,7 @@ class PopupOptionState extends State<PopupOption> {
       onPressed: widget.onPressed,
       state: widget.onPressed == null ? ToggleState.disabled : ToggleState.off,
       alignment: _alignment,
+      tooltip: widget.tooltip,
     );
   }
 

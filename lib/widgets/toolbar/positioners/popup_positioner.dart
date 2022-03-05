@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/popup_flex.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/positioned_follower.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/flexes/popup_flex.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/positioners/positioned_follower.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/operations.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
-class PopupPositionedButtons extends StatelessWidget {
+class PopupPositioner extends StatelessWidget {
   final QuillController controller;
 
-  const PopupPositionedButtons({
+  const PopupPositioner({
     Key? key,
     required this.controller,
   }) : super(key: key);

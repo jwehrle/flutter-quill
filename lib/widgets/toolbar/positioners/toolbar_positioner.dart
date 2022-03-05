@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/button_flex.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/flexes/button_flex.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/operations.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
-class ToolbarButtonBar extends StatelessWidget {
+class ToolbarPositioner extends StatelessWidget {
   final ScrollController scrollController;
   final QuillController controller;
   final IconData? optionIconData;
   final String? optionLabel;
+  final String? optionTooltip;
   final VoidCallback? optionOnPressed;
   final ValueNotifier<ToggleState>? optionToggleStateNotifier;
 
-  const ToolbarButtonBar({
+  const ToolbarPositioner({
     Key? key,
     required this.scrollController,
     required this.controller,
     this.optionIconData,
     this.optionLabel,
+    this.optionTooltip,
     this.optionOnPressed,
     this.optionToggleStateNotifier,
   }) : super(key: key);
@@ -28,11 +31,12 @@ class ToolbarButtonBar extends StatelessWidget {
     return ValueListenableBuilder<ToolbarAlignment>(
       valueListenable: RichTextToolbar.of(context).alignmentNotifier,
       builder: (context, alignment, child) {
+        Axis axis = toolbarAxisFromAlignment(alignment);
         return Align(
           alignment: convertAlignment(alignment),
           child: SingleChildScrollView(
             controller: scrollController,
-            scrollDirection: toolbarAxisFromAlignment(alignment),
+            scrollDirection: axis,
             reverse: isReverse(alignment),
             clipBehavior: Clip.none,
             child: ValueListenableBuilder<Color>(
@@ -41,12 +45,19 @@ class ToolbarButtonBar extends StatelessWidget {
                   return Card(
                     margin: EdgeInsets.all(kToolbarMargin),
                     color: background,
-                    child: ButtonFlex(
-                      controller: controller,
-                      optionIconData: optionIconData,
-                      optionLabel: optionLabel,
-                      optionOnPressed: optionOnPressed,
-                      optionToggleStateNotifier: optionToggleStateNotifier,
+                    child: Padding(
+                      padding: axis == Axis.horizontal
+                          ? EdgeInsets.symmetric(vertical: kToolbarTilePadding)
+                          : EdgeInsets.symmetric(
+                              horizontal: kToolbarTilePadding),
+                      child: ButtonFlex(
+                        controller: controller,
+                        optionIconData: optionIconData,
+                        optionLabel: optionLabel,
+                        optionTooltip: optionTooltip,
+                        optionOnPressed: optionOnPressed,
+                        optionToggleStateNotifier: optionToggleStateNotifier,
+                      ),
                     ),
                   );
                 }),

@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-
-enum ToggleState { on, off, disabled }
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 abstract class AttributeToggle {
   late final ValueNotifier<ToggleState> state;

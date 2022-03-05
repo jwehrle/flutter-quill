@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/operations.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 class PositionedFollower extends StatefulWidget {
   final int index;
@@ -41,7 +42,7 @@ class PositionedFollowerState extends State<PositionedFollower> {
     return ValueListenableBuilder<double>(
       valueListenable: _toolbar.toolbarOffsetNotifier,
       builder: (context, value, _) {
-        final pos = itemPosition(
+        final PositionParameters pos = itemPosition(
           index: widget.index,
           toolbarOffset: value,
           alignment: _alignment,

@@ -1,61 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_button.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/toolbar_buttons/toolbar_button.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 import 'package:mdi/mdi.dart';
 
-import '../attribute_toggle_mixin.dart';
-
-const String kSizeItemKey = 'toolbar_item_key_size';
-const String kIndentItemKey = 'toolbar_item_key_indent';
-const String kStyleItemKey = 'toolbar_item_key_style';
-const String kBlockItemKey = 'toolbar_item_key_section';
-const String kListItemKey = 'toolbar_item_key_list';
-
-enum PopupButtonType { size, indent, style, block, list }
-
-class PopupButton extends StatefulWidget {
-  final PopupButtonType type;
+class ToolbarPopupButton extends StatefulWidget {
+  final ToolbarPopupType type;
   final QuillController controller;
 
-  const PopupButton({
+  const ToolbarPopupButton({
     Key? key,
     required this.type,
     required this.controller,
   }) : super(key: key);
 
-  const PopupButton.size({required this.controller})
-      : this.type = PopupButtonType.size,
+  const ToolbarPopupButton.size({required this.controller})
+      : this.type = ToolbarPopupType.size,
         super(key: const ValueKey(kSizeItemKey + '_button'));
 
-  const PopupButton.indent({required this.controller})
-      : this.type = PopupButtonType.indent,
+  const ToolbarPopupButton.indent({required this.controller})
+      : this.type = ToolbarPopupType.indent,
         super(key: const ValueKey(kIndentItemKey + '_button'));
 
-  const PopupButton.style({required this.controller})
-      : this.type = PopupButtonType.style,
+  const ToolbarPopupButton.style({required this.controller})
+      : this.type = ToolbarPopupType.style,
         super(key: const ValueKey(kStyleItemKey + '_button'));
 
-  const PopupButton.block({required this.controller})
-      : this.type = PopupButtonType.block,
+  const ToolbarPopupButton.block({required this.controller})
+      : this.type = ToolbarPopupType.block,
         super(key: const ValueKey(kBlockItemKey + '_button'));
 
-  const PopupButton.list({required this.controller})
-      : this.type = PopupButtonType.list,
+  const ToolbarPopupButton.list({required this.controller})
+      : this.type = ToolbarPopupType.list,
         super(key: const ValueKey(kListItemKey + '_button'));
 
   @override
-  State<PopupButton> createState() => PopupButtonState();
+  State<ToolbarPopupButton> createState() => ToolbarPopupButtonState();
 }
 
-class PopupButtonState extends State<PopupButton> {
+class ToolbarPopupButtonState extends State<ToolbarPopupButton> {
   late final ValueNotifier<ToggleState> _toggleState;
   late final ValueNotifier<String?> _selectionNotifier;
   late final ValueNotifier<ToolbarAlignment> _alignmentNotifier;
   late ToolbarAlignment _alignment;
   late final String _itemKey;
   late final String _label;
+  late final String _tooltip;
   late final IconData _iconData;
   late Color _foreground;
   late Color _background;
@@ -83,29 +75,34 @@ class PopupButtonState extends State<PopupButton> {
   @override
   void initState() {
     switch (widget.type) {
-      case PopupButtonType.size:
+      case ToolbarPopupType.size:
         _itemKey = kSizeItemKey;
-        _label = 'Size';
+        _label = kSizeLabel;
+        _tooltip = kSizeTooltip;
         _iconData = Icons.format_size;
         break;
-      case PopupButtonType.indent:
+      case ToolbarPopupType.indent:
         _itemKey = kIndentItemKey;
-        _label = 'Indent';
+        _label = kIndentLabel;
+        _tooltip = kIndentTooltip;
         _iconData = Icons.format_indent_increase;
         break;
-      case PopupButtonType.style:
+      case ToolbarPopupType.style:
         _itemKey = kStyleItemKey;
-        _label = 'Style';
+        _label = kStyleLabel;
+        _tooltip = kStyleTooltip;
         _iconData = Mdi.formatFont;
         break;
-      case PopupButtonType.block:
+      case ToolbarPopupType.block:
         _itemKey = kBlockItemKey;
-        _label = 'Block';
+        _label = kBlockLabel;
+        _tooltip = kBlockTooltip;
         _iconData = Mdi.formatPilcrow;
         break;
-      case PopupButtonType.list:
+      case ToolbarPopupType.list:
         _itemKey = kListItemKey;
-        _label = 'List';
+        _label = kListLabel;
+        _tooltip = kListTooltip;
         _iconData = Mdi.viewList;
         break;
     }
@@ -131,9 +128,10 @@ class PopupButtonState extends State<PopupButton> {
       itemKey: _itemKey,
       iconData: _iconData,
       label: _label,
+      tooltip: _tooltip,
       foreground: _foreground,
       background: _background,
-      direction: toolbarAxisFromAlignment(_alignment),
+      alignment: _alignment,
       toggleState: _toggleState,
       onPressed: () {
         final popupNotifier = RichTextToolbar.of(context).selectionNotifier;

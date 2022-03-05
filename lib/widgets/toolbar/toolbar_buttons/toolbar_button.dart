@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
-
-import '../attribute_toggle_mixin.dart';
+import 'package:flutter_quill/widgets/toolbar/tiles/toolbar_tile.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 class ToolbarButton extends StatelessWidget {
   final String itemKey;
   final IconData iconData;
   final String label;
+  final String? tooltip;
   final Color foreground;
   final Color background;
   final Color disabled;
   final VoidCallback? onPressed;
   final ValueNotifier<ToggleState> toggleState;
-  final Axis direction;
+  final ToolbarAlignment alignment;
 
   const ToolbarButton({
     Key? key,
     required this.itemKey,
     required this.iconData,
     required this.label,
+    this.tooltip,
     required this.foreground,
     required this.background,
     required this.toggleState,
     required this.onPressed,
     required this.disabled,
-    required this.direction,
+    required this.alignment,
   }) : super(key: key);
 
   @override
@@ -42,7 +43,8 @@ class ToolbarButton extends StatelessWidget {
             disabled: disabled,
             iconData: iconData,
             label: label,
-            direction: direction,
+            tooltip: tooltip,
+            alignment: alignment,
           ),
         );
       },

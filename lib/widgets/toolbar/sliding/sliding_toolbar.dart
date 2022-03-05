@@ -144,7 +144,7 @@ class _SlidingToolbarState extends State<SlidingToolbar> {
   }
 }
 
-/// Organizes a list of buttons by expanding and collapsing and by using a
+/// Organizes a list of toolbar_buttons by expanding and collapsing and by using a
 /// standard theme.
 /// See also:
 /// [StyleSectionControl] handles bold, italic, underline, strikethrough, text size

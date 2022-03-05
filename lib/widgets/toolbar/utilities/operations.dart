@@ -1,33 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/option_button.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/link_toolbar_button.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toggle_button.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/popup_button.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/popup_flex.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_item.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
-
-const double kPopupAnchorPadding =
-    kToolbarTileHeight + (2.0 * kToolbarTilePadding);
-
-enum ToolbarAlignment {
-  topLeft,
-  topCenter,
-  topRight,
-  bottomLeft,
-  bottomCenter,
-  bottomRight,
-  leftTop,
-  leftCenter,
-  leftBottom,
-  rightTop,
-  rightCenter,
-  rightBottom,
-}
+import 'package:flutter_quill/widgets/toolbar/toolbar_buttons/buttons.dart';
+import 'package:flutter_quill/widgets/toolbar/flexes/popup_flex.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 Alignment convertAlignment(ToolbarAlignment alignment) {
   switch (alignment) {
@@ -73,8 +50,6 @@ Axis toolbarAxisFromAlignment(ToolbarAlignment alignment) {
   }
 }
 
-enum ToolbarType { condensed, expanded, condensedOption, expandedOption }
-
 int toolbarItemCount(ToolbarType type) {
   switch (type) {
     case ToolbarType.condensed:
@@ -93,32 +68,33 @@ List<Widget> toolbarButtons({
   required QuillController controller,
   IconData? optionIconData,
   String? optionLabel,
+  String? optionTooltip,
   VoidCallback? optionOnPressed,
   ValueNotifier<ToggleState>? optionToggleStateNotifier,
 }) {
   switch (type) {
     case ToolbarType.condensed:
       return List<Widget>.unmodifiable([
-        PopupButton.style(controller: controller),
-        PopupButton.size(controller: controller),
-        PopupButton.indent(controller: controller),
-        PopupButton.list(controller: controller),
-        PopupButton.block(controller: controller),
-        LinkToolbarButton(controller: controller),
+        ToolbarPopupButton.style(controller: controller),
+        ToolbarPopupButton.size(controller: controller),
+        ToolbarPopupButton.indent(controller: controller),
+        ToolbarPopupButton.list(controller: controller),
+        ToolbarPopupButton.block(controller: controller),
+        ToolbarLinkButton(controller: controller),
       ]);
     case ToolbarType.expanded:
       return List<Widget>.unmodifiable([
-        ToggleButton.bold(controller: controller),
-        ToggleButton.italic(controller: controller),
-        ToggleButton.under(controller: controller),
-        ToggleButton.strike(controller: controller),
-        PopupButton.size(controller: controller),
-        PopupButton.indent(controller: controller),
-        ToggleButton.bullet(controller: controller),
-        ToggleButton.number(controller: controller),
-        ToggleButton.quote(controller: controller),
-        ToggleButton.code(controller: controller),
-        LinkToolbarButton(controller: controller),
+        ToolbarToggleButton.bold(controller: controller),
+        ToolbarToggleButton.italic(controller: controller),
+        ToolbarToggleButton.under(controller: controller),
+        ToolbarToggleButton.strike(controller: controller),
+        ToolbarPopupButton.size(controller: controller),
+        ToolbarPopupButton.indent(controller: controller),
+        ToolbarToggleButton.bullet(controller: controller),
+        ToolbarToggleButton.number(controller: controller),
+        ToolbarToggleButton.quote(controller: controller),
+        ToolbarToggleButton.code(controller: controller),
+        ToolbarLinkButton(controller: controller),
       ]);
     case ToolbarType.condensedOption:
       assert(
@@ -138,18 +114,19 @@ List<Widget> toolbarButtons({
         'optionToggleStateNotifier must not be null',
       );
       return List<Widget>.unmodifiable([
-        OptionButton(
+        ToolbarOptionButton(
           iconData: optionIconData!,
           label: optionLabel!,
+          tooltip: optionTooltip,
           onPressed: optionOnPressed!,
           toggleStateNotifier: optionToggleStateNotifier!,
         ),
-        PopupButton.style(controller: controller),
-        PopupButton.size(controller: controller),
-        PopupButton.indent(controller: controller),
-        PopupButton.list(controller: controller),
-        PopupButton.block(controller: controller),
-        LinkToolbarButton(controller: controller),
+        ToolbarPopupButton.style(controller: controller),
+        ToolbarPopupButton.size(controller: controller),
+        ToolbarPopupButton.indent(controller: controller),
+        ToolbarPopupButton.list(controller: controller),
+        ToolbarPopupButton.block(controller: controller),
+        ToolbarLinkButton(controller: controller),
       ]);
     case ToolbarType.expandedOption:
       assert(
@@ -169,23 +146,24 @@ List<Widget> toolbarButtons({
         'optionToggleStateNotifier must not be null',
       );
       return List<Widget>.unmodifiable([
-        OptionButton(
+        ToolbarOptionButton(
           iconData: optionIconData!,
           label: optionLabel!,
+          tooltip: optionTooltip,
           onPressed: optionOnPressed!,
           toggleStateNotifier: optionToggleStateNotifier!,
         ),
-        ToggleButton.bold(controller: controller),
-        ToggleButton.italic(controller: controller),
-        ToggleButton.under(controller: controller),
-        ToggleButton.strike(controller: controller),
-        PopupButton.size(controller: controller),
-        PopupButton.indent(controller: controller),
-        ToggleButton.bullet(controller: controller),
-        ToggleButton.number(controller: controller),
-        ToggleButton.quote(controller: controller),
-        ToggleButton.code(controller: controller),
-        LinkToolbarButton(controller: controller),
+        ToolbarToggleButton.bold(controller: controller),
+        ToolbarToggleButton.italic(controller: controller),
+        ToolbarToggleButton.under(controller: controller),
+        ToolbarToggleButton.strike(controller: controller),
+        ToolbarPopupButton.size(controller: controller),
+        ToolbarPopupButton.indent(controller: controller),
+        ToolbarToggleButton.bullet(controller: controller),
+        ToolbarToggleButton.number(controller: controller),
+        ToolbarToggleButton.quote(controller: controller),
+        ToolbarToggleButton.code(controller: controller),
+        ToolbarLinkButton(controller: controller),
       ]);
   }
 }
@@ -242,108 +220,6 @@ List<PopupFlex> toolbarPopups({
         PopupFlex.quote(),
         PopupFlex.code(),
         PopupFlex.empty(itemKey: kLinkItemKey),
-      ]);
-  }
-}
-
-List<ToolbarItem> toolbarItems({
-  required ToolbarType type,
-  required QuillController controller,
-  IconData? optionIconData,
-  String? optionLabel,
-  VoidCallback? optionOnPressed,
-  ValueNotifier<ToggleState>? optionToggleStateNotifier,
-}) {
-  switch (type) {
-    case ToolbarType.condensed:
-      return List<ToolbarItem>.unmodifiable([
-        ToolbarItem.style(controller: controller),
-        ToolbarItem.size(controller: controller),
-        ToolbarItem.indent(controller: controller),
-        ToolbarItem.list(controller: controller),
-        ToolbarItem.block(controller: controller),
-        ToolbarItem.link(controller: controller),
-      ]);
-    case ToolbarType.expanded:
-      return List<ToolbarItem>.unmodifiable([
-        ToolbarItem.bold(controller: controller),
-        ToolbarItem.italic(controller: controller),
-        ToolbarItem.under(controller: controller),
-        ToolbarItem.strike(controller: controller),
-        ToolbarItem.size(controller: controller),
-        ToolbarItem.indent(controller: controller),
-        ToolbarItem.bullet(controller: controller),
-        ToolbarItem.number(controller: controller),
-        ToolbarItem.quote(controller: controller),
-        ToolbarItem.code(controller: controller),
-        ToolbarItem.link(controller: controller),
-      ]);
-    case ToolbarType.condensedOption:
-      assert(
-        optionIconData != null,
-        'optionIconData must not be null',
-      );
-      assert(
-        optionLabel != null,
-        'optionLabel must not be null',
-      );
-      assert(
-        optionOnPressed != null,
-        'optionOnPressed must not be null',
-      );
-      assert(
-        optionToggleStateNotifier != null,
-        'optionToggleStateNotifier must not be null',
-      );
-      return List<ToolbarItem>.unmodifiable([
-        ToolbarItem.option(
-          iconData: optionIconData!,
-          label: optionLabel!,
-          onPressed: optionOnPressed!,
-          toggleStateNotifier: optionToggleStateNotifier!,
-        ),
-        ToolbarItem.style(controller: controller),
-        ToolbarItem.size(controller: controller),
-        ToolbarItem.indent(controller: controller),
-        ToolbarItem.list(controller: controller),
-        ToolbarItem.block(controller: controller),
-        ToolbarItem.link(controller: controller),
-      ]);
-    case ToolbarType.expandedOption:
-      assert(
-        optionIconData != null,
-        'optionIconData must not be null',
-      );
-      assert(
-        optionLabel != null,
-        'optionLabel must not be null',
-      );
-      assert(
-        optionOnPressed != null,
-        'optionOnPressed must not be null',
-      );
-      assert(
-        optionToggleStateNotifier != null,
-        'optionToggleStateNotifier must not be null',
-      );
-      return List<ToolbarItem>.unmodifiable([
-        ToolbarItem.option(
-          iconData: optionIconData!,
-          label: optionLabel!,
-          onPressed: optionOnPressed!,
-          toggleStateNotifier: optionToggleStateNotifier!,
-        ),
-        ToolbarItem.bold(controller: controller),
-        ToolbarItem.italic(controller: controller),
-        ToolbarItem.under(controller: controller),
-        ToolbarItem.strike(controller: controller),
-        ToolbarItem.size(controller: controller),
-        ToolbarItem.indent(controller: controller),
-        ToolbarItem.bullet(controller: controller),
-        ToolbarItem.number(controller: controller),
-        ToolbarItem.quote(controller: controller),
-        ToolbarItem.code(controller: controller),
-        ToolbarItem.link(controller: controller),
       ]);
   }
 }
@@ -489,54 +365,7 @@ double itemOffset({
   }
 }
 
-class PosParam {
-  double? top;
-  double? left;
-  double? right;
-  double? bottom;
-  PosParam({this.top, this.left, this.right, this.bottom});
-
-  @override
-  String toString() {
-    String params = '';
-    params += top == null ? '' : ' top: $top,';
-    params += left == null ? '' : ' left: $left,';
-    params += right == null ? '' : ' right: $right,';
-    params += bottom == null ? '' : ' bottom: $bottom,';
-    return 'PosParam:' + params;
-  }
-
-  @override
-  int get hashCode {
-    int hash = top?.hashCode ?? 1;
-    hash *= left?.hashCode ?? 1;
-    hash *= right?.hashCode ?? 1;
-    hash *= bottom?.hashCode ?? 1;
-    return hash;
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is PosParam) {
-      if (top != other.top) {
-        return false;
-      }
-      if (left != other.left) {
-        return false;
-      }
-      if (right != other.right) {
-        return false;
-      }
-      if (bottom != other.bottom) {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  }
-}
-
-PosParam itemPosition({
+PositionParameters itemPosition({
   required int index,
   required double toolbarOffset,
   required ToolbarAlignment alignment,
@@ -550,65 +379,66 @@ PosParam itemPosition({
     index: index,
     itemCount: count,
   );
+  double anchor = kToolbarTileHeight + (2.0 * kToolbarTilePadding);
   switch (alignment) {
     case ToolbarAlignment.topLeft:
     case ToolbarAlignment.topCenter:
-      return PosParam(
-        top: kPopupAnchorPadding,
+      return PositionParameters(
+        top: anchor,
         left: offset,
         right: null,
         bottom: null,
       );
     case ToolbarAlignment.topRight:
-      return PosParam(
-        top: kPopupAnchorPadding,
+      return PositionParameters(
+        top: anchor,
         left: null,
         right: offset,
         bottom: null,
       );
     case ToolbarAlignment.bottomLeft:
     case ToolbarAlignment.bottomCenter:
-      return PosParam(
+      return PositionParameters(
         top: null,
         left: offset,
         right: null,
-        bottom: kPopupAnchorPadding,
+        bottom: anchor,
       );
     case ToolbarAlignment.bottomRight:
-      return PosParam(
+      return PositionParameters(
         top: null,
         left: null,
         right: offset,
-        bottom: kPopupAnchorPadding,
+        bottom: anchor,
       );
     case ToolbarAlignment.leftTop:
     case ToolbarAlignment.leftCenter:
-      return PosParam(
+      return PositionParameters(
         top: offset,
-        left: kPopupAnchorPadding,
+        left: anchor,
         right: null,
         bottom: null,
       );
     case ToolbarAlignment.leftBottom:
-      return PosParam(
+      return PositionParameters(
         top: null,
-        left: kPopupAnchorPadding,
+        left: anchor,
         right: null,
         bottom: offset,
       );
     case ToolbarAlignment.rightTop:
     case ToolbarAlignment.rightCenter:
-      return PosParam(
+      return PositionParameters(
         top: offset,
         left: null,
-        right: kPopupAnchorPadding,
+        right: anchor,
         bottom: null,
       );
     case ToolbarAlignment.rightBottom:
-      return PosParam(
+      return PositionParameters(
         top: null,
         left: null,
-        right: kPopupAnchorPadding,
+        right: anchor,
         bottom: offset,
       );
   }
@@ -638,8 +468,8 @@ double calculateToolbarSize({
   required ToolbarAlignment alignment,
 }) {
   double cellSize = toolbarAxisFromAlignment(alignment) == Axis.horizontal
-      ? kToolbarCellWidth
-      : kToolbarCellHeight;
+      ? kToolbarTileWidth + kToolbarTilePadding
+      : kToolbarTileHeight + kToolbarTilePadding;
   double cellSum = buttonCount * cellSize;
   double paddingSum = (buttonCount + 1) * kToolbarTilePadding;
   double marginSum = 2.0 * kToolbarMargin;

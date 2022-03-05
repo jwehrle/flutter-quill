@@ -2,34 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/documents/style.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/popup_option.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_toolbar_button.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/operations.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
-enum OptionType {
-  sizePlus,
-  sizeMinus,
-  indentPlus,
-  indentMinus,
-}
-
-class OptionButton extends StatefulWidget {
-  final OptionType type;
+class PopupActionButton extends StatefulWidget {
+  final PopupActionType type;
   final QuillController controller;
 
-  OptionButton({
+  PopupActionButton({
     Key? key,
     required this.type,
     required this.controller,
   }) : super(key: key);
 
   @override
-  OptionState createState() => OptionState();
+  PopupActionButtonState createState() => PopupActionButtonState();
 }
 
-class OptionState extends State<OptionButton> {
+class PopupActionButtonState extends State<PopupActionButton> {
   late Attribute? _currentValue;
   late final String attributeKey;
-  late final IconData iconData;
+  late final IconData _iconData;
+  late final String _tooltip;
 
   Style get _selectionStyle => widget.controller.getSelectionStyle();
   Attribute? get currentAttribute => _currentValue;
@@ -41,21 +37,25 @@ class OptionState extends State<OptionButton> {
   @override
   void initState() {
     switch (widget.type) {
-      case OptionType.sizePlus:
+      case PopupActionType.sizePlus:
         attributeKey = Attribute.header.key!;
-        iconData = Icons.arrow_upward;
+        _iconData = Icons.arrow_upward;
+        _tooltip = kSizePlusTooltip;
         break;
-      case OptionType.indentPlus:
+      case PopupActionType.indentPlus:
         attributeKey = Attribute.indent.key!;
-        iconData = Icons.arrow_forward;
+        _iconData = Icons.arrow_forward;
+        _tooltip = kIndentPlusTooltip;
         break;
-      case OptionType.sizeMinus:
+      case PopupActionType.sizeMinus:
         attributeKey = Attribute.header.key!;
-        iconData = Icons.arrow_downward;
+        _iconData = Icons.arrow_downward;
+        _tooltip = kSizeMinusTooltip;
         break;
-      case OptionType.indentMinus:
+      case PopupActionType.indentMinus:
         attributeKey = Attribute.indent.key!;
-        iconData = Icons.arrow_back;
+        _iconData = Icons.arrow_back;
+        _tooltip = kIndentMinusTooltip;
         break;
     }
     _assignCurrentValue();
@@ -64,7 +64,7 @@ class OptionState extends State<OptionButton> {
   }
 
   @override
-  void didUpdateWidget(covariant OptionButton oldWidget) {
+  void didUpdateWidget(covariant PopupActionButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_didChangeEditingValue);
@@ -87,21 +87,22 @@ class OptionState extends State<OptionButton> {
 
   @override
   Widget build(BuildContext context) {
-    return PopupOption(
+    return PopupToolbarButton(
       onPressed: _onPressedHandler(),
-      iconData: iconData,
+      iconData: _iconData,
+      tooltip: _tooltip,
     );
   }
 
   VoidCallback? _onPressedHandler() {
     switch (widget.type) {
-      case OptionType.sizePlus:
+      case PopupActionType.sizePlus:
         return getOnPressed(incrementSize(_currentValue));
-      case OptionType.sizeMinus:
+      case PopupActionType.sizeMinus:
         return getOnPressed(decrementSize(_currentValue));
-      case OptionType.indentPlus:
+      case PopupActionType.indentPlus:
         return getOnPressed(incrementIndent(_currentValue));
-      case OptionType.indentMinus:
+      case PopupActionType.indentMinus:
         return getOnPressed(decrementIndent(_currentValue));
     }
   }

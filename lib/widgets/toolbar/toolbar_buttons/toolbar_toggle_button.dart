@@ -1,85 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_button.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/attributes/attribute_toggle_mixin.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/toolbar_buttons/toolbar_button.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
-enum ToggleToolbarType {
-  bold,
-  italic,
-  under,
-  strike,
-  quote,
-  code,
-  number,
-  bullet
-}
-
-const String kBoldItemKey = 'toolbar_item_key_bold';
-const String kItalicItemKey = 'toolbar_item_key_italic';
-const String kUnderItemKey = 'toolbar_item_key_underline';
-const String kStrikeItemKey = 'toolbar_item_key_strike';
-const String kQuoteItemKey = 'toolbar_item_key_quote';
-const String kCodeItemKey = 'toolbar_item_key_code';
-const String kNumberItemKey = 'toolbar_item_key_number';
-const String kBulletItemKey = 'toolbar_item_key_bullet';
-
-const String kBoldLabel = 'Bold';
-const String kItalicLabel = 'Italic';
-const String kUnderLabel = 'Under';
-const String kStrikeLabel = 'Strike';
-const String kQuoteLabel = 'Quote';
-const String kCodeLabel = 'Code';
-const String kNumberLabel = 'Number';
-const String kBulletLabel = 'Bullet';
-
-class ToggleButton extends StatefulWidget {
-  final ToggleToolbarType type;
+class ToolbarToggleButton extends StatefulWidget {
+  final ToggleType type;
   final QuillController controller;
 
-  const ToggleButton.bold({required this.controller})
-      : this.type = ToggleToolbarType.bold,
+  const ToolbarToggleButton.bold({required this.controller})
+      : this.type = ToggleType.bold,
         super(key: const ValueKey(kBoldItemKey + '_button'));
 
-  const ToggleButton.italic({required this.controller})
-      : this.type = ToggleToolbarType.italic,
+  const ToolbarToggleButton.italic({required this.controller})
+      : this.type = ToggleType.italic,
         super(key: const ValueKey(kItalicItemKey + '_button'));
 
-  const ToggleButton.under({required this.controller})
-      : this.type = ToggleToolbarType.under,
+  const ToolbarToggleButton.under({required this.controller})
+      : this.type = ToggleType.under,
         super(key: const ValueKey(kUnderItemKey + '_button'));
 
-  const ToggleButton.strike({required this.controller})
-      : this.type = ToggleToolbarType.strike,
+  const ToolbarToggleButton.strike({required this.controller})
+      : this.type = ToggleType.strike,
         super(key: const ValueKey(kStrikeItemKey + '_button'));
 
-  const ToggleButton.quote({required this.controller})
-      : this.type = ToggleToolbarType.quote,
+  const ToolbarToggleButton.quote({required this.controller})
+      : this.type = ToggleType.quote,
         super(key: const ValueKey(kQuoteItemKey + '_button'));
 
-  const ToggleButton.code({required this.controller})
-      : this.type = ToggleToolbarType.code,
+  const ToolbarToggleButton.code({required this.controller})
+      : this.type = ToggleType.code,
         super(key: const ValueKey(kCodeItemKey + '_button'));
 
-  const ToggleButton.number({required this.controller})
-      : this.type = ToggleToolbarType.number,
+  const ToolbarToggleButton.number({required this.controller})
+      : this.type = ToggleType.number,
         super(key: const ValueKey(kNumberItemKey + '_button'));
 
-  const ToggleButton.bullet({required this.controller})
-      : this.type = ToggleToolbarType.bullet,
+  const ToolbarToggleButton.bullet({required this.controller})
+      : this.type = ToggleType.bullet,
         super(key: const ValueKey(kBulletItemKey + '_button'));
 
   @override
-  ToggleButtonState createState() => ToggleButtonState();
+  ToolbarToggleButtonState createState() => ToolbarToggleButtonState();
 }
 
-class ToggleButtonState extends State<ToggleButton> with AttributeToggle {
+class ToolbarToggleButtonState extends State<ToolbarToggleButton>
+    with AttributeToggle {
   late final Attribute _attribute;
   late final String _itemKey;
   late final IconData _iconData;
   late final String _label;
+  late final String _tooltip;
   late ToolbarAlignment _alignment;
   late final ValueNotifier<String?> _selectionNotifier;
   late Color _foreground;
@@ -110,53 +84,61 @@ class ToggleButtonState extends State<ToggleButton> with AttributeToggle {
     _toolbar.alignmentNotifier.addListener(_alignmentListener);
     widget.controller.addListener(_controllerListener);
     switch (widget.type) {
-      case ToggleToolbarType.bold:
-        _attribute = Attribute.bold;
-        _itemKey = kBoldItemKey;
-        _iconData = Icons.format_bold;
-        _label = kBoldLabel;
-        break;
-      case ToggleToolbarType.italic:
-        _attribute = Attribute.italic;
-        _itemKey = kItalicItemKey;
-        _iconData = Icons.format_italic;
-        _label = kItalicLabel;
-        break;
-      case ToggleToolbarType.under:
-        _attribute = Attribute.underline;
-        _itemKey = kBoldItemKey;
-        _iconData = Icons.format_underline;
-        _label = kUnderLabel;
-        break;
-      case ToggleToolbarType.strike:
-        _attribute = Attribute.strikeThrough;
-        _itemKey = kBoldItemKey;
-        _iconData = Icons.format_strikethrough;
-        _label = kStrikeLabel;
-        break;
-      case ToggleToolbarType.quote:
-        _attribute = Attribute.blockQuote;
-        _itemKey = kBoldItemKey;
-        _iconData = Icons.format_quote;
-        _label = kQuoteLabel;
-        break;
-      case ToggleToolbarType.code:
+      case ToggleType.code:
         _attribute = Attribute.codeBlock;
         _itemKey = kBoldItemKey;
         _iconData = Icons.code;
         _label = kCodeLabel;
+        _tooltip = kCodeToolTip;
         break;
-      case ToggleToolbarType.number:
-        _attribute = Attribute.ol;
-        _itemKey = kNumberItemKey;
-        _iconData = Icons.format_list_numbered;
-        _label = kNumberLabel;
+      case ToggleType.bold:
+        _attribute = Attribute.bold;
+        _itemKey = kBoldItemKey;
+        _iconData = Icons.format_bold;
+        _label = kBoldLabel;
+        _tooltip = kBoldToolTip;
         break;
-      case ToggleToolbarType.bullet:
+      case ToggleType.bullet:
         _attribute = Attribute.ul;
         _itemKey = kBulletItemKey;
         _iconData = Icons.format_list_bulleted;
         _label = kBulletLabel;
+        _tooltip = kBulletToolTip;
+        break;
+      case ToggleType.italic:
+        _attribute = Attribute.italic;
+        _itemKey = kItalicItemKey;
+        _iconData = Icons.format_italic;
+        _label = kItalicLabel;
+        _tooltip = kItalicToolTip;
+        break;
+      case ToggleType.number:
+        _attribute = Attribute.ol;
+        _itemKey = kNumberItemKey;
+        _iconData = Icons.format_list_numbered;
+        _label = kNumberLabel;
+        _tooltip = kNumberToolTip;
+        break;
+      case ToggleType.quote:
+        _attribute = Attribute.blockQuote;
+        _itemKey = kBoldItemKey;
+        _iconData = Icons.format_quote;
+        _label = kQuoteLabel;
+        _tooltip = kQuoteToolTip;
+        break;
+      case ToggleType.strike:
+        _attribute = Attribute.strikeThrough;
+        _itemKey = kBoldItemKey;
+        _iconData = Icons.format_strikethrough;
+        _label = kStrikeLabel;
+        _tooltip = kStrikeToolTip;
+        break;
+      case ToggleType.under:
+        _attribute = Attribute.underline;
+        _itemKey = kBoldItemKey;
+        _iconData = Icons.format_underline;
+        _label = kUnderLabel;
+        _tooltip = kUnderToolTip;
         break;
     }
     attributeInit(widget.controller, _attribute);
@@ -164,7 +146,7 @@ class ToggleButtonState extends State<ToggleButton> with AttributeToggle {
   }
 
   @override
-  void didUpdateWidget(covariant ToggleButton oldWidget) {
+  void didUpdateWidget(covariant ToolbarToggleButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_controllerListener);
@@ -178,12 +160,13 @@ class ToggleButtonState extends State<ToggleButton> with AttributeToggle {
       itemKey: _itemKey,
       iconData: _iconData,
       label: _label,
+      tooltip: _tooltip,
       foreground: _foreground,
       background: _background,
       toggleState: state,
       onPressed: _onPressed,
       disabled: _disabled,
-      direction: toolbarAxisFromAlignment(_alignment),
+      alignment: _alignment,
     );
   }
 

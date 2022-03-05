@@ -1,39 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/option_button.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/popup_button.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/popup_toggle.dart';
-import 'package:flutter_quill/widgets/toolbar/richtext_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toggle_button.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_tile.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_action_button.dart';
+import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_toggle_button.dart';
+import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 
 class PopupFlex extends StatefulWidget {
   final String itemKey;
-  final List<Widget> options;
+  final List<Widget> buttons;
 
   const PopupFlex({
     Key? key,
     required this.itemKey,
-    required this.options,
+    required this.buttons,
   }) : super(key: key);
 
   PopupFlex.empty({
     Key? key,
     required this.itemKey,
-  })  : this.options = [],
+  })  : this.buttons = [],
         super(key: key);
 
   PopupFlex.size({
     required QuillController controller,
   })  : this.itemKey = kSizeItemKey,
-        this.options = [
-          OptionButton(
-            type: OptionType.sizePlus,
+        this.buttons = [
+          PopupActionButton(
+            type: PopupActionType.sizePlus,
             controller: controller,
           ),
-          OptionButton(
-            type: OptionType.sizeMinus,
+          PopupActionButton(
+            type: PopupActionType.sizeMinus,
             controller: controller,
           )
         ],
@@ -42,13 +40,13 @@ class PopupFlex extends StatefulWidget {
   PopupFlex.indent({
     required QuillController controller,
   })  : this.itemKey = kIndentItemKey,
-        this.options = [
-          OptionButton(
-            type: OptionType.indentPlus,
+        this.buttons = [
+          PopupActionButton(
+            type: PopupActionType.indentPlus,
             controller: controller,
           ),
-          OptionButton(
-            type: OptionType.indentMinus,
+          PopupActionButton(
+            type: PopupActionType.indentMinus,
             controller: controller,
           )
         ],
@@ -57,21 +55,21 @@ class PopupFlex extends StatefulWidget {
   PopupFlex.style({
     required QuillController controller,
   })  : this.itemKey = kStyleItemKey,
-        this.options = [
-          PopupToggle(
-            type: PopupToggleType.bold,
+        this.buttons = [
+          PopupToggleButton(
+            type: ToggleType.bold,
             controller: controller,
           ),
-          PopupToggle(
-            type: PopupToggleType.italic,
+          PopupToggleButton(
+            type: ToggleType.italic,
             controller: controller,
           ),
-          PopupToggle(
-            type: PopupToggleType.under,
+          PopupToggleButton(
+            type: ToggleType.under,
             controller: controller,
           ),
-          PopupToggle(
-            type: PopupToggleType.strike,
+          PopupToggleButton(
+            type: ToggleType.strike,
             controller: controller,
           ),
         ],
@@ -80,13 +78,13 @@ class PopupFlex extends StatefulWidget {
   PopupFlex.block({
     required QuillController controller,
   })  : this.itemKey = kBlockItemKey,
-        this.options = [
-          PopupToggle(
-            type: PopupToggleType.quote,
+        this.buttons = [
+          PopupToggleButton(
+            type: ToggleType.quote,
             controller: controller,
           ),
-          PopupToggle(
-            type: PopupToggleType.code,
+          PopupToggleButton(
+            type: ToggleType.code,
             controller: controller,
           ),
         ],
@@ -95,13 +93,13 @@ class PopupFlex extends StatefulWidget {
   PopupFlex.list({
     required QuillController controller,
   })  : this.itemKey = kListItemKey,
-        this.options = [
-          PopupToggle(
-            type: PopupToggleType.number,
+        this.buttons = [
+          PopupToggleButton(
+            type: ToggleType.number,
             controller: controller,
           ),
-          PopupToggle(
-            type: PopupToggleType.bullet,
+          PopupToggleButton(
+            type: ToggleType.bullet,
             controller: controller,
           ),
         ],
@@ -109,42 +107,42 @@ class PopupFlex extends StatefulWidget {
 
   PopupFlex.bold()
       : this.itemKey = kBoldItemKey,
-        this.options = [],
+        this.buttons = [],
         super(key: ValueKey(kBoldItemKey + '_popup'));
 
   PopupFlex.italic()
       : this.itemKey = kItalicItemKey,
-        this.options = [],
+        this.buttons = [],
         super(key: ValueKey(kItalicItemKey + '_popup'));
 
   PopupFlex.under()
       : this.itemKey = kUnderItemKey,
-        this.options = [],
+        this.buttons = [],
         super(key: ValueKey(kUnderItemKey + '_popup'));
 
   PopupFlex.strike()
       : this.itemKey = kStrikeItemKey,
-        this.options = [],
+        this.buttons = [],
         super(key: ValueKey(kStrikeItemKey + '_popup'));
 
   PopupFlex.quote()
       : this.itemKey = kQuoteItemKey,
-        this.options = [],
+        this.buttons = [],
         super(key: ValueKey(kQuoteItemKey + '_popup'));
 
   PopupFlex.code()
       : this.itemKey = kCodeItemKey,
-        this.options = [],
+        this.buttons = [],
         super(key: ValueKey(kCodeItemKey + '_popup'));
 
   PopupFlex.number()
       : this.itemKey = kNumberItemKey,
-        this.options = [],
+        this.buttons = [],
         super(key: ValueKey(kNumberItemKey + '_popup'));
 
   PopupFlex.bullet()
       : this.itemKey = kBulletItemKey,
-        this.options = [],
+        this.buttons = [],
         super(key: ValueKey(kBulletItemKey + '_popup'));
 
   @override
@@ -206,7 +204,7 @@ class PopupFlexState extends State<PopupFlex>
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [];
-    widget.options.forEach((option) {
+    widget.buttons.forEach((option) {
       children.add(
         ScaleTransition(
           scale: _controller.view,

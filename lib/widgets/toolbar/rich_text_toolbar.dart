@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/buttons/toolbar_button_bar.dart';
-import 'package:flutter_quill/widgets/toolbar/popup/popup_positioned_buttons.dart';
-import 'package:flutter_quill/widgets/toolbar/toolbar_utilities.dart';
+import 'package:flutter_quill/widgets/toolbar/positioners/toolbar_positioner.dart';
+import 'package:flutter_quill/widgets/toolbar/positioners/popup_positioner.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/operations.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 class RichTextToolbar extends StatefulWidget {
   final QuillController controller;
@@ -16,6 +16,7 @@ class RichTextToolbar extends StatefulWidget {
   final Color disabled;
   final IconData? optionIconData;
   final String? optionLabel;
+  final String? optionTooltip;
   final VoidCallback? optionOnPressed;
   final ValueNotifier<ToggleState>? optionToggleStateNotifier;
 
@@ -29,6 +30,7 @@ class RichTextToolbar extends StatefulWidget {
     this.disabled = Colors.grey,
     this.optionIconData,
     this.optionLabel,
+    this.optionTooltip,
     this.optionOnPressed,
     this.optionToggleStateNotifier,
   }) : super(key: key);
@@ -43,8 +45,6 @@ class RichTextToolbar extends StatefulWidget {
     return result!;
   }
 }
-
-final double kToolbarMargin = 4.0;
 
 class RichTextToolbarState extends State<RichTextToolbar> {
   late final ValueNotifier<Color> foregroundColor;
@@ -98,14 +98,15 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         constraints: constraints,
         child: Stack(
           children: [
-            PopupPositionedButtons(
+            PopupPositioner(
               controller: widget.controller,
             ),
-            ToolbarButtonBar(
+            ToolbarPositioner(
               controller: widget.controller,
               scrollController: _scrollController,
               optionIconData: widget.optionIconData,
               optionLabel: widget.optionLabel,
+              optionTooltip: widget.optionTooltip,
               optionOnPressed: widget.optionOnPressed,
               optionToggleStateNotifier: widget.optionToggleStateNotifier,
             ),
