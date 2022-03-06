@@ -14,11 +14,7 @@ class RichTextToolbar extends StatefulWidget {
   final Color background;
   final ToolbarAlignment alignment;
   final Color disabled;
-  final IconData? optionIconData;
-  final String? optionLabel;
-  final String? optionTooltip;
-  final VoidCallback? optionOnPressed;
-  final ValueNotifier<ToggleState>? optionToggleStateNotifier;
+  final OptionButtonParameters? optionButtonParameters;
 
   const RichTextToolbar({
     Key? key,
@@ -28,11 +24,7 @@ class RichTextToolbar extends StatefulWidget {
     required this.controller,
     this.alignment = ToolbarAlignment.bottomCenter,
     this.disabled = Colors.grey,
-    this.optionIconData,
-    this.optionLabel,
-    this.optionTooltip,
-    this.optionOnPressed,
-    this.optionToggleStateNotifier,
+    this.optionButtonParameters,
   }) : super(key: key);
 
   @override
@@ -98,17 +90,11 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         constraints: constraints,
         child: Stack(
           children: [
-            PopupPositioner(
-              controller: widget.controller,
-            ),
+            PopupPositioner(controller: widget.controller),
             ToolbarPositioner(
               controller: widget.controller,
               scrollController: _scrollController,
-              optionIconData: widget.optionIconData,
-              optionLabel: widget.optionLabel,
-              optionTooltip: widget.optionTooltip,
-              optionOnPressed: widget.optionOnPressed,
-              optionToggleStateNotifier: widget.optionToggleStateNotifier,
+              optionButtonParameters: widget.optionButtonParameters,
             ),
           ],
         ),

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 enum ToggleState { disabled, off, on }
 
 enum ToggleType {
@@ -76,6 +78,46 @@ class PositionParameters {
         return false;
       }
       if (bottom != other.bottom) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+}
+
+class OptionButtonParameters {
+  final IconData iconData;
+  final String label;
+  final String tooltip;
+  final VoidCallback onPressed;
+  final ValueNotifier<ToggleState> toggleStateNotifier;
+
+  OptionButtonParameters({
+    required this.iconData,
+    required this.label,
+    required this.tooltip,
+    required this.onPressed,
+    required this.toggleStateNotifier,
+  });
+
+  @override
+  String toString() {
+    return 'OptionalButton: ' + label + ', ' + tooltip;
+  }
+
+  @override
+  int get hashCode {
+    return iconData.hashCode * label.hashCode;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is OptionButtonParameters) {
+      if (other.label != label) {
+        return false;
+      }
+      if (other.iconData != iconData) {
         return false;
       }
       return true;

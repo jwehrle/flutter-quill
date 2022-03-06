@@ -7,20 +7,12 @@ import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 class ButtonFlex extends StatelessWidget {
   final QuillController controller;
-  final IconData? optionIconData;
-  final String? optionLabel;
-  final String? optionTooltip;
-  final VoidCallback? optionOnPressed;
-  final ValueNotifier<ToggleState>? optionToggleStateNotifier;
+  final OptionButtonParameters? optionButtonParameters;
 
   const ButtonFlex({
     Key? key,
     required this.controller,
-    this.optionIconData,
-    this.optionLabel,
-    this.optionTooltip,
-    this.optionOnPressed,
-    this.optionToggleStateNotifier,
+    this.optionButtonParameters,
   }) : super(key: key);
 
   @override
@@ -34,11 +26,7 @@ class ButtonFlex extends StatelessWidget {
             List<Widget> buttons = toolbarButtons(
               type: type,
               controller: controller,
-              optionIconData: optionIconData,
-              optionLabel: optionLabel,
-              optionTooltip: optionTooltip,
-              optionOnPressed: optionOnPressed,
-              optionToggleStateNotifier: optionToggleStateNotifier,
+              optionButtonParameters: optionButtonParameters,
             );
             Axis direction = toolbarAxisFromAlignment(alignment);
             EdgeInsets padding;

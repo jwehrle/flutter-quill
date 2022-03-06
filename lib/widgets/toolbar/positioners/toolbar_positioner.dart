@@ -9,21 +9,13 @@ import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 class ToolbarPositioner extends StatelessWidget {
   final ScrollController scrollController;
   final QuillController controller;
-  final IconData? optionIconData;
-  final String? optionLabel;
-  final String? optionTooltip;
-  final VoidCallback? optionOnPressed;
-  final ValueNotifier<ToggleState>? optionToggleStateNotifier;
+  final OptionButtonParameters? optionButtonParameters;
 
   const ToolbarPositioner({
     Key? key,
     required this.scrollController,
     required this.controller,
-    this.optionIconData,
-    this.optionLabel,
-    this.optionTooltip,
-    this.optionOnPressed,
-    this.optionToggleStateNotifier,
+    this.optionButtonParameters,
   }) : super(key: key);
 
   @override
@@ -52,11 +44,7 @@ class ToolbarPositioner extends StatelessWidget {
                               horizontal: kToolbarTilePadding),
                       child: ButtonFlex(
                         controller: controller,
-                        optionIconData: optionIconData,
-                        optionLabel: optionLabel,
-                        optionTooltip: optionTooltip,
-                        optionOnPressed: optionOnPressed,
-                        optionToggleStateNotifier: optionToggleStateNotifier,
+                        optionButtonParameters: optionButtonParameters,
                       ),
                     ),
                   );

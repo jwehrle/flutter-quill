@@ -145,26 +145,28 @@ class _HomePageState extends State<HomePage> {
             foreground: Colors.deepOrangeAccent,
             background: Colors.indigo,
             alignment: ToolbarAlignment.bottomCenter,
-            optionIconData: Icons.details,
-            optionLabel: 'Option',
-            optionTooltip: 'See an important alert',
-            optionOnPressed: () {
-              _toggleNotifier.value = ToggleState.on;
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Option Button'),
-                  content: Text('Yada yada yada'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('Done'),
-                    )
-                  ],
-                ),
-              ).then((value) => _toggleNotifier.value = ToggleState.off);
-            },
-            optionToggleStateNotifier: _toggleNotifier,
+            optionButtonParameters: OptionButtonParameters(
+              iconData: Icons.details,
+              label: 'Option',
+              tooltip: 'See an important alert',
+              onPressed: () {
+                _toggleNotifier.value = ToggleState.on;
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Option Button'),
+                    content: Text('Yada yada yada'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text('Done'),
+                      )
+                    ],
+                  ),
+                ).then((value) => _toggleNotifier.value = ToggleState.off);
+              },
+              toggleStateNotifier: _toggleNotifier,
+            ),
           ),
           // Align(
           //   alignment: Alignment.center,

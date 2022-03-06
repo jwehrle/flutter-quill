@@ -66,11 +66,7 @@ int toolbarItemCount(ToolbarType type) {
 List<Widget> toolbarButtons({
   required ToolbarType type,
   required QuillController controller,
-  IconData? optionIconData,
-  String? optionLabel,
-  String? optionTooltip,
-  VoidCallback? optionOnPressed,
-  ValueNotifier<ToggleState>? optionToggleStateNotifier,
+  OptionButtonParameters? optionButtonParameters,
 }) {
   switch (type) {
     case ToolbarType.condensed:
@@ -98,29 +94,11 @@ List<Widget> toolbarButtons({
       ]);
     case ToolbarType.condensedOption:
       assert(
-        optionIconData != null,
-        'optionIconData must not be null',
-      );
-      assert(
-        optionLabel != null,
-        'optionLabel must not be null',
-      );
-      assert(
-        optionOnPressed != null,
-        'optionOnPressed must not be null',
-      );
-      assert(
-        optionToggleStateNotifier != null,
-        'optionToggleStateNotifier must not be null',
+        optionButtonParameters != null,
+        'OptionalButtonParameters must not be null',
       );
       return List<Widget>.unmodifiable([
-        ToolbarOptionButton(
-          iconData: optionIconData!,
-          label: optionLabel!,
-          tooltip: optionTooltip,
-          onPressed: optionOnPressed!,
-          toggleStateNotifier: optionToggleStateNotifier!,
-        ),
+        ToolbarOptionButton(params: optionButtonParameters!),
         ToolbarPopupButton.style(controller: controller),
         ToolbarPopupButton.size(controller: controller),
         ToolbarPopupButton.indent(controller: controller),
@@ -130,29 +108,11 @@ List<Widget> toolbarButtons({
       ]);
     case ToolbarType.expandedOption:
       assert(
-        optionIconData != null,
-        'optionIconData must not be null',
-      );
-      assert(
-        optionLabel != null,
-        'optionLabel must not be null',
-      );
-      assert(
-        optionOnPressed != null,
-        'optionOnPressed must not be null',
-      );
-      assert(
-        optionToggleStateNotifier != null,
-        'optionToggleStateNotifier must not be null',
+        optionButtonParameters != null,
+        'OptionalButtonParameters must not be null',
       );
       return List<Widget>.unmodifiable([
-        ToolbarOptionButton(
-          iconData: optionIconData!,
-          label: optionLabel!,
-          tooltip: optionTooltip,
-          onPressed: optionOnPressed!,
-          toggleStateNotifier: optionToggleStateNotifier!,
-        ),
+        ToolbarOptionButton(params: optionButtonParameters!),
         ToolbarToggleButton.bold(controller: controller),
         ToolbarToggleButton.italic(controller: controller),
         ToolbarToggleButton.under(controller: controller),
