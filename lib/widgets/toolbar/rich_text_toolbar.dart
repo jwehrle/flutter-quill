@@ -106,14 +106,16 @@ class RichTextToolbarState extends State<RichTextToolbar> {
   void didUpdateWidget(covariant RichTextToolbar oldWidget) {
     super.didUpdateWidget(oldWidget);
     toolbarTypeNotifier.value = widget.type;
-    alignmentNotifier.value = layoutAlignment(
-      constraints: _constraintsNotifier.value!,
-      buttonCount: toolbarItemCount(toolbarTypeNotifier.value),
-      alignment: widget.alignment,
-    );
     foregroundColor.value = widget.foreground;
     backgroundColor.value = widget.background;
     disabledColor.value = widget.disabled;
+    if (_constraintsNotifier.value != null) {
+      alignmentNotifier.value = layoutAlignment(
+        constraints: _constraintsNotifier.value!,
+        buttonCount: toolbarItemCount(toolbarTypeNotifier.value),
+        alignment: widget.alignment,
+      );
+    }
   }
 
   @override
