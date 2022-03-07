@@ -37,15 +37,20 @@ class ToolbarPositioner extends StatelessWidget {
                   return Card(
                     margin: EdgeInsets.all(kToolbarMargin),
                     color: background,
-                    child: Padding(
-                      padding: axis == Axis.horizontal
-                          ? EdgeInsets.symmetric(vertical: kToolbarTilePadding)
-                          : EdgeInsets.symmetric(
-                              horizontal: kToolbarTilePadding),
-                      child: ButtonFlex(
-                        controller: controller,
-                        optionButtonParameters: optionButtonParameters,
-                      ),
+                    child: ValueListenableBuilder<double>(
+                      valueListenable:
+                          RichTextToolbar.of(context).contentPaddingNotifier,
+                      builder: (context, padding, child) {
+                        return Padding(
+                          padding: axis == Axis.horizontal
+                              ? EdgeInsets.symmetric(vertical: padding)
+                              : EdgeInsets.symmetric(horizontal: padding),
+                          child: ButtonFlex(
+                            controller: controller,
+                            optionButtonParameters: optionButtonParameters,
+                          ),
+                        );
+                      },
                     ),
                   );
                 }),

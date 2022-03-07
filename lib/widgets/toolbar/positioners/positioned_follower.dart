@@ -41,19 +41,25 @@ class PositionedFollowerState extends State<PositionedFollower> {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<double>(
       valueListenable: _toolbar.toolbarOffsetNotifier,
-      builder: (context, value, _) {
-        final PositionParameters pos = itemPosition(
-          index: widget.index,
-          toolbarOffset: value,
-          alignment: _alignment,
-          type: _type,
-        );
-        return Positioned(
-          top: pos.top,
-          left: pos.left,
-          right: pos.right,
-          bottom: pos.bottom,
-          child: widget.child,
+      builder: (context, offset, _) {
+        return ValueListenableBuilder<double>(
+          valueListenable: _toolbar.contentPaddingNotifier,
+          builder: (context, padding, child) {
+            final PositionParameters pos = itemPosition(
+              index: widget.index,
+              toolbarOffset: offset,
+              alignment: _alignment,
+              type: _type,
+              contentPadding: padding,
+            );
+            return Positioned(
+              top: pos.top,
+              left: pos.left,
+              right: pos.right,
+              bottom: pos.bottom,
+              child: widget.child,
+            );
+          },
         );
       },
     );

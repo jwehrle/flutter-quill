@@ -18,9 +18,9 @@ class PopupPositioner extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ToolbarType>(
       valueListenable: RichTextToolbar.of(context).toolbarTypeNotifier,
-      builder: (context, value, child) {
+      builder: (context, type, child) {
         final List<PopupFlex> popupFlexList = toolbarPopups(
-          type: value,
+          type: type,
           controller: controller,
         );
         final List<Widget> popups = [];

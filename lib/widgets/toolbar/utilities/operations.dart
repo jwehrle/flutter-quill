@@ -330,6 +330,7 @@ PositionParameters itemPosition({
   required double toolbarOffset,
   required ToolbarAlignment alignment,
   required ToolbarType type,
+  required double contentPadding,
 }) {
   int count = toolbarItemCount(type);
   assert(index < count, 'Out of range error');
@@ -339,19 +340,18 @@ PositionParameters itemPosition({
     index: index,
     itemCount: count,
   );
-  double anchor = kToolbarTileHeight + (2.0 * kToolbarTilePadding);
   switch (alignment) {
     case ToolbarAlignment.topLeft:
     case ToolbarAlignment.topCenter:
       return PositionParameters(
-        top: anchor,
+        top: kToolbarTileHeight + contentPadding + kToolbarTilePadding,
         left: offset,
         right: null,
         bottom: null,
       );
     case ToolbarAlignment.topRight:
       return PositionParameters(
-        top: anchor,
+        top: kToolbarTileHeight + contentPadding + kToolbarTilePadding,
         left: null,
         right: offset,
         bottom: null,
@@ -362,27 +362,27 @@ PositionParameters itemPosition({
         top: null,
         left: offset,
         right: null,
-        bottom: anchor,
+        bottom: kToolbarTileHeight + contentPadding + kToolbarTilePadding,
       );
     case ToolbarAlignment.bottomRight:
       return PositionParameters(
         top: null,
         left: null,
         right: offset,
-        bottom: anchor,
+        bottom: kToolbarTileHeight + contentPadding + kToolbarTilePadding,
       );
     case ToolbarAlignment.leftTop:
     case ToolbarAlignment.leftCenter:
       return PositionParameters(
         top: offset,
-        left: anchor,
+        left: kToolbarTileWidth + contentPadding + kToolbarTilePadding,
         right: null,
         bottom: null,
       );
     case ToolbarAlignment.leftBottom:
       return PositionParameters(
         top: null,
-        left: anchor,
+        left: kToolbarTileWidth + contentPadding + kToolbarTilePadding,
         right: null,
         bottom: offset,
       );
@@ -391,14 +391,14 @@ PositionParameters itemPosition({
       return PositionParameters(
         top: offset,
         left: null,
-        right: anchor,
+        right: kToolbarTileWidth + contentPadding + kToolbarTilePadding,
         bottom: null,
       );
     case ToolbarAlignment.rightBottom:
       return PositionParameters(
         top: null,
         left: null,
-        right: anchor,
+        right: kToolbarTileWidth + contentPadding + kToolbarTilePadding,
         bottom: offset,
       );
   }
@@ -426,12 +426,14 @@ bool isReverse(ToolbarAlignment alignment) {
 double calculateToolbarSize({
   required int buttonCount,
   required ToolbarAlignment alignment,
+  required double contentPadding,
 }) {
   double cellSize = toolbarAxisFromAlignment(alignment) == Axis.horizontal
       ? kToolbarTileWidth + kToolbarTilePadding
       : kToolbarTileHeight + kToolbarTilePadding;
   double cellSum = buttonCount * cellSize;
-  double paddingSum = (buttonCount + 1) * kToolbarTilePadding;
+  double paddingSum = buttonCount * kToolbarTilePadding;
+  paddingSum += contentPadding * 2.0;
   double marginSum = 2.0 * kToolbarMargin;
   return cellSum + paddingSum + marginSum;
 }
@@ -440,10 +442,12 @@ ToolbarAlignment layoutAlignment({
   required BoxConstraints constraints,
   required int buttonCount,
   required ToolbarAlignment alignment,
+  required double contentPadding,
 }) {
   double toolbarSize = calculateToolbarSize(
     buttonCount: buttonCount,
     alignment: alignment,
+    contentPadding: contentPadding,
   );
   switch (alignment) {
     case ToolbarAlignment.topLeft:

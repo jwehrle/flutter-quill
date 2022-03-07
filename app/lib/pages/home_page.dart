@@ -144,7 +144,8 @@ class _HomePageState extends State<HomePage> {
             controller: _controller!,
             foreground: Colors.deepOrangeAccent,
             background: Colors.indigo,
-            alignment: ToolbarAlignment.bottomCenter,
+            alignment: ToolbarAlignment.leftTop,
+            contentPadding: 5.0,
             optionButtonParameters: OptionButtonParameters(
               iconData: Icons.details,
               label: 'Option',

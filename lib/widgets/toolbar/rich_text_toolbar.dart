@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/positioners/toolbar_positioner.dart';
 import 'package:flutter_quill/widgets/toolbar/positioners/popup_positioner.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/operations.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
@@ -14,6 +15,7 @@ class RichTextToolbar extends StatefulWidget {
   final Color background;
   final ToolbarAlignment alignment;
   final Color disabled;
+  final double contentPadding;
   final OptionButtonParameters? optionButtonParameters;
 
   const RichTextToolbar({
@@ -24,6 +26,7 @@ class RichTextToolbar extends StatefulWidget {
     required this.controller,
     this.alignment = ToolbarAlignment.bottomCenter,
     this.disabled = Colors.grey,
+    this.contentPadding = kToolbarTilePadding,
     this.optionButtonParameters,
   }) : super(key: key);
 
@@ -49,6 +52,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
   late final ValueNotifier<ToolbarType> toolbarTypeNotifier;
   late final ValueNotifier<ToolbarAlignment> alignmentNotifier;
   final ValueNotifier<String?> selectionNotifier = ValueNotifier(null);
+  late final ValueNotifier<double> contentPaddingNotifier;
 
   @override
   void initState() {
@@ -57,6 +61,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
     disabledColor = ValueNotifier(widget.disabled);
     toolbarTypeNotifier = ValueNotifier(widget.type);
     alignmentNotifier = ValueNotifier(widget.alignment);
+    contentPaddingNotifier = ValueNotifier(widget.contentPadding);
     alignmentNotifier.addListener(_setToolbarOffset);
     _scrollController.addListener(_setToolbarOffset);
     _constraintsNotifier.addListener(_setToolbarOffset);
@@ -70,6 +75,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         constraints: _constraintsNotifier.value!,
         buttonCount: itemCount,
         alignment: widget.alignment,
+        contentPadding: contentPaddingNotifier.value,
       );
       toolbarOffsetNotifier.value = toolbarOffset(
         itemsCount: itemCount,
@@ -109,11 +115,13 @@ class RichTextToolbarState extends State<RichTextToolbar> {
     foregroundColor.value = widget.foreground;
     backgroundColor.value = widget.background;
     disabledColor.value = widget.disabled;
+    contentPaddingNotifier.value = widget.contentPadding;
     if (_constraintsNotifier.value != null) {
       alignmentNotifier.value = layoutAlignment(
         constraints: _constraintsNotifier.value!,
         buttonCount: toolbarItemCount(toolbarTypeNotifier.value),
         alignment: widget.alignment,
+        contentPadding: contentPaddingNotifier.value,
       );
     }
   }
@@ -128,6 +136,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
     foregroundColor.dispose();
     backgroundColor.dispose();
     disabledColor.dispose();
+    contentPaddingNotifier.dispose();
     super.dispose();
   }
 }
