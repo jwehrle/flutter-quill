@@ -4,7 +4,7 @@ import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 abstract class AttributeToggle {
-  late final ValueNotifier<ToggleState> state;
+  late final ValueNotifier<ToggleState> stateNotifier;
   bool isFormattingWhileTyping = false;
   int? previousCursorPos;
 
@@ -25,17 +25,17 @@ abstract class AttributeToggle {
   }
 
   void attributeInit(QuillController controller, Attribute attribute) {
-    state = ValueNotifier(getState(controller, attribute));
+    stateNotifier = ValueNotifier(getState(controller, attribute));
   }
 
   /// wrap in setState() when using mixin
   void onEditingValueChanged(QuillController controller, Attribute attribute) {
     // Assume formatting while typing
-    isFormattingWhileTyping = state.value == ToggleState.on;
+    isFormattingWhileTyping = stateNotifier.value == ToggleState.on;
     // Verify that selection is collapsed and cursor position change is no more
     // than one than character
     checkIfStillFormattingWhileTyping(controller);
-    state.value = getState(controller, attribute);
+    stateNotifier.value = getState(controller, attribute);
   }
 
   void checkIfStillFormattingWhileTyping(QuillController controller) {
@@ -85,16 +85,16 @@ abstract class AttributeToggle {
 
   /// wrap in setState() when using mixin
   toggleAttribute(QuillController controller, Attribute attribute) {
-    switch (state.value) {
+    switch (stateNotifier.value) {
       case ToggleState.on:
         isFormattingWhileTyping = false;
         controller.formatSelection(Attribute.clone(attribute, null));
-        state.value = ToggleState.off;
+        stateNotifier.value = ToggleState.off;
         break;
       case ToggleState.off:
         isFormattingWhileTyping = true;
         controller.formatSelection(attribute);
-        state.value = ToggleState.on;
+        stateNotifier.value = ToggleState.on;
         break;
       case ToggleState.disabled:
         isFormattingWhileTyping = false;
@@ -104,6 +104,6 @@ abstract class AttributeToggle {
 
   /// call in dispose method.
   void toggleDispose() {
-    state.dispose();
+    stateNotifier.dispose();
   }
 }

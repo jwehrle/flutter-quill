@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/attributes/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_buttons/toolbar_button.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
@@ -54,34 +54,11 @@ class ToolbarToggleButtonState extends State<ToolbarToggleButton>
   late final IconData _iconData;
   late final String _label;
   late final String _tooltip;
-  late ToolbarAlignment _alignment;
-  late final ValueNotifier<String?> _selectionNotifier;
-  late Color _foreground;
-  late Color _background;
-  late Color _disabled;
-  late final RichTextToolbarState _toolbar;
-
-  void _alignmentListener() =>
-      setState(() => _alignment = _toolbar.alignmentNotifier.value);
-  void _foregroundListener() =>
-      setState(() => _foreground = _toolbar.foregroundColor.value);
-  void _backgroundListener() =>
-      setState(() => _background = _toolbar.backgroundColor.value);
-  void _disabledListener() =>
-      setState(() => _disabled = _toolbar.disabledColor.value);
+  late final FloatingToolbarState _toolbar;
 
   @override
   void initState() {
-    _toolbar = RichTextToolbar.of(context);
-    _selectionNotifier = _toolbar.selectionNotifier;
-    _foreground = _toolbar.foregroundColor.value;
-    _toolbar.foregroundColor.addListener(_foregroundListener);
-    _background = _toolbar.backgroundColor.value;
-    _toolbar.backgroundColor.addListener(_backgroundListener);
-    _disabled = _toolbar.disabledColor.value;
-    _toolbar.disabledColor.addListener(_disabledListener);
-    _alignment = _toolbar.alignmentNotifier.value;
-    _toolbar.alignmentNotifier.addListener(_alignmentListener);
+    _toolbar = FloatingToolbar.of(context);
     widget.controller.addListener(_controllerListener);
     switch (widget.type) {
       case ToggleType.code:
@@ -156,17 +133,19 @@ class ToolbarToggleButtonState extends State<ToolbarToggleButton>
 
   @override
   Widget build(BuildContext context) {
-    return ToolbarButton(
-      itemKey: _itemKey,
-      iconData: _iconData,
-      label: _label,
-      tooltip: _tooltip,
-      foreground: _foreground,
-      background: _background,
-      toggleState: state,
-      onPressed: _onPressed,
-      disabled: _disabled,
-      alignment: _alignment,
+    return ValueListenableBuilder<ToolbarData>(
+      valueListenable: _toolbar.toolbarDataNotifier,
+      builder: (context, data, child) {
+        return ToolbarButton(
+          itemKey: _itemKey,
+          iconData: _iconData,
+          label: _label,
+          tooltip: _tooltip,
+          toggleStateNotifier: stateNotifier,
+          onPressed: _onPressed,
+          alignment: data.alignment,
+        );
+      },
     );
   }
 
@@ -174,10 +153,6 @@ class ToolbarToggleButtonState extends State<ToolbarToggleButton>
   void dispose() {
     toggleDispose();
     widget.controller.removeListener(_controllerListener);
-    _toolbar.alignmentNotifier.removeListener(_alignmentListener);
-    _toolbar.foregroundColor.removeListener(_foregroundListener);
-    _toolbar.backgroundColor.removeListener(_backgroundListener);
-    _toolbar.disabledColor.removeListener(_disabledListener);
     super.dispose();
   }
 
@@ -189,7 +164,7 @@ class ToolbarToggleButtonState extends State<ToolbarToggleButton>
 
   void _onPressed() {
     setState(() {
-      _selectionNotifier.value = null;
+      _toolbar.selectionNotifier.value = null;
       toggleAttribute(widget.controller, _attribute);
     });
   }

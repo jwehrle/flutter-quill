@@ -1,75 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
+import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_action_button.dart';
+import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_toggle_button.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_buttons/buttons.dart';
-import 'package:flutter_quill/widgets/toolbar/flexes/popup_flex.dart';
+import 'package:flutter_quill/widgets/toolbar/floating/flexes/popup_flex.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
-Alignment convertAlignment(ToolbarAlignment alignment) {
-  switch (alignment) {
-    case ToolbarAlignment.bottomCenter:
-      return Alignment.bottomCenter;
-    case ToolbarAlignment.topCenter:
-      return Alignment.topCenter;
-    case ToolbarAlignment.topLeft:
-    case ToolbarAlignment.leftTop:
-      return Alignment.topLeft;
-    case ToolbarAlignment.leftCenter:
-      return Alignment.centerLeft;
-    case ToolbarAlignment.bottomLeft:
-    case ToolbarAlignment.leftBottom:
-      return Alignment.bottomLeft;
-    case ToolbarAlignment.topRight:
-    case ToolbarAlignment.rightTop:
-      return Alignment.topRight;
-    case ToolbarAlignment.rightCenter:
-      return Alignment.centerRight;
-    case ToolbarAlignment.bottomRight:
-    case ToolbarAlignment.rightBottom:
-      return Alignment.bottomRight;
-  }
-}
-
-Axis toolbarAxisFromAlignment(ToolbarAlignment alignment) {
-  switch (alignment) {
-    case ToolbarAlignment.topLeft:
-    case ToolbarAlignment.topCenter:
-    case ToolbarAlignment.topRight:
-    case ToolbarAlignment.bottomLeft:
-    case ToolbarAlignment.bottomCenter:
-    case ToolbarAlignment.bottomRight:
-      return Axis.horizontal;
-    case ToolbarAlignment.leftTop:
-    case ToolbarAlignment.leftCenter:
-    case ToolbarAlignment.leftBottom:
-    case ToolbarAlignment.rightTop:
-    case ToolbarAlignment.rightCenter:
-    case ToolbarAlignment.rightBottom:
-      return Axis.vertical;
-  }
-}
-
-int toolbarItemCount(ToolbarType type) {
+int itemCountFromType(RichTextToolbarType type) {
   switch (type) {
-    case ToolbarType.condensed:
+    case RichTextToolbarType.condensed:
       return 6;
-    case ToolbarType.expanded:
+    case RichTextToolbarType.expanded:
       return 11;
-    case ToolbarType.condensedOption:
+    case RichTextToolbarType.condensedOption:
       return 7;
-    case ToolbarType.expandedOption:
+    case RichTextToolbarType.expandedOption:
       return 12;
   }
 }
 
 List<Widget> toolbarButtons({
-  required ToolbarType type,
+  required RichTextToolbarType type,
   required QuillController controller,
-  OptionButtonParameters? optionButtonParameters,
+  OptionButtonData? optionButtonParameters,
 }) {
   switch (type) {
-    case ToolbarType.condensed:
+    case RichTextToolbarType.condensed:
       return List<Widget>.unmodifiable([
         ToolbarPopupButton.style(controller: controller),
         ToolbarPopupButton.size(controller: controller),
@@ -78,7 +36,7 @@ List<Widget> toolbarButtons({
         ToolbarPopupButton.block(controller: controller),
         ToolbarLinkButton(controller: controller),
       ]);
-    case ToolbarType.expanded:
+    case RichTextToolbarType.expanded:
       return List<Widget>.unmodifiable([
         ToolbarToggleButton.bold(controller: controller),
         ToolbarToggleButton.italic(controller: controller),
@@ -92,13 +50,13 @@ List<Widget> toolbarButtons({
         ToolbarToggleButton.code(controller: controller),
         ToolbarLinkButton(controller: controller),
       ]);
-    case ToolbarType.condensedOption:
+    case RichTextToolbarType.condensedOption:
       assert(
         optionButtonParameters != null,
         'OptionalButtonParameters must not be null',
       );
       return List<Widget>.unmodifiable([
-        ToolbarOptionButton(params: optionButtonParameters!),
+        ToolbarOptionButton(optionButtonData: optionButtonParameters!),
         ToolbarPopupButton.style(controller: controller),
         ToolbarPopupButton.size(controller: controller),
         ToolbarPopupButton.indent(controller: controller),
@@ -106,13 +64,13 @@ List<Widget> toolbarButtons({
         ToolbarPopupButton.block(controller: controller),
         ToolbarLinkButton(controller: controller),
       ]);
-    case ToolbarType.expandedOption:
+    case RichTextToolbarType.expandedOption:
       assert(
         optionButtonParameters != null,
         'OptionalButtonParameters must not be null',
       );
       return List<Widget>.unmodifiable([
-        ToolbarOptionButton(params: optionButtonParameters!),
+        ToolbarOptionButton(optionButtonData: optionButtonParameters!),
         ToolbarToggleButton.bold(controller: controller),
         ToolbarToggleButton.italic(controller: controller),
         ToolbarToggleButton.under(controller: controller),
@@ -129,360 +87,147 @@ List<Widget> toolbarButtons({
 }
 
 List<PopupFlex> toolbarPopups({
-  required ToolbarType type,
+  required RichTextToolbarType type,
   required QuillController controller,
 }) {
   switch (type) {
-    case ToolbarType.condensed:
+    case RichTextToolbarType.condensed:
       return List<PopupFlex>.unmodifiable([
-        PopupFlex.style(controller: controller),
-        PopupFlex.size(controller: controller),
-        PopupFlex.indent(controller: controller),
-        PopupFlex.list(controller: controller),
-        PopupFlex.block(controller: controller),
+        stylePopupFlex(controller: controller),
+        sizePopupFlex(controller: controller),
+        indentPopupFlex(controller: controller),
+        listPopupFlex(controller: controller),
+        blockPopupFlex(controller: controller),
         PopupFlex.empty(itemKey: kLinkItemKey),
       ]);
-    case ToolbarType.expanded:
+    case RichTextToolbarType.expanded:
       return List<PopupFlex>.unmodifiable([
-        PopupFlex.bold(),
-        PopupFlex.italic(),
-        PopupFlex.under(),
-        PopupFlex.strike(),
-        PopupFlex.size(controller: controller),
-        PopupFlex.indent(controller: controller),
-        PopupFlex.bullet(),
-        PopupFlex.number(),
-        PopupFlex.quote(),
-        PopupFlex.code(),
+        PopupFlex.empty(itemKey: kBoldItemKey),
+        PopupFlex.empty(itemKey: kItalicItemKey),
+        PopupFlex.empty(itemKey: kUnderItemKey),
+        PopupFlex.empty(itemKey: kStrikeItemKey),
+        sizePopupFlex(controller: controller),
+        indentPopupFlex(controller: controller),
+        PopupFlex.empty(itemKey: kBulletItemKey),
+        PopupFlex.empty(itemKey: kNumberItemKey),
+        PopupFlex.empty(itemKey: kQuoteItemKey),
+        PopupFlex.empty(itemKey: kCodeItemKey),
         PopupFlex.empty(itemKey: kLinkItemKey),
       ]);
-    case ToolbarType.condensedOption:
-      return List<PopupFlex>.unmodifiable([
-        PopupFlex.empty(itemKey: kOptionItemKey),
-        PopupFlex.style(controller: controller),
-        PopupFlex.size(controller: controller),
-        PopupFlex.indent(controller: controller),
-        PopupFlex.list(controller: controller),
-        PopupFlex.block(controller: controller),
-        PopupFlex.empty(itemKey: kLinkItemKey),
-      ]);
-    case ToolbarType.expandedOption:
+    case RichTextToolbarType.condensedOption:
       return List<PopupFlex>.unmodifiable([
         PopupFlex.empty(itemKey: kOptionItemKey),
-        PopupFlex.bold(),
-        PopupFlex.italic(),
-        PopupFlex.under(),
-        PopupFlex.strike(),
-        PopupFlex.size(controller: controller),
-        PopupFlex.indent(controller: controller),
-        PopupFlex.bullet(),
-        PopupFlex.number(),
-        PopupFlex.quote(),
-        PopupFlex.code(),
+        stylePopupFlex(controller: controller),
+        sizePopupFlex(controller: controller),
+        indentPopupFlex(controller: controller),
+        listPopupFlex(controller: controller),
+        blockPopupFlex(controller: controller),
+        PopupFlex.empty(itemKey: kLinkItemKey),
+      ]);
+    case RichTextToolbarType.expandedOption:
+      return List<PopupFlex>.unmodifiable([
+        PopupFlex.empty(itemKey: kOptionItemKey),
+        PopupFlex.empty(itemKey: kBoldItemKey),
+        PopupFlex.empty(itemKey: kItalicItemKey),
+        PopupFlex.empty(itemKey: kUnderItemKey),
+        PopupFlex.empty(itemKey: kStrikeItemKey),
+        sizePopupFlex(controller: controller),
+        indentPopupFlex(controller: controller),
+        PopupFlex.empty(itemKey: kBulletItemKey),
+        PopupFlex.empty(itemKey: kNumberItemKey),
+        PopupFlex.empty(itemKey: kQuoteItemKey),
+        PopupFlex.empty(itemKey: kCodeItemKey),
         PopupFlex.empty(itemKey: kLinkItemKey),
       ]);
   }
 }
 
-double itemOffsetFromEdge({
-  required double toolbarOffset,
-  required int itemsFromEdge,
-  required Axis axis,
-}) {
-  toolbarOffset += itemsFromEdge * kToolbarTilePadding;
-  switch (axis) {
-    case Axis.horizontal:
-      toolbarOffset += itemsFromEdge * kToolbarTileWidth;
-      break;
-    case Axis.vertical:
-      toolbarOffset += itemsFromEdge * kToolbarTileHeight;
-      break;
-  }
-  return toolbarOffset;
-}
-
-double toolbarCenterOffset({
-  required int itemsCount,
-  required Axis axis,
-  required double containerSize,
-}) {
-  double tileSize;
-  switch (axis) {
-    case Axis.horizontal:
-      tileSize = kToolbarTileWidth;
-      break;
-    case Axis.vertical:
-      tileSize = kToolbarTileHeight;
-      break;
-  }
-  double center = containerSize / 2.0;
-  if (itemsCount.isEven) {
-    //split padding
-    center += kToolbarTilePadding / 2.0;
-  } else {
-    //split tile
-    center -= tileSize / 2.0;
-  }
-  return center;
-}
-
-double itemCenterOffset({
-  required int itemCount,
-  required int index,
-  required double tileSize,
-}) {
-  int centerIndex = (itemCount / 2).floor();
-  int indexDiff = index - centerIndex;
-  double offset = indexDiff * tileSize;
-  offset += indexDiff * kToolbarTilePadding;
-  return offset;
-}
-
-double toolbarOffset({
-  required int itemsCount,
-  required ToolbarAlignment alignment,
-  required BoxConstraints constraints,
-  double scrollOffset = 0.0,
-}) {
-  switch (alignment) {
-    case ToolbarAlignment.topLeft:
-    case ToolbarAlignment.bottomLeft:
-    case ToolbarAlignment.topRight:
-    case ToolbarAlignment.bottomRight:
-    case ToolbarAlignment.leftTop:
-    case ToolbarAlignment.rightTop:
-    case ToolbarAlignment.leftBottom:
-    case ToolbarAlignment.rightBottom:
-      return kToolbarMargin + kToolbarTilePadding - scrollOffset;
-    case ToolbarAlignment.topCenter:
-    case ToolbarAlignment.bottomCenter:
-      return toolbarCenterOffset(
-        itemsCount: itemsCount,
-        axis: Axis.horizontal,
-        containerSize: constraints.maxWidth,
-      );
-    case ToolbarAlignment.leftCenter:
-    case ToolbarAlignment.rightCenter:
-      return toolbarCenterOffset(
-        itemsCount: itemsCount,
-        axis: Axis.vertical,
-        containerSize: constraints.maxHeight,
-      );
-  }
-}
-
-double itemOffset({
-  required double toolbarOffset,
-  required ToolbarAlignment alignment,
-  required int index,
-  required int itemCount,
-}) {
-  switch (alignment) {
-    case ToolbarAlignment.topLeft:
-    case ToolbarAlignment.bottomLeft:
-      return itemOffsetFromEdge(
-        toolbarOffset: toolbarOffset,
-        itemsFromEdge: index,
-        axis: Axis.horizontal,
-      );
-    case ToolbarAlignment.topRight:
-    case ToolbarAlignment.bottomRight:
-      return itemOffsetFromEdge(
-        toolbarOffset: toolbarOffset,
-        itemsFromEdge: (itemCount - 1) - index,
-        axis: Axis.horizontal,
-      );
-    case ToolbarAlignment.leftTop:
-    case ToolbarAlignment.rightTop:
-      return itemOffsetFromEdge(
-        toolbarOffset: toolbarOffset,
-        itemsFromEdge: index,
-        axis: Axis.vertical,
-      );
-    case ToolbarAlignment.leftBottom:
-    case ToolbarAlignment.rightBottom:
-      return itemOffsetFromEdge(
-        toolbarOffset: toolbarOffset,
-        itemsFromEdge: (itemCount - 1) - index,
-        axis: Axis.vertical,
-      );
-    case ToolbarAlignment.topCenter:
-    case ToolbarAlignment.bottomCenter:
-      return toolbarOffset +
-          itemCenterOffset(
-            index: index,
-            itemCount: itemCount,
-            tileSize: kToolbarTileWidth,
-          );
-    case ToolbarAlignment.leftCenter:
-    case ToolbarAlignment.rightCenter:
-      return toolbarOffset +
-          itemCenterOffset(
-            index: index,
-            itemCount: itemCount,
-            tileSize: kToolbarTileHeight,
-          );
-  }
-}
-
-PositionParameters itemPosition({
-  required int index,
-  required double toolbarOffset,
-  required ToolbarAlignment alignment,
-  required ToolbarType type,
-  required double contentPadding,
-}) {
-  int count = toolbarItemCount(type);
-  assert(index < count, 'Out of range error');
-  double offset = itemOffset(
-    toolbarOffset: toolbarOffset,
-    alignment: alignment,
-    index: index,
-    itemCount: count,
+PopupFlex stylePopupFlex({required QuillController controller}) {
+  return PopupFlex(
+    itemKey: kStyleItemKey,
+    buttons: [
+      PopupToggleButton(
+        type: ToggleType.bold,
+        controller: controller,
+      ),
+      PopupToggleButton(
+        type: ToggleType.italic,
+        controller: controller,
+      ),
+      PopupToggleButton(
+        type: ToggleType.under,
+        controller: controller,
+      ),
+      PopupToggleButton(
+        type: ToggleType.strike,
+        controller: controller,
+      ),
+    ],
   );
-  switch (alignment) {
-    case ToolbarAlignment.topLeft:
-    case ToolbarAlignment.topCenter:
-      return PositionParameters(
-        top: kToolbarTileHeight + contentPadding + kToolbarTilePadding,
-        left: offset,
-        right: null,
-        bottom: null,
-      );
-    case ToolbarAlignment.topRight:
-      return PositionParameters(
-        top: kToolbarTileHeight + contentPadding + kToolbarTilePadding,
-        left: null,
-        right: offset,
-        bottom: null,
-      );
-    case ToolbarAlignment.bottomLeft:
-    case ToolbarAlignment.bottomCenter:
-      return PositionParameters(
-        top: null,
-        left: offset,
-        right: null,
-        bottom: kToolbarTileHeight + contentPadding + kToolbarTilePadding,
-      );
-    case ToolbarAlignment.bottomRight:
-      return PositionParameters(
-        top: null,
-        left: null,
-        right: offset,
-        bottom: kToolbarTileHeight + contentPadding + kToolbarTilePadding,
-      );
-    case ToolbarAlignment.leftTop:
-    case ToolbarAlignment.leftCenter:
-      return PositionParameters(
-        top: offset,
-        left: kToolbarTileWidth + contentPadding + kToolbarTilePadding,
-        right: null,
-        bottom: null,
-      );
-    case ToolbarAlignment.leftBottom:
-      return PositionParameters(
-        top: null,
-        left: kToolbarTileWidth + contentPadding + kToolbarTilePadding,
-        right: null,
-        bottom: offset,
-      );
-    case ToolbarAlignment.rightTop:
-    case ToolbarAlignment.rightCenter:
-      return PositionParameters(
-        top: offset,
-        left: null,
-        right: kToolbarTileWidth + contentPadding + kToolbarTilePadding,
-        bottom: null,
-      );
-    case ToolbarAlignment.rightBottom:
-      return PositionParameters(
-        top: null,
-        left: null,
-        right: kToolbarTileWidth + contentPadding + kToolbarTilePadding,
-        bottom: offset,
-      );
-  }
 }
 
-bool isReverse(ToolbarAlignment alignment) {
-  switch (alignment) {
-    case ToolbarAlignment.topLeft:
-    case ToolbarAlignment.topCenter:
-    case ToolbarAlignment.bottomLeft:
-    case ToolbarAlignment.bottomCenter:
-    case ToolbarAlignment.leftTop:
-    case ToolbarAlignment.leftCenter:
-    case ToolbarAlignment.rightTop:
-    case ToolbarAlignment.rightCenter:
-      return false;
-    case ToolbarAlignment.topRight:
-    case ToolbarAlignment.bottomRight:
-    case ToolbarAlignment.leftBottom:
-    case ToolbarAlignment.rightBottom:
-      return true;
-  }
-}
-
-double calculateToolbarSize({
-  required int buttonCount,
-  required ToolbarAlignment alignment,
-  required double contentPadding,
-}) {
-  double cellSize = toolbarAxisFromAlignment(alignment) == Axis.horizontal
-      ? kToolbarTileWidth + kToolbarTilePadding
-      : kToolbarTileHeight + kToolbarTilePadding;
-  double cellSum = buttonCount * cellSize;
-  double paddingSum = buttonCount * kToolbarTilePadding;
-  paddingSum += contentPadding * 2.0;
-  double marginSum = 2.0 * kToolbarMargin;
-  return cellSum + paddingSum + marginSum;
-}
-
-ToolbarAlignment layoutAlignment({
-  required BoxConstraints constraints,
-  required int buttonCount,
-  required ToolbarAlignment alignment,
-  required double contentPadding,
-}) {
-  double toolbarSize = calculateToolbarSize(
-    buttonCount: buttonCount,
-    alignment: alignment,
-    contentPadding: contentPadding,
+PopupFlex sizePopupFlex({required QuillController controller}) {
+  return PopupFlex(
+    itemKey: kSizeItemKey,
+    buttons: [
+      PopupActionButton(
+        type: PopupActionType.sizePlus,
+        controller: controller,
+      ),
+      PopupActionButton(
+        type: PopupActionType.sizeMinus,
+        controller: controller,
+      ),
+    ],
   );
-  switch (alignment) {
-    case ToolbarAlignment.topLeft:
-      return ToolbarAlignment.topLeft;
-    case ToolbarAlignment.topCenter:
-      return toolbarSize > constraints.maxWidth
-          ? ToolbarAlignment.topLeft
-          : ToolbarAlignment.topCenter;
-    case ToolbarAlignment.topRight:
-      return ToolbarAlignment.topRight;
-    case ToolbarAlignment.bottomLeft:
-      return ToolbarAlignment.bottomLeft;
-    case ToolbarAlignment.bottomCenter:
-      return toolbarSize > constraints.maxWidth
-          ? ToolbarAlignment.bottomLeft
-          : ToolbarAlignment.bottomCenter;
-    case ToolbarAlignment.bottomRight:
-      return ToolbarAlignment.bottomRight;
-    case ToolbarAlignment.leftTop:
-      return ToolbarAlignment.leftTop;
-    case ToolbarAlignment.leftCenter:
-      return toolbarSize > constraints.maxHeight
-          ? ToolbarAlignment.leftTop
-          : ToolbarAlignment.leftCenter;
-    case ToolbarAlignment.leftBottom:
-      return ToolbarAlignment.leftBottom;
-    case ToolbarAlignment.rightTop:
-      return ToolbarAlignment.rightTop;
-    case ToolbarAlignment.rightCenter:
-      return toolbarSize > constraints.maxHeight
-          ? ToolbarAlignment.rightTop
-          : ToolbarAlignment.rightCenter;
-    case ToolbarAlignment.rightBottom:
-      return ToolbarAlignment.rightBottom;
-  }
+}
+
+PopupFlex indentPopupFlex({required QuillController controller}) {
+  return PopupFlex(
+    itemKey: kIndentItemKey,
+    buttons: [
+      PopupActionButton(
+        type: PopupActionType.indentPlus,
+        controller: controller,
+      ),
+      PopupActionButton(
+        type: PopupActionType.indentMinus,
+        controller: controller,
+      )
+    ],
+  );
+}
+
+PopupFlex listPopupFlex({required QuillController controller}) {
+  return PopupFlex(
+    itemKey: kListItemKey,
+    buttons: [
+      PopupToggleButton(
+        type: ToggleType.number,
+        controller: controller,
+      ),
+      PopupToggleButton(
+        type: ToggleType.bullet,
+        controller: controller,
+      ),
+    ],
+  );
+}
+
+PopupFlex blockPopupFlex({required QuillController controller}) {
+  return PopupFlex(
+    itemKey: kBlockItemKey,
+    buttons: [
+      PopupToggleButton(
+        type: ToggleType.quote,
+        controller: controller,
+      ),
+      PopupToggleButton(
+        type: ToggleType.code,
+        controller: controller,
+      ),
+    ],
+  );
 }
 
 Attribute? incrementSize(Attribute? attribute) {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_buttons/toolbar_button.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
@@ -41,36 +41,22 @@ class ToolbarPopupButton extends StatefulWidget {
 }
 
 class ToolbarPopupButtonState extends State<ToolbarPopupButton> {
-  late final ValueNotifier<ToggleState> _toggleState;
-  late final ValueNotifier<String?> _selectionNotifier;
-  late final ValueNotifier<ToolbarAlignment> _alignmentNotifier;
-  late ToolbarAlignment _alignment;
+  late final ValueNotifier<ToggleState> _toggleStateNotifier;
   late final String _itemKey;
   late final String _label;
   late final String _tooltip;
   late final IconData _iconData;
-  late Color _foreground;
-  late Color _background;
-  late Color _disabled;
-  late final RichTextToolbarState _toolbar;
+  late final FloatingToolbarState _toolbar;
 
-  ToggleState get toggleState =>
-      _selectionNotifier.value == _itemKey ? ToggleState.on : ToggleState.off;
+  ToggleState get toggleState => _toolbar.selectionNotifier.value == _itemKey
+      ? ToggleState.on
+      : ToggleState.off;
 
   void _selectionListener() {
     if (mounted) {
-      _toggleState.value = toggleState;
+      _toggleStateNotifier.value = toggleState;
     }
   }
-
-  void _alignmentListener() =>
-      setState(() => _alignment = _alignmentNotifier.value);
-  void _foregroundListener() =>
-      setState(() => _foreground = _toolbar.foregroundColor.value);
-  void _backgroundListener() =>
-      setState(() => _background = _toolbar.backgroundColor.value);
-  void _disabledListener() =>
-      setState(() => _disabled = _toolbar.disabledColor.value);
 
   @override
   void initState() {
@@ -106,53 +92,41 @@ class ToolbarPopupButtonState extends State<ToolbarPopupButton> {
         _iconData = Mdi.viewList;
         break;
     }
-    _toolbar = RichTextToolbar.of(context);
-    _selectionNotifier = _toolbar.selectionNotifier;
-    _toggleState = ValueNotifier(toggleState);
-    _selectionNotifier.addListener(_selectionListener);
-    _alignmentNotifier = _toolbar.alignmentNotifier;
-    _alignment = _alignmentNotifier.value;
-    _alignmentNotifier.addListener(_alignmentListener);
-    _foreground = _toolbar.foregroundColor.value;
-    _toolbar.foregroundColor.addListener(_foregroundListener);
-    _background = _toolbar.backgroundColor.value;
-    _toolbar.backgroundColor.addListener(_backgroundListener);
-    _disabled = _toolbar.disabledColor.value;
-    _toolbar.disabledColor.addListener(_disabledListener);
+    _toolbar = FloatingToolbar.of(context);
+    _toggleStateNotifier = ValueNotifier(toggleState);
+    _toolbar.selectionNotifier.addListener(_selectionListener);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ToolbarButton(
-      itemKey: _itemKey,
-      iconData: _iconData,
-      label: _label,
-      tooltip: _tooltip,
-      foreground: _foreground,
-      background: _background,
-      alignment: _alignment,
-      toggleState: _toggleState,
-      onPressed: () {
-        final popupNotifier = RichTextToolbar.of(context).selectionNotifier;
-        if (popupNotifier.value == _itemKey) {
-          popupNotifier.value = null;
-        } else {
-          popupNotifier.value = _itemKey;
-        }
+    return ValueListenableBuilder<ToolbarData>(
+      valueListenable: _toolbar.toolbarDataNotifier,
+      builder: (context, data, child) {
+        return ToolbarButton(
+          itemKey: _itemKey,
+          iconData: _iconData,
+          label: _label,
+          tooltip: _tooltip,
+          alignment: data.alignment,
+          toggleStateNotifier: _toggleStateNotifier,
+          onPressed: () {
+            final popupNotifier = FloatingToolbar.of(context).selectionNotifier;
+            if (popupNotifier.value == _itemKey) {
+              popupNotifier.value = null;
+            } else {
+              popupNotifier.value = _itemKey;
+            }
+          },
+        );
       },
-      disabled: _disabled,
     );
   }
 
   @override
   void dispose() {
-    _toggleState.dispose();
-    _selectionNotifier.removeListener(_selectionListener);
-    _alignmentNotifier.removeListener(_alignmentListener);
-    _toolbar.foregroundColor.removeListener(_foregroundListener);
-    _toolbar.backgroundColor.removeListener(_backgroundListener);
-    _toolbar.disabledColor.removeListener(_disabledListener);
+    _toggleStateNotifier.dispose();
+    _toolbar.selectionNotifier.removeListener(_selectionListener);
     super.dispose();
   }
 }

@@ -54,12 +54,11 @@ const String kListTooltip = 'Format text as a List';
 
 /// Sizes
 
-const double kToolbarIconSize = 24.0;
 const double kToolbarTilePadding = 2.0;
-const double kToolbarTileWidth = 45.0;
-const double kToolbarTileHeight = 40.0;
-const double kPopupSize = 40.0;
+// const double kToolbarTileWidth = 45.0;
+// const double kToolbarTileHeight = 40.0;
+//const double kPopupSize = 40.0;
 const double kPopupPadding = 8.0;
 const double kPopupMargin = 2.0;
-const double kPopupElevation = 2.0;
-const double kToolbarMargin = 4.0;
+// const double kPopupElevation = 2.0;
+// const double kToolbarMargin = 4.0;

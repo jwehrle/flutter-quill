@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/rich_text_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/tiles/toolbar_tile.dart';
+import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/toolbar_buttons/buttons.dart';
+import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 class ToolbarLinkButton extends StatefulWidget {
@@ -19,25 +20,11 @@ class ToolbarLinkButton extends StatefulWidget {
 
 class _ToolbarLinkButtonState extends State<ToolbarLinkButton> {
   late final ValueNotifier<ToggleState> _toggleStateNotifier;
-  late ToolbarAlignment _alignment;
-  late Color _foreground;
-  late Color _background;
-  late Color _disabled;
-  late final RichTextToolbarState _toolbar;
 
-  void _alignmentListener() =>
-      setState(() => _alignment = _toolbar.alignmentNotifier.value);
-  void _foregroundListener() =>
-      setState(() => _foreground = _toolbar.foregroundColor.value);
-  void _backgroundListener() =>
-      setState(() => _background = _toolbar.backgroundColor.value);
-  void _disabledListener() =>
-      setState(() => _disabled = _toolbar.disabledColor.value);
-  void _didChangeSelection() {
-    _toggleStateNotifier.value = widget.controller.selection.isCollapsed
-        ? ToggleState.disabled
-        : ToggleState.off;
-  }
+  void _didChangeSelection() =>
+      _toggleStateNotifier.value = widget.controller.selection.isCollapsed
+          ? ToggleState.disabled
+          : ToggleState.off;
 
   @override
   void initState() {
@@ -46,15 +33,6 @@ class _ToolbarLinkButtonState extends State<ToolbarLinkButton> {
         ? ToggleState.disabled
         : ToggleState.off);
     widget.controller.addListener(_didChangeSelection);
-    _toolbar = RichTextToolbar.of(context);
-    _alignment = _toolbar.alignmentNotifier.value;
-    _toolbar.alignmentNotifier.addListener(_alignmentListener);
-    _foreground = _toolbar.foregroundColor.value;
-    _toolbar.foregroundColor.addListener(_foregroundListener);
-    _background = _toolbar.backgroundColor.value;
-    _toolbar.backgroundColor.addListener(_backgroundListener);
-    _disabled = _toolbar.disabledColor.value;
-    _toolbar.disabledColor.addListener(_disabledListener);
   }
 
   @override
@@ -69,33 +47,23 @@ class _ToolbarLinkButtonState extends State<ToolbarLinkButton> {
   @override
   void dispose() {
     widget.controller.removeListener(_didChangeSelection);
-    _toolbar.alignmentNotifier.removeListener(_alignmentListener);
-    _toolbar.foregroundColor.removeListener(_foregroundListener);
-    _toolbar.backgroundColor.removeListener(_backgroundListener);
-    _toolbar.disabledColor.removeListener(_disabledListener);
     _toggleStateNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ToggleState>(
-      valueListenable: _toggleStateNotifier,
-      builder: (context, value, child) {
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap:
-              value == ToggleState.off ? () => _openLinkDialog(context) : null,
-          child: ToolbarTile(
-            iconData: Icons.link,
-            label: 'Link',
-            tooltip: 'Format text as a link',
-            state: value,
-            accent: _foreground,
-            background: _background,
-            disabled: _disabled,
-            alignment: _alignment,
-          ),
+    return ValueListenableBuilder<ToolbarData>(
+      valueListenable: FloatingToolbar.of(context).toolbarDataNotifier,
+      builder: (context, data, child) {
+        return ToolbarButton(
+          itemKey: kLinkItemKey,
+          iconData: Icons.link,
+          label: 'Link',
+          tooltip: 'Format text as a link',
+          toggleStateNotifier: _toggleStateNotifier,
+          onPressed: () => _openLinkDialog(context),
+          alignment: data.alignment,
         );
       },
     );

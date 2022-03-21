@@ -11,6 +11,7 @@ import 'package:flutter_quill/models/documents/document.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/default_styles.dart';
 import 'package:flutter_quill/widgets/editor.dart';
+import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
@@ -140,13 +141,30 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           RichTextToolbar(
-            type: ToolbarType.condensedOption,
+            toolbarType: RichTextToolbarType.condensedOption,
+            toolbarData: ToolbarData(
+              backgroundColor: Colors.indigo,
+              alignment: ToolbarAlignment.bottomCenter,
+            ),
             controller: _controller!,
-            foreground: Colors.deepOrangeAccent,
-            background: Colors.indigo,
-            alignment: ToolbarAlignment.leftTop,
-            contentPadding: 5.0,
-            optionButtonParameters: OptionButtonParameters(
+            popupButtonData: ButtonData(
+              accentColor: Colors.deepOrangeAccent,
+              backgroundColor: Colors.indigo,
+              disabledColor: Colors.grey,
+              buttonShape: ButtonShape.circle,
+              radius: 20.0,
+              borderWidth: 2.0,
+              isMaterialized: true,
+              elevation: 2.0,
+            ),
+            toolbarButtonData: ButtonData(
+              accentColor: Colors.deepOrangeAccent,
+              backgroundColor: Colors.indigo,
+              disabledColor: Colors.grey,
+              height: 40.0,
+              width: 45.0,
+            ),
+            optionButtonParameters: OptionButtonData(
               iconData: Icons.details,
               label: 'Option',
               tooltip: 'See an important alert',
