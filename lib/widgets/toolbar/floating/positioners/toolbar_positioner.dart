@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/widgets/toolbar/floating/flexes/toolbar_material.dart';
 import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/floating/utilities/utilities.dart';
 
@@ -16,7 +17,7 @@ class ToolbarPositioner extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ToolbarData>(
       valueListenable: FloatingToolbar.of(context).toolbarDataNotifier,
-      builder: (context, data, child) {
+      builder: (context, data, _) {
         return Align(
           alignment: convertAlignment(data.alignment),
           child: SingleChildScrollView(
@@ -24,20 +25,8 @@ class ToolbarPositioner extends StatelessWidget {
             scrollDirection: toolbarAxisFromAlignment(data.alignment),
             reverse: isReverse(data.alignment),
             clipBehavior: Clip.none,
-            child: Padding(
-              padding: data.margin,
-              child: Material(
-                color: data.backgroundColor,
-                shape: data.shape,
-                clipBehavior: data.clip,
-                elevation: data.elevation,
-                child: Padding(
-                  padding: data.contentPadding,
-                  child: ButtonFlex(
-                    children: children,
-                  ),
-                ),
-              ),
+            child: ToolbarMaterial(
+              buttons: children,
             ),
           ),
         );

@@ -31,53 +31,11 @@ double toolbarOffset({
           scrollOffset;
     case ToolbarAlignment.topCenter:
     case ToolbarAlignment.bottomCenter:
-      return toolbarCenterOffset(
-        itemsCount: buttonCount,
-        axis: Axis.horizontal,
-        containerSize: constraints.maxWidth,
-        buttonSpacing: toolbarData.buttonSpacing,
-        buttonWidth: buttonData.effectiveWidth,
-        buttonHeight: buttonData.effectiveHeight,
-      );
+      return constraints.maxWidth / 2.0;
     case ToolbarAlignment.leftCenter:
     case ToolbarAlignment.rightCenter:
-      return toolbarCenterOffset(
-        itemsCount: buttonCount,
-        axis: Axis.vertical,
-        containerSize: constraints.maxHeight,
-        buttonSpacing: toolbarData.buttonSpacing,
-        buttonWidth: buttonData.effectiveWidth,
-        buttonHeight: buttonData.effectiveHeight,
-      );
+      return constraints.maxHeight / 2.0;
   }
-}
-
-double toolbarCenterOffset({
-  required int itemsCount,
-  required Axis axis,
-  required double containerSize,
-  required double buttonSpacing,
-  required double buttonWidth,
-  required double buttonHeight,
-}) {
-  double buttonSize;
-  switch (axis) {
-    case Axis.horizontal:
-      buttonSize = buttonWidth;
-      break;
-    case Axis.vertical:
-      buttonSize = buttonHeight;
-      break;
-  }
-  double center = containerSize / 2.0;
-  if (itemsCount.isEven) {
-    //split padding
-    center += buttonSpacing / 2.0;
-  } else {
-    //split button
-    center -= buttonSize / 2.0;
-  }
-  return center;
 }
 
 Axis toolbarAxisFromAlignment(ToolbarAlignment alignment) {
@@ -297,7 +255,8 @@ double itemOffsetFromEdge({
   return toolbarOffset;
 }
 
-double itemCenterOffset({
+double itemOffsetFromCenter({
+  required double toolbarOffset,
   required int itemCount,
   required int index,
   required double buttonSize,
@@ -305,9 +264,11 @@ double itemCenterOffset({
 }) {
   int centerIndex = (itemCount / 2).floor();
   int indexDiff = index - centerIndex;
-  double offset = indexDiff * buttonSize;
+  double offset = itemCount.isEven ? buttonSpacing / 2.0 : buttonSize / 2.0;
+  offset +=
+      itemCount.isEven ? indexDiff * buttonSize : (indexDiff - 1) * buttonSize;
   offset += indexDiff * buttonSpacing;
-  return offset;
+  return toolbarOffset + offset;
 }
 
 double itemOffset({
@@ -365,22 +326,22 @@ double itemOffset({
       );
     case ToolbarAlignment.topCenter:
     case ToolbarAlignment.bottomCenter:
-      return toolbarOffset +
-          itemCenterOffset(
-            index: index,
-            itemCount: itemCount,
-            buttonSize: buttonData.effectiveWidth,
-            buttonSpacing: toolbarData.buttonSpacing,
-          );
+      return itemOffsetFromCenter(
+        toolbarOffset: toolbarOffset,
+        index: index,
+        itemCount: itemCount,
+        buttonSize: buttonData.effectiveWidth,
+        buttonSpacing: toolbarData.buttonSpacing,
+      );
     case ToolbarAlignment.leftCenter:
     case ToolbarAlignment.rightCenter:
-      return toolbarOffset +
-          itemCenterOffset(
-            index: index,
-            itemCount: itemCount,
-            buttonSize: buttonData.effectiveHeight,
-            buttonSpacing: toolbarData.buttonSpacing,
-          );
+      return itemOffsetFromCenter(
+        toolbarOffset: toolbarOffset,
+        index: index,
+        itemCount: itemCount,
+        buttonSize: buttonData.effectiveHeight,
+        buttonSpacing: toolbarData.buttonSpacing,
+      );
   }
 }
 

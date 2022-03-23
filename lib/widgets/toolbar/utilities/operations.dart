@@ -8,19 +8,6 @@ import 'package:flutter_quill/widgets/toolbar/floating/flexes/popup_flex.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
-int itemCountFromType(RichTextToolbarType type) {
-  switch (type) {
-    case RichTextToolbarType.condensed:
-      return 6;
-    case RichTextToolbarType.expanded:
-      return 11;
-    case RichTextToolbarType.condensedOption:
-      return 7;
-    case RichTextToolbarType.expandedOption:
-      return 12;
-  }
-}
-
 List<Widget> toolbarButtons({
   required RichTextToolbarType type,
   required QuillController controller,
@@ -28,16 +15,16 @@ List<Widget> toolbarButtons({
 }) {
   switch (type) {
     case RichTextToolbarType.condensed:
-      return List<Widget>.unmodifiable([
+      return [
         ToolbarPopupButton.style(controller: controller),
         ToolbarPopupButton.size(controller: controller),
         ToolbarPopupButton.indent(controller: controller),
         ToolbarPopupButton.list(controller: controller),
         ToolbarPopupButton.block(controller: controller),
         ToolbarLinkButton(controller: controller),
-      ]);
+      ];
     case RichTextToolbarType.expanded:
-      return List<Widget>.unmodifiable([
+      return [
         ToolbarToggleButton.bold(controller: controller),
         ToolbarToggleButton.italic(controller: controller),
         ToolbarToggleButton.under(controller: controller),
@@ -49,13 +36,13 @@ List<Widget> toolbarButtons({
         ToolbarToggleButton.quote(controller: controller),
         ToolbarToggleButton.code(controller: controller),
         ToolbarLinkButton(controller: controller),
-      ]);
+      ];
     case RichTextToolbarType.condensedOption:
       assert(
         optionButtonParameters != null,
         'OptionalButtonParameters must not be null',
       );
-      return List<Widget>.unmodifiable([
+      return [
         ToolbarOptionButton(optionButtonData: optionButtonParameters!),
         ToolbarPopupButton.style(controller: controller),
         ToolbarPopupButton.size(controller: controller),
@@ -63,13 +50,13 @@ List<Widget> toolbarButtons({
         ToolbarPopupButton.list(controller: controller),
         ToolbarPopupButton.block(controller: controller),
         ToolbarLinkButton(controller: controller),
-      ]);
+      ];
     case RichTextToolbarType.expandedOption:
       assert(
         optionButtonParameters != null,
         'OptionalButtonParameters must not be null',
       );
-      return List<Widget>.unmodifiable([
+      return [
         ToolbarOptionButton(optionButtonData: optionButtonParameters!),
         ToolbarToggleButton.bold(controller: controller),
         ToolbarToggleButton.italic(controller: controller),
@@ -82,7 +69,7 @@ List<Widget> toolbarButtons({
         ToolbarToggleButton.quote(controller: controller),
         ToolbarToggleButton.code(controller: controller),
         ToolbarLinkButton(controller: controller),
-      ]);
+      ];
   }
 }
 
@@ -92,16 +79,16 @@ List<PopupFlex> toolbarPopups({
 }) {
   switch (type) {
     case RichTextToolbarType.condensed:
-      return List<PopupFlex>.unmodifiable([
+      return [
         stylePopupFlex(controller: controller),
         sizePopupFlex(controller: controller),
         indentPopupFlex(controller: controller),
         listPopupFlex(controller: controller),
         blockPopupFlex(controller: controller),
         PopupFlex.empty(itemKey: kLinkItemKey),
-      ]);
+      ];
     case RichTextToolbarType.expanded:
-      return List<PopupFlex>.unmodifiable([
+      return [
         PopupFlex.empty(itemKey: kBoldItemKey),
         PopupFlex.empty(itemKey: kItalicItemKey),
         PopupFlex.empty(itemKey: kUnderItemKey),
@@ -113,9 +100,9 @@ List<PopupFlex> toolbarPopups({
         PopupFlex.empty(itemKey: kQuoteItemKey),
         PopupFlex.empty(itemKey: kCodeItemKey),
         PopupFlex.empty(itemKey: kLinkItemKey),
-      ]);
+      ];
     case RichTextToolbarType.condensedOption:
-      return List<PopupFlex>.unmodifiable([
+      return [
         PopupFlex.empty(itemKey: kOptionItemKey),
         stylePopupFlex(controller: controller),
         sizePopupFlex(controller: controller),
@@ -123,9 +110,9 @@ List<PopupFlex> toolbarPopups({
         listPopupFlex(controller: controller),
         blockPopupFlex(controller: controller),
         PopupFlex.empty(itemKey: kLinkItemKey),
-      ]);
+      ];
     case RichTextToolbarType.expandedOption:
-      return List<PopupFlex>.unmodifiable([
+      return [
         PopupFlex.empty(itemKey: kOptionItemKey),
         PopupFlex.empty(itemKey: kBoldItemKey),
         PopupFlex.empty(itemKey: kItalicItemKey),
@@ -138,7 +125,7 @@ List<PopupFlex> toolbarPopups({
         PopupFlex.empty(itemKey: kQuoteItemKey),
         PopupFlex.empty(itemKey: kCodeItemKey),
         PopupFlex.empty(itemKey: kLinkItemKey),
-      ]);
+      ];
   }
 }
 

@@ -85,29 +85,13 @@ class FloatingToolbarState extends State<FloatingToolbar> {
         return ValueListenableBuilder<ToolbarData>(
           valueListenable: toolbarDataNotifier,
           builder: (context, data, _) {
-            Axis direction = toolbarAxisFromAlignment(data.alignment);
-            EdgeInsets padding;
-            switch (direction) {
-              case Axis.horizontal:
-                padding = EdgeInsets.only(left: data.buttonSpacing);
-                break;
-              case Axis.vertical:
-                padding = EdgeInsets.only(top: data.buttonSpacing);
-                break;
-            }
-            assert(widget.toolbarButtons.isNotEmpty);
-            List<Widget> children = [widget.toolbarButtons.first];
-            for (int index = 1; index < widget.toolbarButtons.length; index++) {
-              children.add(Padding(padding: padding));
-              children.add(widget.toolbarButtons[index]);
-            }
             return ConstrainedBox(
               constraints: constraints,
               child: Stack(
                 children: [
                   ToolbarPositioner(
                     scrollController: _scrollController,
-                    children: children,
+                    children: widget.toolbarButtons,
                   ),
                   PopupPositioner(
                     buttonCount: widget.toolbarButtons.length,
