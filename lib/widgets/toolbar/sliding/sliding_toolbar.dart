@@ -61,9 +61,8 @@ Widget _unLabelledIcon({
   );
 }
 
-/// Provides a scrollable toolbar of [SelectionControl] that allows one control
-/// to be expanded at a time. Intended to be placed in a Stack above a [QuillEditor]
-/// and probably within an [Align] for positioning.
+/// Deprecated: Use RichTextToolbar instead
+@deprecated
 class SlidingToolbar extends StatefulWidget {
   final List<NotifierBuilder> notifierBuilderList;
   final double padding;

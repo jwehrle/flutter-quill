@@ -1,6 +1,5 @@
+import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/buttons/better_icon_button.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 class ToolbarButton extends StatelessWidget {

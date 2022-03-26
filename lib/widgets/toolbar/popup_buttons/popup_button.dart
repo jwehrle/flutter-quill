@@ -1,6 +1,5 @@
+import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/floating_toolbar.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 
@@ -25,33 +24,33 @@ class PopupButton extends StatelessWidget {
     EdgeInsets edgeInsets;
     bool preferBelow;
     switch (alignment) {
-      case ToolbarAlignment.topLeft:
-      case ToolbarAlignment.topCenter:
-      case ToolbarAlignment.topRight:
+      case ToolbarAlignment.topLeftHorizontal:
+      case ToolbarAlignment.topCenterHorizontal:
+      case ToolbarAlignment.topRightHorizontal:
         edgeInsets = EdgeInsets.only(top: kPopupPadding);
         preferBelow = true;
         break;
-      case ToolbarAlignment.bottomLeft:
-      case ToolbarAlignment.bottomCenter:
-      case ToolbarAlignment.bottomRight:
+      case ToolbarAlignment.bottomLeftHorizontal:
+      case ToolbarAlignment.bottomCenterHorizontal:
+      case ToolbarAlignment.bottomRightHorizontal:
         edgeInsets = EdgeInsets.only(bottom: kPopupPadding);
         preferBelow = false;
         break;
-      case ToolbarAlignment.leftTop:
+      case ToolbarAlignment.topLeftVertical:
         preferBelow = true;
         edgeInsets = EdgeInsets.only(left: kPopupPadding);
         break;
-      case ToolbarAlignment.leftCenter:
-      case ToolbarAlignment.leftBottom:
+      case ToolbarAlignment.centerLeftVertical:
+      case ToolbarAlignment.bottomLeftVertical:
         edgeInsets = EdgeInsets.only(left: kPopupPadding);
         preferBelow = false;
         break;
-      case ToolbarAlignment.rightTop:
+      case ToolbarAlignment.topRightVertical:
         edgeInsets = EdgeInsets.only(right: kPopupPadding);
         preferBelow = true;
         break;
-      case ToolbarAlignment.rightCenter:
-      case ToolbarAlignment.rightBottom:
+      case ToolbarAlignment.centerRightVertical:
+      case ToolbarAlignment.bottomRightVertical:
         edgeInsets = EdgeInsets.only(right: kPopupPadding);
         preferBelow = false;
         break;

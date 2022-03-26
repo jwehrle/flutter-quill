@@ -1,7 +1,8 @@
+import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/editor.dart';
-import 'package:flutter_quill/widgets/toolbar/sliding/sliding_toolbar.dart';
+import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -17,22 +18,29 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
         body: Column(
       children: [
-        SlidingToolbar(
-          // controller: _controller,
-          notifierBuilderList: [
-            (context, notifier) {
-              return StyleSectionControl(
-                notifier: notifier,
-                controller: _controller,
-              );
-            },
-            (context, notifier) {
-              return BlockSectionControl(
-                notifier: notifier,
-                controller: _controller,
-              );
-            }
-          ],
+        RichTextToolbar(
+          toolbarType: RichTextToolbarType.condensed,
+          controller: _controller,
+          toolbarData: ToolbarData(
+            alignment: ToolbarAlignment.bottomCenterHorizontal,
+            backgroundColor: Colors.blue,
+          ),
+          toolbarButtonData: ButtonData(
+            accentColor: Colors.deepPurpleAccent,
+            backgroundColor: Colors.blue,
+            disabledColor: Colors.grey,
+            buttonShape: ButtonShape.roundedRectangle,
+            width: 45.0,
+            height: 40.0,
+          ),
+          popupButtonData: ButtonData(
+            accentColor: Colors.deepPurpleAccent,
+            backgroundColor: Colors.blue,
+            disabledColor: Colors.grey,
+            buttonShape: ButtonShape.circle,
+            radius: 40.0,
+            isMaterialized: true,
+          ),
         ),
         Expanded(
           child: Container(

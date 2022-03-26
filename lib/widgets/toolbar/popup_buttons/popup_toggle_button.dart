@@ -1,10 +1,9 @@
+import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/attributes/attribute_toggle_mixin.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/floating_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_button.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 

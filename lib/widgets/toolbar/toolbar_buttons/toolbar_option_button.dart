@@ -1,5 +1,5 @@
+import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_buttons/toolbar_button.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';

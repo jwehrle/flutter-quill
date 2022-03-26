@@ -4,9 +4,9 @@ import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_action_button.dart';
 import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_toggle_button.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar_buttons/buttons.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/flexes/popup_flex.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/constants.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
+import 'package:floating_toolbar/toolbar.dart';
 
 List<Widget> toolbarButtons({
   required RichTextToolbarType type,

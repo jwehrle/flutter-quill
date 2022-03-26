@@ -11,7 +11,6 @@ import 'package:flutter_quill/models/documents/document.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/default_styles.dart';
 import 'package:flutter_quill/widgets/editor.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
@@ -145,7 +144,7 @@ class _HomePageState extends State<HomePage> {
             toolbarType: RichTextToolbarType.condensed,
             toolbarData: ToolbarData(
               backgroundColor: Colors.indigo,
-              alignment: ToolbarAlignment.leftCenter,
+              alignment: ToolbarAlignment.centerLeftVertical,
             ),
             controller: _controller!,
             popupButtonData: ButtonData(

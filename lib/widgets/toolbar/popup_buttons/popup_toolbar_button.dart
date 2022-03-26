@@ -1,7 +1,6 @@
+import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/floating_toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/popup_buttons/popup_button.dart';
-import 'package:flutter_quill/widgets/toolbar/floating/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/utilities/types.dart';
 
 class PopupToolbarButton extends StatelessWidget {
