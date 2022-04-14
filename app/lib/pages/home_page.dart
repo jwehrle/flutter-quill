@@ -141,55 +141,26 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           RichTextToolbar(
-            toolbarType: RichTextToolbarType.condensed,
+            toolbarType: RichTextToolbarType.expanded,
             toolbarData: ToolbarData(
-              backgroundColor: Colors.indigo,
-              alignment: ToolbarAlignment.centerLeftVertical,
+              alignment: ToolbarAlignment.bottomCenterHorizontal,
+              backgroundColor: Colors.blue,
+              buttonSize: Size(45.0, 40.0),
             ),
             controller: _controller!,
-            popupButtonData: ButtonData(
-              accentColor: Colors.deepOrangeAccent,
-              backgroundColor: Colors.indigo,
+            toolbarButtonStyling: ButtonStyling(
+              accentColor: Colors.white,
+              backgroundColor: Colors.blue,
               disabledColor: Colors.grey,
-              buttonShape: ButtonShape.roundedRectangle,
-              // radius: 20.0,
-              height: 40.0,
-              width: 45.0,
-              borderWidth: 2.0,
+            ),
+            popupButtonStyling: ButtonStyling(
+              accentColor: Colors.white,
+              backgroundColor: Colors.blue,
+              disabledColor: Colors.grey,
+              buttonShape: ButtonShape.circle,
+              radius: 20.0,
               isMaterialized: true,
               elevation: 2.0,
-            ),
-            toolbarButtonData: ButtonData(
-              accentColor: Colors.deepOrangeAccent,
-              backgroundColor: Colors.indigo,
-              disabledColor: Colors.grey,
-              height: 40.0,
-              width: 45.0,
-            ),
-            optionButtonParameters: OptionButtonData(
-              iconData: Icons.details,
-              label: 'Option',
-              tooltip: 'See an important alert',
-              onPressed: () {
-                setState(() {
-                  _type = RichTextToolbarType.condensed;
-                });
-                // _toggleNotifier.value = ToggleState.on;
-                // showDialog(
-                //   context: context,
-                //   builder: (context) => AlertDialog(
-                //     title: Text('Option Button'),
-                //     content: Text('Yada yada yada'),
-                //     actions: [
-                //       TextButton(
-                //         onPressed: () => Navigator.of(context).pop(),
-                //         child: Text('Done'),
-                //       )
-                //     ],
-                //   ),
-                // ).then((value) => _toggleNotifier.value = ToggleState.off);
-              },
-              toggleStateNotifier: _toggleNotifier,
             ),
           ),
           // Align(

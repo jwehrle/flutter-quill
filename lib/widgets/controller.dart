@@ -45,9 +45,14 @@ class QuillController extends ChangeNotifier {
       );
 
   Style getSelectionStyle() {
+    // print('$selection');
     return document
         .collectStyle(selection.start, selection.end - selection.start)
         .mergeAll(toggledStyle);
+  }
+
+  Style getStyleAt(int offset) {
+    return document.collectStyle(offset, 1).mergeAll(toggledStyle);
   }
 
   void undo() {
@@ -79,11 +84,16 @@ class QuillController extends ChangeNotifier {
     }
   }
 
-  get hasUndo => document.hasUndo;
+  bool get hasUndo => document.hasUndo;
 
-  get hasRedo => document.hasRedo;
+  bool get hasRedo => document.hasRedo;
 
-  replaceText(int index, int len, Object data, TextSelection? textSelection) {
+  void replaceText(
+    int index,
+    int len,
+    Object data,
+    TextSelection? textSelection,
+  ) {
     assert(data is String || data is Embeddable);
 
     Delta? delta;
@@ -144,7 +154,7 @@ class QuillController extends ChangeNotifier {
     notifyListeners();
   }
 
-  formatText(int index, int len, Attribute attribute) {
+  void formatText(int index, int len, Attribute attribute) {
     if (len == 0 && attribute.isInline && attribute.key != Attribute.link.key) {
       toggledStyle = toggledStyle.put(attribute);
     }
@@ -159,16 +169,16 @@ class QuillController extends ChangeNotifier {
     notifyListeners();
   }
 
-  formatSelection(Attribute attribute) {
+  void formatSelection(Attribute attribute) {
     formatText(selection.start, selection.end - selection.start, attribute);
   }
 
-  updateSelection(TextSelection textSelection, ChangeSource source) {
+  void updateSelection(TextSelection textSelection, ChangeSource source) {
     _updateSelection(textSelection, source);
     notifyListeners();
   }
 
-  compose(Delta delta, TextSelection? textSelection, ChangeSource source) {
+  void compose(Delta delta, TextSelection? textSelection, ChangeSource source) {
     if (delta.isNotEmpty) {
       document.compose(delta, source);
     }
@@ -193,7 +203,7 @@ class QuillController extends ChangeNotifier {
     super.dispose();
   }
 
-  _updateSelection(TextSelection textSelection, ChangeSource source) {
+  void _updateSelection(TextSelection textSelection, ChangeSource source) {
     selection = textSelection;
     int end = document.length - 1;
     selection = selection.copyWith(

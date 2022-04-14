@@ -19,28 +19,43 @@ class _HomePageState extends State<HomePage> {
         body: Column(
       children: [
         RichTextToolbar(
-          toolbarType: RichTextToolbarType.condensed,
+          toolbarType: RichTextToolbarType.expanded,
           controller: _controller,
           toolbarData: ToolbarData(
             alignment: ToolbarAlignment.bottomCenterHorizontal,
             backgroundColor: Colors.blue,
+            buttonSize: Size(45.0, 40.0),
           ),
-          toolbarButtonData: ButtonData(
+          toolbarButtonStyling: ButtonStyling(
             accentColor: Colors.deepPurpleAccent,
             backgroundColor: Colors.blue,
             disabledColor: Colors.grey,
-            buttonShape: ButtonShape.roundedRectangle,
-            width: 45.0,
-            height: 40.0,
           ),
-          popupButtonData: ButtonData(
+          popupButtonStyling: ButtonStyling(
             accentColor: Colors.deepPurpleAccent,
             backgroundColor: Colors.blue,
             disabledColor: Colors.grey,
             buttonShape: ButtonShape.circle,
-            radius: 40.0,
+            radius: 20.0,
             isMaterialized: true,
+            elevation: 2.0,
           ),
+          // toolbarButtonData: ButtonData(
+          //   accentColor: Colors.deepPurpleAccent,
+          //   backgroundColor: Colors.blue,
+          //   disabledColor: Colors.grey,
+          //   buttonShape: ButtonShape.roundedRectangle,
+          //   width: 45.0,
+          //   height: 40.0,
+          // ),
+          // popupButtonData: ButtonData(
+          //   accentColor: Colors.deepPurpleAccent,
+          //   backgroundColor: Colors.blue,
+          //   disabledColor: Colors.grey,
+          //   buttonShape: ButtonShape.circle,
+          //   radius: 40.0,
+          //   isMaterialized: true,
+          // ),
         ),
         Expanded(
           child: Container(

@@ -218,6 +218,7 @@ class _QuillEditorState extends State<QuillEditor>
     super.initState();
     _selectionGestureDetectorBuilder =
         _QuillEditorSelectionGestureDetectorBuilder(this);
+    widget.controller.addListener(() => setState(() {}));
   }
 
   @override
