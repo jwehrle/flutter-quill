@@ -102,7 +102,9 @@ class EditorTextSelectionOverlay {
   }
 
   Widget _buildHandle(
-      BuildContext context, _TextSelectionHandlePosition position) {
+    BuildContext context,
+    _TextSelectionHandlePosition position,
+  ) {
     if ((_selection.isCollapsed &&
             position == _TextSelectionHandlePosition.END) ||
         selectionCtrls == null) {
@@ -139,7 +141,9 @@ class EditorTextSelectionOverlay {
   }
 
   _handleSelectionHandleChanged(
-      TextSelection newSelection, _TextSelectionHandlePosition position) {
+    TextSelection newSelection,
+    _TextSelectionHandlePosition position,
+  ) {
     TextPosition textPosition;
     switch (position) {
       case _TextSelectionHandlePosition.START:
@@ -151,9 +155,10 @@ class EditorTextSelectionOverlay {
       default:
         throw ('Invalid position');
     }
-    //todo update
-    selectionDelegate!.textEditingValue =
-        value.copyWith(selection: newSelection, composing: TextRange.empty);
+    selectionDelegate!.userUpdateTextEditingValue(
+      value.copyWith(selection: newSelection, composing: TextRange.empty),
+      SelectionChangedCause.toolBar,
+    );
     selectionDelegate!.bringIntoView(textPosition);
   }
 

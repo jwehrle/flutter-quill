@@ -26,8 +26,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   QuillController? _controller;
   final FocusNode _focusNode = FocusNode();
-  // ToolbarAlignment _toolbarAlignment = ToolbarAlignment.leftTop;
-  RichTextToolbarType _type = RichTextToolbarType.condensedOption;
+
   ValueNotifier<ToggleState> _toggleNotifier = ValueNotifier(ToggleState.off);
 
   @override
