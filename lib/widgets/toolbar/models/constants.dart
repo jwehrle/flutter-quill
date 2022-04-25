@@ -19,6 +19,7 @@ const String kIndentMinusItemKey = 'item_key_indent_plus';
 const String kStyleItemKey = 'item_key_style';
 const String kBlockItemKey = 'item_key_section';
 const String kListItemKey = 'item_key_list';
+const String kAlignItemKey = 'item_key_align';
 
 /// Labels
 
@@ -36,6 +37,7 @@ const String kStyleLabel = 'Style';
 const String kBlockLabel = 'Block';
 const String kListLabel = 'List';
 const String kLinkLabel = 'Link';
+const String kAlignLabel = 'Align';
 
 /// Tooltips
 
@@ -57,3 +59,8 @@ const String kStyleTooltip = 'Change text style';
 const String kBlockTooltip = 'Format text block';
 const String kListTooltip = 'Format text as a List';
 const String kLinkTooltip = 'Format text as a link';
+const String kAlignTooltip = 'Align text';
+const String kLeftAlignTooltip = 'Left align text';
+const String kRightAlignTooltip = 'Right align text';
+const String kCenterAlignTooltip = 'Center align text';
+const String kJustifyAlignTooltip = 'Justify align text';

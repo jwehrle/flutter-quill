@@ -21,6 +21,8 @@ String _popItemKey(PopType type) {
       return kSizeItemKey;
     case PopType.style:
       return kStyleItemKey;
+    case PopType.align:
+      return kAlignItemKey;
   }
 }
 
@@ -54,9 +56,14 @@ final Set<String> _inlineAttrs = Set.unmodifiable({
   Attribute.underline.key!,
 });
 
-final Set<String> _blockAttrs = Set.unmodifiable({
+final Set<String> _quoteCodeAttrs = Set.unmodifiable({
   Attribute.blockQuote.key!,
   Attribute.codeBlock.key!,
+});
+
+final Set<String> _blockAttrs = Set.unmodifiable({
+  Attribute.ul.value!,
+  Attribute.ol.value!,
 });
 
 /// h1 > h2 > h3 > header
@@ -161,12 +168,14 @@ class _ControllerData {
   final Set<String> toggledAttrSet;
   final Attribute? sizeAttribute;
   final Attribute? indentAttribute;
+  final Attribute? alignmentAttribute;
   final bool isCollapsed;
 
   _ControllerData({
     required this.toggledAttrSet,
     required this.sizeAttribute,
     required this.indentAttribute,
+    required this.alignmentAttribute,
     required this.isCollapsed,
   });
 }
@@ -197,6 +206,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
   // Attribute Notifiers
   late final ValueNotifier<Attribute?> _sizeNotifier;
   late final ValueNotifier<Attribute?> _indentNotifier;
+  late final ValueNotifier<Attribute?> _alignmentNotifier;
 
   // ToggleState Notifiers
   late final ValueNotifier<ToggleState> _boldStateNotifier;
@@ -229,7 +239,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
 
   _ControllerData get _controllerData {
     Set<String> attrSet = {};
-    final Style blockStyle = widget.controller.getSelectionStyle();
+    final Style style = widget.controller.getSelectionStyle();
     TextSelection selection = widget.controller.selection;
     if (selection.isCollapsed) {
       int cursorPos = selection.start;
@@ -243,30 +253,20 @@ class RichTextToolbarState extends State<RichTextToolbar> {
             .where((attrKey) => _inlineAttrs.contains(attrKey)));
       }
     } else {
-      attrSet.addAll(blockStyle.attributes.keys
+      attrSet.addAll(style.attributes.keys
           .where((attrKey) => _inlineAttrs.contains(attrKey)));
     }
-    attrSet.addAll(blockStyle.attributes.keys
-        .where((attrKey) => _blockAttrs.contains(attrKey)));
-    blockStyle.attributes.keys.forEach(
-      (attrKey) {
-        if (attrKey != Attribute.list.key!) {
-          return;
-        }
-        final listAttr = blockStyle.attributes[attrKey];
-        if (listAttr!.value == Attribute.ul.value!) {
-          attrSet.add(Attribute.ul.value!);
-        }
-        if (listAttr.value == Attribute.ol.value!) {
-          attrSet.add(Attribute.ol.value!);
-        }
-      },
-    );
+    attrSet.addAll(style.attributes.keys
+        .where((attrKey) => _quoteCodeAttrs.contains(attrKey)));
+    attrSet.addAll(style.attributes.values
+        .where((attr) => _blockAttrs.contains(attr.value))
+        .map((attr) => attr.value));
     return _ControllerData(
       toggledAttrSet: attrSet,
       isCollapsed: selection.isCollapsed,
-      sizeAttribute: blockStyle.attributes[Attribute.header.key!],
-      indentAttribute: blockStyle.attributes[Attribute.indent.key!],
+      sizeAttribute: style.attributes[Attribute.header.key!],
+      indentAttribute: style.attributes[Attribute.indent.key!],
+      alignmentAttribute: style.attributes[Attribute.align.key!],
     );
   }
 
@@ -306,6 +306,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
             : ToggleState.off);
     _sizeNotifier = ValueNotifier(data.sizeAttribute);
     _indentNotifier = ValueNotifier(data.indentAttribute);
+    _alignmentNotifier = ValueNotifier(data.alignmentAttribute);
     _linkStateNotifier = ValueNotifier(
         data.isCollapsed ? ToggleState.disabled : ToggleState.off);
   }
@@ -345,6 +346,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
             : ToggleState.off;
     _sizeNotifier.value = data.sizeAttribute;
     _indentNotifier.value = data.indentAttribute;
+    _alignmentNotifier.value = data.alignmentAttribute;
     _linkStateNotifier.value =
         data.isCollapsed ? ToggleState.disabled : ToggleState.off;
   }
@@ -460,6 +462,22 @@ class RichTextToolbarState extends State<RichTextToolbar> {
             iconData: Mdi.formatFont,
             label: kStyleLabel,
             tooltip: kStyleTooltip,
+            styling: widget.toolbarButtonStyling,
+          ),
+        );
+      case PopType.align:
+        return PopupButton(
+          data: data,
+          unselectedButton: OffTile(
+            iconData: Icons.format_align_left,
+            label: kAlignLabel,
+            tooltip: kAlignTooltip,
+            styling: widget.toolbarButtonStyling,
+          ),
+          selectedButton: OnTile(
+            iconData: Icons.format_align_left,
+            label: kAlignLabel,
+            tooltip: kAlignTooltip,
             styling: widget.toolbarButtonStyling,
           ),
         );
@@ -725,8 +743,36 @@ class RichTextToolbarState extends State<RichTextToolbar> {
             ),
           ],
         );
+      case PopType.align:
+        return PopupList(
+          data: data,
+          buttons: [
+            _attributeModifyingPopup(
+              PopupActionType.leftAlign,
+              widget.popupButtonStyling,
+            ),
+            _attributeModifyingPopup(
+              PopupActionType.rightAlign,
+              widget.popupButtonStyling,
+            ),
+            _attributeModifyingPopup(
+              PopupActionType.centerAlign,
+              widget.popupButtonStyling,
+            ),
+            _attributeModifyingPopup(
+              PopupActionType.justifyAlign,
+              widget.popupButtonStyling,
+            ),
+          ],
+        );
     }
   }
+
+  final Attribute _noAlignment = Attribute(
+    key: 'align',
+    scope: AttributeScope.BLOCK,
+    value: null,
+  );
 
   Widget _attributeModifyingPopup(
     PopupActionType type,
@@ -781,11 +827,60 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           }
         };
         break;
+      case PopupActionType.leftAlign:
+        notifier = _alignmentNotifier;
+        iconData = Icons.format_align_left;
+        tooltip = kLeftAlignTooltip;
+        onPressed = () {
+          if (_alignmentNotifier.value == Attribute.leftAlignment) {
+            widget.controller.formatSelection(_noAlignment);
+          } else {
+            widget.controller.formatSelection(Attribute.leftAlignment);
+          }
+        };
+        break;
+      case PopupActionType.rightAlign:
+        notifier = _alignmentNotifier;
+        iconData = Icons.format_align_right;
+        tooltip = kRightAlignTooltip;
+        onPressed = () {
+          if (_alignmentNotifier.value == Attribute.rightAlignment) {
+            widget.controller.formatSelection(_noAlignment);
+          } else {
+            widget.controller.formatSelection(Attribute.rightAlignment);
+          }
+        };
+        break;
+      case PopupActionType.centerAlign:
+        notifier = _alignmentNotifier;
+        iconData = Icons.format_align_center;
+        tooltip = kCenterAlignTooltip;
+        onPressed = () {
+          if (_alignmentNotifier.value == Attribute.centerAlignment) {
+            widget.controller.formatSelection(_noAlignment);
+          } else {
+            widget.controller.formatSelection(Attribute.centerAlignment);
+          }
+        };
+        break;
+      case PopupActionType.justifyAlign:
+        notifier = _alignmentNotifier;
+        iconData = Icons.format_align_justify;
+        tooltip = kJustifyAlignTooltip;
+        onPressed = () {
+          if (_alignmentNotifier.value == Attribute.justifyAlignment) {
+            widget.controller.formatSelection(_noAlignment);
+          } else {
+            widget.controller.formatSelection(Attribute.justifyAlignment);
+          }
+        };
+        break;
     }
     return ValueListenableBuilder(
       valueListenable: notifier,
       builder: (context, attribute, _) {
         Attribute? nextAttr;
+        bool isOn = false;
         switch (type) {
           case PopupActionType.indentMinus:
             nextAttr = _decrementIndent(_indentNotifier.value);
@@ -799,15 +894,35 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           case PopupActionType.sizePlus:
             nextAttr = _incrementSize(_sizeNotifier.value);
             break;
+          case PopupActionType.leftAlign:
+            isOn = _alignmentNotifier.value == Attribute.leftAlignment;
+            nextAttr = isOn ? _noAlignment : Attribute.leftAlignment;
+            break;
+          case PopupActionType.rightAlign:
+            isOn = _alignmentNotifier.value == Attribute.rightAlignment;
+            nextAttr = isOn ? _noAlignment : Attribute.rightAlignment;
+            break;
+          case PopupActionType.centerAlign:
+            isOn = _alignmentNotifier.value == Attribute.centerAlignment;
+            nextAttr = isOn ? _noAlignment : Attribute.centerAlignment;
+            break;
+          case PopupActionType.justifyAlign:
+            isOn = _alignmentNotifier.value == Attribute.justifyAlignment;
+            nextAttr = isOn ? _noAlignment : Attribute.justifyAlignment;
+            break;
         }
         bool isDisabled = nextAttr == null;
         return GestureDetector(
           onTap: isDisabled ? null : onPressed,
           child: ButtonTile(
             iconData: iconData,
-            foregroundColor:
-                isDisabled ? styling.disabledColor : styling.accentColor,
-            decorationColor: styling.backgroundColor,
+            foregroundColor: isOn
+                ? styling.backgroundColor
+                : isDisabled
+                    ? styling.disabledColor
+                    : styling.accentColor,
+            decorationColor:
+                isOn ? styling.accentColor : styling.backgroundColor,
             backgroundColor: styling.backgroundColor,
             buttonShape: styling.buttonShape,
             borderStyle: styling.borderStyle,
@@ -835,6 +950,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           _toolbarItemPopup(PopType.indent),
           _toolbarItemPopup(PopType.list),
           _toolbarItemPopup(PopType.block),
+          _toolbarItemPopup(PopType.align),
           _toolbarItemNoPop(NoPopType.link),
         ];
       case RichTextToolbarType.expanded:
@@ -849,6 +965,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           _toolbarItemNoPop(NoPopType.number),
           _toolbarItemNoPop(NoPopType.quote),
           _toolbarItemNoPop(NoPopType.code),
+          _toolbarItemPopup(PopType.align),
           _toolbarItemNoPop(NoPopType.link),
         ];
       case RichTextToolbarType.condensedOption:
@@ -859,6 +976,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           _toolbarItemPopup(PopType.indent),
           _toolbarItemPopup(PopType.list),
           _toolbarItemPopup(PopType.block),
+          _toolbarItemPopup(PopType.align),
           _toolbarItemNoPop(NoPopType.link),
         ];
       case RichTextToolbarType.expandedOption:
@@ -874,6 +992,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           _toolbarItemNoPop(NoPopType.number),
           _toolbarItemNoPop(NoPopType.quote),
           _toolbarItemNoPop(NoPopType.code),
+          _toolbarItemPopup(PopType.align),
           _toolbarItemNoPop(NoPopType.link),
         ];
     }
@@ -941,6 +1060,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
     _codeStateNotifier.dispose();
     _numberStateNotifier.dispose();
     _bulletStateNotifier.dispose();
+    _alignmentNotifier.dispose();
     _linkStateNotifier.dispose();
     super.dispose();
   }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 enum ToggleState { disabled, off, on }
 
-enum PopType { block, indent, list, size, style }
+enum PopType { align, block, indent, list, size, style }
 
 enum NoPopType {
   bold,
@@ -14,7 +14,7 @@ enum NoPopType {
   number,
   quote,
   code,
-  link
+  link,
 }
 
 enum PopupActionType {
@@ -22,6 +22,10 @@ enum PopupActionType {
   indentPlus,
   sizeMinus,
   sizePlus,
+  leftAlign,
+  rightAlign,
+  centerAlign,
+  justifyAlign,
 }
 
 enum RichTextToolbarType {

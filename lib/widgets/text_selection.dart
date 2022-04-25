@@ -157,7 +157,7 @@ class EditorTextSelectionOverlay {
     }
     selectionDelegate!.userUpdateTextEditingValue(
       value.copyWith(selection: newSelection, composing: TextRange.empty),
-      SelectionChangedCause.toolBar,
+      SelectionChangedCause.doubleTap,
     );
     selectionDelegate!.bringIntoView(textPosition);
   }
