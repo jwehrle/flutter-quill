@@ -3,64 +3,85 @@ import 'package:flutter/material.dart';
 
 enum ToggleState { disabled, off, on }
 
-enum PopType { align, block, indent, list, size, style }
+enum ToolbarPopupType {
+  align,
+  block,
+  indent,
+  list,
+  size,
+  style,
+}
 
-enum NoPopType {
+enum PopupToggleType {
   bold,
-  italic,
-  under,
-  strike,
   bullet,
+  code,
+  italic,
   number,
   quote,
-  code,
-  link,
+  strike,
+  under,
 }
 
-enum PopupActionType {
+enum ToolbarToggleType {
+  bold,
+  bullet,
+  code,
+  italic,
+  link,
+  number,
+  quote,
+  strike,
+  under,
+}
+
+enum PopupScalarType {
+  centerAlign,
   indentMinus,
   indentPlus,
-  sizeMinus,
-  sizePlus,
+  justifyAlign,
   leftAlign,
   rightAlign,
-  centerAlign,
-  justifyAlign,
-}
-
-enum RichTextToolbarType {
-  condensed,
-  expanded,
-  condensedOption,
-  expandedOption
+  sizeMinus,
+  sizePlus,
 }
 
 class OptionButtonData {
-  final Widget child;
+  final ToggleState state;
+  final IconData iconData;
+  final String label;
+  final String tooltip;
+  final bool preferTooltipBelow;
+  final ButtonStyling styling;
   final VoidCallback onPressed;
 
   OptionButtonData({
+    required this.state,
+    required this.iconData,
+    required this.label,
+    required this.tooltip,
+    required this.preferTooltipBelow,
+    required this.styling,
     required this.onPressed,
-    required this.child,
   });
 
-  @override
-  String toString() {
-    return 'OptionalButton';
-  }
+  // @override
+  // String toString() {
+  //   return 'OptionalButton';
+  // }
 
-  @override
-  int get hashCode {
-    int hash = child.hashCode;
-    return hash %= onPressed.hashCode;
-  }
+  // @override
+  // int get hashCode {
+  //   int hash = child.hashCode;
+  //   return hash %= onPressed.hashCode;
+  // }
 
-  @override
-  bool operator ==(Object other) {
-    return other is OptionButtonData
-        ? other.child == child && other.onPressed == onPressed
-        : false;
-  }
+  // @override
+  // bool operator ==(Object other) {
+  //   return other is OptionButtonData
+  //       ? other.child == child && other.onPressed == onPressed
+  //       : false;
+  // }
 }
 
 class ButtonStyling {

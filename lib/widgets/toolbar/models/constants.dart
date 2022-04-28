@@ -1,3 +1,5 @@
+import 'package:flutter_quill/widgets/toolbar/models/types.dart';
+
 /// Keys
 
 const String kBoldItemKey = 'item_key_bold';
@@ -20,6 +22,46 @@ const String kStyleItemKey = 'item_key_style';
 const String kBlockItemKey = 'item_key_section';
 const String kListItemKey = 'item_key_list';
 const String kAlignItemKey = 'item_key_align';
+
+String popItemKey(ToolbarPopupType type) {
+  switch (type) {
+    case ToolbarPopupType.align:
+      return kAlignItemKey;
+    case ToolbarPopupType.block:
+      return kBlockItemKey;
+    case ToolbarPopupType.indent:
+      return kIndentItemKey;
+    case ToolbarPopupType.list:
+      return kListItemKey;
+    case ToolbarPopupType.size:
+      return kSizeItemKey;
+    case ToolbarPopupType.style:
+      return kStyleItemKey;
+  }
+}
+
+String toolbarToggleItemKey(ToolbarToggleType type) {
+  switch (type) {
+    case ToolbarToggleType.bold:
+      return kBoldItemKey;
+    case ToolbarToggleType.bullet:
+      return kBulletItemKey;
+    case ToolbarToggleType.code:
+      return kCodeItemKey;
+    case ToolbarToggleType.italic:
+      return kItalicItemKey;
+    case ToolbarToggleType.link:
+      return kLinkItemKey;
+    case ToolbarToggleType.number:
+      return kNumberItemKey;
+    case ToolbarToggleType.quote:
+      return kQuoteItemKey;
+    case ToolbarToggleType.strike:
+      return kStrikeItemKey;
+    case ToolbarToggleType.under:
+      return kUnderItemKey;
+  }
+}
 
 /// Labels
 

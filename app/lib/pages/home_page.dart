@@ -26,6 +26,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   QuillController? _controller;
   final FocusNode _focusNode = FocusNode();
+  final ButtonStyling _toolbarButtonStyling = ButtonStyling(
+    accentColor: Colors.white,
+    backgroundColor: Colors.blue,
+    disabledColor: Colors.grey,
+    tooltipOffset: 24.0,
+  );
 
   ValueNotifier<ToggleState> _toggleNotifier = ValueNotifier(ToggleState.off);
 
@@ -140,18 +146,26 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           RichTextToolbar(
-            toolbarType: RichTextToolbarType.expanded,
+            isExpanded: true,
             toolbarData: ToolbarData(
               alignment: ToolbarAlignment.bottomCenterHorizontal,
               backgroundColor: Colors.blue,
               buttonSize: Size(45.0, 40.0),
+              popupSpacing: 4.0,
             ),
             controller: _controller!,
-            toolbarButtonStyling: ButtonStyling(
-              accentColor: Colors.white,
-              backgroundColor: Colors.blue,
-              disabledColor: Colors.grey,
+            optionButton: OptionButtonData(
+              onPressed: () {
+                print('Optional button pressed!');
+              },
+              preferTooltipBelow: false,
+              tooltip: 'This is an optional button!',
+              styling: _toolbarButtonStyling,
+              iconData: Icons.airplanemode_active,
+              state: ToggleState.off,
+              label: 'Option',
             ),
+            toolbarButtonStyling: _toolbarButtonStyling,
             popupButtonStyling: ButtonStyling(
               accentColor: Colors.white,
               backgroundColor: Colors.blue,
@@ -160,34 +174,9 @@ class _HomePageState extends State<HomePage> {
               radius: 20.0,
               isMaterialized: true,
               elevation: 2.0,
+              tooltipOffset: 24.0,
             ),
           ),
-          // Align(
-          //   alignment: Alignment.center,
-          //   child: QuillToolbar(
-          //     keyboardHideButton: KeyboardHideButton(
-          //       onPressed: _focusNode.unfocus,
-          //     ),
-          //     notifierBuilderList: [
-          //       (context, notifier) {
-          //         return StyleSectionControl(
-          //           notifier: notifier,
-          //           controller: _controller!,
-          //           secondary: Colors.grey.shade700,
-          //           primary: Colors.lightGreenAccent,
-          //         );
-          //       },
-          //       (context, notifier) {
-          //         return BlockSectionControl(
-          //           notifier: notifier,
-          //           controller: _controller!,
-          //           secondary: Colors.grey.shade700,
-          //           primary: Colors.lightGreenAccent,
-          //         );
-          //       }
-          //     ],
-          //   ),
-          // ),
         ],
       ),
     );

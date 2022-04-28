@@ -19,7 +19,8 @@ class _HomePageState extends State<HomePage> {
         body: Column(
       children: [
         RichTextToolbar(
-          toolbarType: RichTextToolbarType.expanded,
+          // toolbarType: RichTextToolbarType.expanded,
+          isExpanded: true,
           controller: _controller,
           toolbarData: ToolbarData(
             alignment: ToolbarAlignment.bottomCenterHorizontal,
