@@ -27,7 +27,7 @@ class Attribute<T> {
     Attribute.placeholder.key!: Attribute.placeholder,
     Attribute.header.key!: Attribute.header,
     Attribute.indent.key!: Attribute.indent,
-    Attribute.align.key!: Attribute.align, //todo incorporate into toolbar
+    Attribute.align.key!: Attribute.align,
     Attribute.list.key!: Attribute.list,
     Attribute.codeBlock.key!: Attribute.codeBlock,
     Attribute.blockQuote.key!: Attribute.blockQuote,

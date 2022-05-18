@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -9,18 +10,21 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:tuple/tuple.dart';
+
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/documents/document.dart';
 import 'package:flutter_quill/models/documents/nodes/block.dart';
 import 'package:flutter_quill/models/documents/nodes/line.dart';
 import 'package:flutter_quill/models/documents/nodes/node.dart';
+
 import 'package:flutter_quill/utils/diff_delta.dart';
 import 'package:flutter_quill/widgets/default_styles.dart';
 import 'package:flutter_quill/widgets/proxy.dart';
 import 'package:flutter_quill/widgets/text_block.dart';
 import 'package:flutter_quill/widgets/text_line.dart';
 import 'package:flutter_quill/widgets/text_selection.dart';
-import 'package:tuple/tuple.dart';
+
 import 'raw_editor/raw_editor_state_keyboard_mixin.dart';
 import 'raw_editor/raw_editor_state_selection_delegate_mixin.dart';
 import 'raw_editor/raw_editor_state_text_input_client_mixin.dart';
@@ -30,7 +34,8 @@ import 'controller.dart';
 import 'cursor.dart';
 import 'delegate.dart';
 import 'editor.dart';
-import 'keyboard_listener.dart';
+import 'package:flutter_quill/widgets/keyboard_listener.dart' as quillKey;
+//  import 'keyboard_listener.dart' as ;
 
 class RawEditor extends StatefulWidget {
   final QuillController controller;
@@ -116,7 +121,7 @@ class RawEditorState extends EditorState
   //ScrollController? _scrollController;
   KeyboardVisibilityController? _keyboardVisibilityController;
   StreamSubscription<bool>? _keyboardVisibilitySubscription;
-  KeyboardListener? _keyboardListener;
+  quillKey.KeyboardListener? _keyboardListener;
   bool _didAutoFocus = false;
   bool _keyboardVisible = false;
   DefaultStyles? _styles;
@@ -679,7 +684,7 @@ class RawEditorState extends EditorState
       tickerProvider: this,
     );
 
-    _keyboardListener = KeyboardListener(
+    _keyboardListener = quillKey.KeyboardListener(
       onCursorMove: handleCursorMovement,
       onShortcut: handleShortcut,
       onDelete: handleDelete,
@@ -900,8 +905,8 @@ class RawEditorState extends EditorState
       _cursorCont!.stopCursorTimer(resetCharTicks: false);
       _cursorCont!.startCursorTimer();
     }
-
-    SchedulerBinding.instance!.addPostFrameCallback(
+    //todo scrutinize
+    SchedulerBinding.instance?.addPostFrameCallback(
         (Duration _) => _updateOrDisposeSelectionOverlayIfNeeded());
     if (!mounted) return;
     setState(() {
@@ -972,8 +977,8 @@ class RawEditorState extends EditorState
       return;
     }
 
-    _showCaretOnScreenScheduled = true;
-    SchedulerBinding.instance!.addPostFrameCallback((Duration _) {
+    _showCaretOnScreenScheduled = true; //todo scrutinize
+    SchedulerBinding.instance?.addPostFrameCallback((Duration _) {
       _showCaretOnScreenScheduled = false;
 
       final viewport = RenderAbstractViewport.of(getRenderEditor());
@@ -1108,6 +1113,27 @@ class RawEditorState extends EditorState
     } else if (!widget.focusNode.hasFocus) {
       closeConnectionIfNeeded();
     }
+  }
+
+  // added these four overrides. No idea if they will work as set up
+  @override
+  void copySelection(SelectionChangedCause cause) {
+    _handleSelectionChanged(widget.controller.selection, cause);
+  }
+
+  @override
+  void cutSelection(SelectionChangedCause cause) {
+    _handleSelectionChanged(widget.controller.selection, cause);
+  }
+
+  @override
+  Future<void> pasteText(SelectionChangedCause cause) async {
+    return _handleSelectionChanged(widget.controller.selection, cause);
+  }
+
+  @override
+  void selectAll(SelectionChangedCause cause) {
+    _handleSelectionChanged(widget.controller.selection, cause);
   }
 }
 

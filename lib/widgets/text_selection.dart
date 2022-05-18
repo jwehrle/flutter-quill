@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -68,10 +67,12 @@ class EditorTextSelectionOverlay {
     if (handlesVisible == visible) {
       return;
     }
-    handlesVisible = visible;
-    if (SchedulerBinding.instance!.schedulerPhase ==
+    handlesVisible = visible; //todo scrutinize
+    //SchedulerBinding.instance?.addPostFrameCallback(markNeedsBuild);
+    if (SchedulerBinding.instance?.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
-      SchedulerBinding.instance!.addPostFrameCallback(markNeedsBuild);
+      print('Adding markNeedsBuild to post frame callback');
+      SchedulerBinding.instance?.addPostFrameCallback(markNeedsBuild);
     } else {
       markNeedsBuild();
     }
@@ -131,10 +132,12 @@ class EditorTextSelectionOverlay {
     if (value == newValue) {
       return;
     }
-    value = newValue;
-    if (SchedulerBinding.instance!.schedulerPhase ==
+    value = newValue; //todo scrutinize
+    // SchedulerBinding.instance?.addPostFrameCallback(markNeedsBuild);
+    if (SchedulerBinding.instance?.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
-      SchedulerBinding.instance!.addPostFrameCallback(markNeedsBuild);
+      print('Adding markNeedsBuild to post frame callback');
+      SchedulerBinding.instance?.addPostFrameCallback(markNeedsBuild);
     } else {
       markNeedsBuild();
     }

@@ -1,10 +1,6 @@
 import 'dart:async';
-// import 'dart:convert';
-// import 'dart:io';
-//import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/documents/document.dart';
@@ -12,8 +8,6 @@ import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/default_styles.dart';
 import 'package:flutter_quill/widgets/editor.dart';
 import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
-// import 'package:path/path.dart';
-// import 'package:path_provider/path_provider.dart';
 import 'package:tuple/tuple.dart';
 
 import 'read_only_page.dart';
@@ -26,12 +20,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   QuillController? _controller;
   final FocusNode _focusNode = FocusNode();
-  final ButtonStyling _toolbarButtonStyling = ButtonStyling(
-    accentColor: Colors.white,
-    backgroundColor: Colors.blue,
-    disabledColor: Colors.grey,
-    tooltipOffset: 24.0,
-  );
 
   ValueNotifier<ToggleState> _toggleNotifier = ValueNotifier(ToggleState.off);
 
@@ -39,8 +27,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadFromAssets();
-    // Future.delayed(Duration(seconds: 30),
-    //     () => setState(() => _toolbarAlignment = ToolbarAlignment.rightTop));
   }
 
   @override
@@ -111,6 +97,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildWelcomeEditor(BuildContext context) {
+    ThemeData theme = Theme.of(context);
     return SafeArea(
       child: Stack(
         children: <Widget>[
@@ -122,8 +109,6 @@ class _HomePageState extends State<HomePage> {
               scrollController: ScrollController(),
               scrollable: true,
               focusNode: _focusNode,
-              // cursorColor: Colors.lightGreenAccent,
-              // selectionColor: Colors.deepOrangeAccent,
               autoFocus: false,
               readOnly: false,
               placeholder: 'Add content',
@@ -146,35 +131,16 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           RichTextToolbar(
-            isExpanded: true,
-            toolbarData: ToolbarData(
-              alignment: ToolbarAlignment.bottomCenterHorizontal,
-              backgroundColor: Colors.blue,
-              buttonSize: Size(45.0, 40.0),
-              popupSpacing: 4.0,
-            ),
             controller: _controller!,
-            optionButton: OptionButtonData(
-              onPressed: () {
-                print('Optional button pressed!');
-              },
-              preferTooltipBelow: false,
-              tooltip: 'This is an optional button!',
-              styling: _toolbarButtonStyling,
-              iconData: Icons.airplanemode_active,
-              state: ToggleState.off,
-              label: 'Option',
-            ),
-            toolbarButtonStyling: _toolbarButtonStyling,
-            popupButtonStyling: ButtonStyling(
-              accentColor: Colors.white,
-              backgroundColor: Colors.blue,
-              disabledColor: Colors.grey,
-              buttonShape: ButtonShape.circle,
-              radius: 20.0,
-              isMaterialized: true,
-              elevation: 2.0,
-              tooltipOffset: 24.0,
+            alignment: ToolbarAlignment.bottomCenterHorizontal,
+            backgroundColor: theme.primaryColor,
+            popupSpacing: 6.0,
+            popupStyle: buttonStyleFrom(
+              shape: CircleBorder(),
+              elevation: 4.0,
+              primary: theme.primaryColor,
+              onPrimary: theme.colorScheme.onPrimary,
+              onSurface: theme.colorScheme.onSurface,
             ),
           ),
         ],

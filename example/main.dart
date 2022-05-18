@@ -1,4 +1,3 @@
-import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/editor.dart';
@@ -15,48 +14,21 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    ThemeData theme = Theme.of(context);
     return Scaffold(
         body: Column(
       children: [
         RichTextToolbar(
-          // toolbarType: RichTextToolbarType.expanded,
-          isExpanded: true,
           controller: _controller,
-          toolbarData: ToolbarData(
-            alignment: ToolbarAlignment.bottomCenterHorizontal,
-            backgroundColor: Colors.blue,
-            buttonSize: Size(45.0, 40.0),
+          alignment: ToolbarAlignment.bottomCenterHorizontal,
+          backgroundColor: theme.primaryColor,
+          popupStyle: buttonStyleFrom(
+            shape: CircleBorder(),
+            elevation: 4.0,
+            primary: theme.primaryColor,
+            onPrimary: theme.colorScheme.onPrimary,
+            onSurface: theme.colorScheme.onSurface,
           ),
-          toolbarButtonStyling: ButtonStyling(
-            accentColor: Colors.deepPurpleAccent,
-            backgroundColor: Colors.blue,
-            disabledColor: Colors.grey,
-          ),
-          popupButtonStyling: ButtonStyling(
-            accentColor: Colors.deepPurpleAccent,
-            backgroundColor: Colors.blue,
-            disabledColor: Colors.grey,
-            buttonShape: ButtonShape.circle,
-            radius: 20.0,
-            isMaterialized: true,
-            elevation: 2.0,
-          ),
-          // toolbarButtonData: ButtonData(
-          //   accentColor: Colors.deepPurpleAccent,
-          //   backgroundColor: Colors.blue,
-          //   disabledColor: Colors.grey,
-          //   buttonShape: ButtonShape.roundedRectangle,
-          //   width: 45.0,
-          //   height: 40.0,
-          // ),
-          // popupButtonData: ButtonData(
-          //   accentColor: Colors.deepPurpleAccent,
-          //   backgroundColor: Colors.blue,
-          //   disabledColor: Colors.grey,
-          //   buttonShape: ButtonShape.circle,
-          //   radius: 40.0,
-          //   isMaterialized: true,
-          // ),
         ),
         Expanded(
           child: Container(

@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/models/documents/style.dart';
 import 'package:flutter_quill/widgets/controller.dart';
-import 'package:flutter_quill/widgets/toolbar/models/types.dart';
+import 'package:flutter_quill/widgets/toolbar/models/constants.dart';
 
 final Set<String> _inlineAttrs = Set.unmodifiable({
   Attribute.bold.key!,
@@ -27,6 +28,7 @@ class _ControllerData {
   final Attribute? indentAttribute;
   final Attribute? alignmentAttribute;
   final bool isCollapsed;
+  final bool canEmbedImage;
 
   _ControllerData({
     required this.toggledAttrSet,
@@ -34,6 +36,7 @@ class _ControllerData {
     required this.indentAttribute,
     required this.alignmentAttribute,
     required this.isCollapsed,
+    required this.canEmbedImage,
   });
 }
 
@@ -77,91 +80,70 @@ class ControllerUtility {
     _sizeNotifier = ValueNotifier(data.sizeAttribute);
     _indentNotifier = ValueNotifier(data.indentAttribute);
     _alignmentNotifier = ValueNotifier(data.alignmentAttribute);
-    _linkStateNotifier = ValueNotifier(
-        data.isCollapsed ? ToggleState.disabled : ToggleState.off);
+    _linkStateNotifier = ValueNotifier(ToggleState.disabled);
+    _imageStateNotifier = ValueNotifier(ToggleState.disabled);
     controller.addListener(_controllerListener);
   }
 
-  // Attribute Notifiers
-  late final ValueNotifier<Attribute?> _sizeNotifier;
-  late final ValueNotifier<Attribute?> _indentNotifier;
-  late final ValueNotifier<Attribute?> _alignmentNotifier;
-
-  ValueNotifier<Attribute?> popupScalarNotifier(PopupScalarType type) {
-    switch (type) {
-      case PopupScalarType.centerAlign:
-        return _alignmentNotifier;
-      case PopupScalarType.indentMinus:
-        return _indentNotifier;
-      case PopupScalarType.indentPlus:
-        return _indentNotifier;
-      case PopupScalarType.justifyAlign:
-        return _alignmentNotifier;
-      case PopupScalarType.leftAlign:
-        return _alignmentNotifier;
-      case PopupScalarType.rightAlign:
-        return _alignmentNotifier;
-      case PopupScalarType.sizeMinus:
-        return _sizeNotifier;
-      case PopupScalarType.sizePlus:
-        return _sizeNotifier;
-    }
-  }
-
-  // ToggleState Notifiers
+  /// ToggleState Notifiers
   late final ValueNotifier<ToggleState> _boldStateNotifier;
+  ValueListenable<ToggleState> get boldListenable => _boldStateNotifier;
+  ToggleState get bold => boldListenable.value;
+
   late final ValueNotifier<ToggleState> _italicStateNotifier;
+  ValueListenable<ToggleState> get italicListenable => _italicStateNotifier;
+  ToggleState get italic => italicListenable.value;
+
   late final ValueNotifier<ToggleState> _underStateNotifier;
+  ValueListenable<ToggleState> get underListenable => _underStateNotifier;
+  ToggleState get under => underListenable.value;
+
   late final ValueNotifier<ToggleState> _strikeStateNotifier;
+  ValueListenable<ToggleState> get strikeListenable => _strikeStateNotifier;
+  ToggleState get strike => strikeListenable.value;
+
   late final ValueNotifier<ToggleState> _quoteStateNotifier;
+  ValueListenable<ToggleState> get quoteListenable => _quoteStateNotifier;
+  ToggleState get quote => quoteListenable.value;
+
   late final ValueNotifier<ToggleState> _codeStateNotifier;
+  ValueListenable<ToggleState> get codeListenable => _codeStateNotifier;
+  ToggleState get code => codeListenable.value;
+
   late final ValueNotifier<ToggleState> _numberStateNotifier;
+  ValueListenable<ToggleState> get numberListenable => _numberStateNotifier;
+  ToggleState get number => numberListenable.value;
+
   late final ValueNotifier<ToggleState> _bulletStateNotifier;
+  ValueListenable<ToggleState> get bulletListenable => _bulletStateNotifier;
+  ToggleState get bullet => bulletListenable.value;
+
   late final ValueNotifier<ToggleState> _linkStateNotifier;
+  ValueListenable<ToggleState> get linkListenable => _linkStateNotifier;
+  ToggleState get link => linkListenable.value;
 
-  ValueNotifier<ToggleState> toolbarToggleNotifier(ToolbarToggleType type) {
-    switch (type) {
-      case ToolbarToggleType.bold:
-        return _boldStateNotifier;
-      case ToolbarToggleType.italic:
-        return _italicStateNotifier;
-      case ToolbarToggleType.under:
-        return _underStateNotifier;
-      case ToolbarToggleType.strike:
-        return _strikeStateNotifier;
-      case ToolbarToggleType.bullet:
-        return _bulletStateNotifier;
-      case ToolbarToggleType.number:
-        return _numberStateNotifier;
-      case ToolbarToggleType.quote:
-        return _quoteStateNotifier;
-      case ToolbarToggleType.code:
-        return _codeStateNotifier;
-      case ToolbarToggleType.link:
-        return _linkStateNotifier;
-    }
+  late final ValueNotifier<ToggleState> _imageStateNotifier;
+  ValueListenable<ToggleState> get imageListenable => _imageStateNotifier;
+  ToggleState get image => imageListenable.value;
+
+  late final ValueNotifier<Attribute?> _sizeNotifier;
+  ValueListenable<Attribute?> get sizeListenable => _sizeNotifier;
+  Attribute? get size => sizeListenable.value;
+
+  late final ValueNotifier<Attribute?> _indentNotifier;
+  ValueListenable<Attribute?> get indentListenable => _indentNotifier;
+  Attribute? get indent => indentListenable.value;
+
+  late final ValueNotifier<Attribute?> _alignmentNotifier;
+  ValueListenable<Attribute?> get alignmentListenable => _alignmentNotifier;
+  Attribute? get alignment => alignmentListenable.value;
+
+  void formatSelection(Attribute<dynamic> attribute) {
+    controller.formatSelection(attribute);
   }
 
-  ValueNotifier<ToggleState> popupToggleNotifier(PopupToggleType type) {
-    switch (type) {
-      case PopupToggleType.bold:
-        return _boldStateNotifier;
-      case PopupToggleType.bullet:
-        return _bulletStateNotifier;
-      case PopupToggleType.code:
-        return _codeStateNotifier;
-      case PopupToggleType.italic:
-        return _italicStateNotifier;
-      case PopupToggleType.number:
-        return _numberStateNotifier;
-      case PopupToggleType.quote:
-        return _quoteStateNotifier;
-      case PopupToggleType.strike:
-        return _strikeStateNotifier;
-      case PopupToggleType.under:
-        return _underStateNotifier;
-    }
-  }
+  TextSelection get selection => controller.selection;
+  set selection(TextSelection value) => controller.selection = value;
 
   _ControllerData get _controllerData {
     Set<String> attrSet = {};
@@ -190,6 +172,7 @@ class ControllerUtility {
     return _ControllerData(
       toggledAttrSet: attrSet,
       isCollapsed: selection.isCollapsed,
+      canEmbedImage: attrSet.intersection(_quoteCodeAttrs).isEmpty,
       sizeAttribute: style.attributes[Attribute.header.key!],
       indentAttribute: style.attributes[Attribute.indent.key!],
       alignmentAttribute: style.attributes[Attribute.align.key!],
@@ -234,6 +217,8 @@ class ControllerUtility {
     _alignmentNotifier.value = data.alignmentAttribute;
     _linkStateNotifier.value =
         data.isCollapsed ? ToggleState.disabled : ToggleState.off;
+    _imageStateNotifier.value =
+        data.canEmbedImage ? ToggleState.off : ToggleState.disabled;
   }
 
   void dispose() {
@@ -248,5 +233,6 @@ class ControllerUtility {
     _bulletStateNotifier.dispose();
     _alignmentNotifier.dispose();
     _linkStateNotifier.dispose();
+    _imageStateNotifier.dispose();
   }
 }

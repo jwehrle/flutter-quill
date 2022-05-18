@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 enum InputShortcut { CUT, COPY, PASTE, SELECT_ALL }
@@ -64,9 +65,9 @@ class KeyboardListener {
     required this.onDelete,
   });
 
-  bool handleRawKeyEvent(RawKeyEvent event) {
+  KeyEventResult handleRawKeyEvent(RawKeyEvent event) {
     if (event is! RawKeyDownEvent) {
-      return false;
+      return KeyEventResult.ignored;
     }
 
     Set<LogicalKeyboardKey> keysPressed =
@@ -79,7 +80,7 @@ class KeyboardListener {
                 .length >
             1 ||
         keysPressed.difference(_interestingKeys).isNotEmpty) {
-      return false;
+      return KeyEventResult.handled;
     }
 
     if (_moveKeys.contains(key)) {
@@ -97,6 +98,6 @@ class KeyboardListener {
     } else if (key == LogicalKeyboardKey.backspace) {
       onDelete(false);
     }
-    return false;
+    return KeyEventResult.handled;
   }
 }
