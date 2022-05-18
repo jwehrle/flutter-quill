@@ -168,6 +168,49 @@ class ImageDialogState extends State<ImageDialog> {
   }
 }
 
+ButtonState _toButton(ToggleState state) {
+  switch (state) {
+    case ToggleState.disabled:
+      return ButtonState.disabled;
+    case ToggleState.off:
+      return ButtonState.unselected;
+    case ToggleState.on:
+      return ButtonState.selected;
+  }
+}
+
+ButtonState _sizePlus(Attribute? attribute) {
+  if (attribute?.value == 1) {
+    return ButtonState.disabled;
+  } else {
+    return ButtonState.enabled;
+  }
+}
+
+ButtonState _sizeMinus(Attribute? attribute) {
+  if (attribute?.value == null) {
+    return ButtonState.disabled;
+  } else {
+    return ButtonState.enabled;
+  }
+}
+
+ButtonState _indentPlus(Attribute? attribute) {
+  if (attribute?.value == 3) {
+    return ButtonState.disabled;
+  } else {
+    return ButtonState.enabled;
+  }
+}
+
+ButtonState _indentMinus(Attribute? attribute) {
+  if (attribute?.value == null) {
+    return ButtonState.disabled;
+  } else {
+    return ButtonState.enabled;
+  }
+}
+
 class RichTextToolbar extends StatefulWidget {
   final QuillController controller;
   final OptionButtonData? optionButton;
@@ -320,24 +363,28 @@ class RichTextToolbarState extends State<RichTextToolbar> {
     }
   }
 
-  final ButtonController _boldController = ButtonController();
-  final ButtonController _italicController = ButtonController();
-  final ButtonController _underController = ButtonController();
-  final ButtonController _strikeController = ButtonController();
-  final ButtonController _sizePlusController = ButtonController();
-  final ButtonController _sizeMinusController = ButtonController();
-  final ButtonController _indentPlusController = ButtonController();
-  final ButtonController _indentMinusController = ButtonController();
-  final ButtonController _bulletController = ButtonController();
-  final ButtonController _numberController = ButtonController();
-  final ButtonController _quoteController = ButtonController();
-  final ButtonController _codeController = ButtonController();
-  final ButtonController _leftController = ButtonController();
-  final ButtonController _rightController = ButtonController();
-  final ButtonController _centerController = ButtonController();
-  final ButtonController _justifyController = ButtonController();
-  final ButtonController _linkController = ButtonController();
-  final ButtonController _imageController = ButtonController();
+  // Controllers where ToggleState -> ButtonState
+  late final ButtonController _boldController;
+  late final ButtonController _italicController;
+  late final ButtonController _underController;
+  late final ButtonController _strikeController;
+  late final ButtonController _bulletController;
+  late final ButtonController _numberController;
+  late final ButtonController _quoteController;
+  late final ButtonController _codeController;
+  late final ButtonController _linkController;
+  late final ButtonController _imageController;
+
+  // Controllers where Attribute? -> ButtonState
+  late final ButtonController _sizePlusController;
+  late final ButtonController _sizeMinusController;
+  late final ButtonController _indentPlusController;
+  late final ButtonController _indentMinusController;
+  late final ButtonController _leftController;
+  late final ButtonController _rightController;
+  late final ButtonController _centerController;
+  late final ButtonController _justifyController;
+
   ButtonController? _optionController;
 
   void _boldListener() {
@@ -396,26 +443,34 @@ class RichTextToolbarState extends State<RichTextToolbar> {
     }
   }
 
+  // _conUtil.size.value == null smallest
+  // _conUtil.size.value == 3
+  // _conUtil.size.value == 2
+  // _conUtil.size.value == 1 largest
   void _sizeListener() {
-    if (incrementSize(_conUtil.size) == null) {
+    if (_conUtil.size?.value == 1) {
       _sizePlusController.disable();
     } else {
       _sizePlusController.enable();
     }
-    if (decrementSize(_conUtil.size) == null) {
+    if (_conUtil.size?.value == null) {
       _sizeMinusController.disable();
     } else {
       _sizeMinusController.enable();
     }
   }
 
+  // _conUtil.indent.value == null none
+  // _conUtil.indent.value == 1
+  // _conUtil.indent.value == 2
+  // _conUtil.indent.value == 3 largest
   void _indentListener() {
-    if (incrementIndent(_conUtil.indent) == null) {
+    if (_conUtil.indent?.value == 3) {
       _indentPlusController.disable();
     } else {
       _indentPlusController.enable();
     }
-    if (decrementIndent(_conUtil.indent) == null) {
+    if (_conUtil.indent?.value == null) {
       _indentMinusController.disable();
     } else {
       _indentMinusController.enable();
@@ -539,6 +594,41 @@ class RichTextToolbarState extends State<RichTextToolbar> {
   void initState() {
     super.initState();
     _conUtil = ControllerUtility(controller: widget.controller);
+
+    _boldController = ButtonController(value: _toButton(_conUtil.bold));
+    _italicController = ButtonController(value: _toButton(_conUtil.italic));
+    _underController = ButtonController(value: _toButton(_conUtil.under));
+    _strikeController = ButtonController(value: _toButton(_conUtil.strike));
+    _bulletController = ButtonController(value: _toButton(_conUtil.bullet));
+    _numberController = ButtonController(value: _toButton(_conUtil.number));
+    _quoteController = ButtonController(value: _toButton(_conUtil.quote));
+    _codeController = ButtonController(value: _toButton(_conUtil.code));
+    _linkController = ButtonController(value: _toButton(_conUtil.link));
+    _imageController = ButtonController(value: _toButton(_conUtil.image));
+
+    _sizePlusController = ButtonController(value: _sizePlus(_conUtil.size));
+    _sizeMinusController = ButtonController(value: _sizeMinus(_conUtil.size));
+    _indentPlusController =
+        ButtonController(value: _indentPlus(_conUtil.indent));
+    _indentMinusController =
+        ButtonController(value: _indentMinus(_conUtil.indent));
+    _leftController = ButtonController(
+        value: _conUtil.alignment == Attribute.leftAlignment
+            ? ButtonState.selected
+            : ButtonState.unselected);
+    _rightController = ButtonController(
+        value: _conUtil.alignment == Attribute.rightAlignment
+            ? ButtonState.selected
+            : ButtonState.unselected);
+    _centerController = ButtonController(
+        value: _conUtil.alignment == Attribute.centerAlignment
+            ? ButtonState.selected
+            : ButtonState.unselected);
+    _justifyController = ButtonController(
+        value: _conUtil.alignment == Attribute.justifyAlignment
+            ? ButtonState.selected
+            : ButtonState.unselected);
+
     _conUtil.boldListenable.addListener(_boldListener);
     _conUtil.italicListenable.addListener(_italicListener);
     _conUtil.underListenable.addListener(_underListener);

@@ -173,8 +173,10 @@ class ControllerUtility {
       toggledAttrSet: attrSet,
       isCollapsed: selection.isCollapsed,
       canEmbedImage: attrSet.intersection(_quoteCodeAttrs).isEmpty,
-      sizeAttribute: style.attributes[Attribute.header.key!],
-      indentAttribute: style.attributes[Attribute.indent.key!],
+      sizeAttribute:
+          style.attributes[Attribute.header.key!] ?? Attribute.header,
+      indentAttribute:
+          style.attributes[Attribute.indent.key!] ?? Attribute.indent,
       alignmentAttribute: style.attributes[Attribute.align.key!],
     );
   }
