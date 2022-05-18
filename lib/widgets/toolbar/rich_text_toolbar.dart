@@ -727,6 +727,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
             builder: (context, state, _) => BaseIconicButton(
               state: state,
               iconData: Icons.arrow_upward,
+              style: widget.popupStyle,
               onPressed: () {
                 final attr = incrementSize(_conUtil.size);
                 if (attr != null) {
@@ -742,6 +743,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
             builder: (context, state, _) => BaseIconicButton(
               state: state,
               iconData: Icons.arrow_downward,
+              style: widget.popupStyle,
               onPressed: () {
                 final attr = decrementSize(_conUtil.size);
                 if (attr != null) {
@@ -766,6 +768,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
             builder: (context, state, _) => BaseIconicButton(
               state: state,
               iconData: Icons.arrow_forward,
+              style: widget.popupStyle,
               onPressed: () {
                 final attr = incrementIndent(_conUtil.indent);
                 if (attr != null) {
@@ -781,6 +784,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
             builder: (context, state, _) => BaseIconicButton(
               state: state,
               iconData: Icons.arrow_back,
+              style: widget.popupStyle,
               onPressed: () {
                 final attr = decrementIndent(_conUtil.indent);
                 if (attr != null) {
