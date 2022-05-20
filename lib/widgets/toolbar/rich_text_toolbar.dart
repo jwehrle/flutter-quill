@@ -246,10 +246,6 @@ class RichTextToolbar extends StatefulWidget {
   /// 2.0
   final double elevation;
 
-  /// The Size of the buttons in the toolbar. Used with a SizedBox so if using
-  /// widgets that may overflow this size make sure to wrap in FittedBox
-  final Size buttonSize;
-
   /// Callback with itemKey of toolbar buttons pressed
   final ValueChanged<int?>? onValueChanged;
 
@@ -274,7 +270,6 @@ class RichTextToolbar extends StatefulWidget {
     this.alignment = ToolbarAlignment.bottomCenterHorizontal,
     this.contentPadding = const EdgeInsets.all(2.0),
     this.buttonSpacing = 2.0,
-    this.buttonSize = const Size(45.0, 40.0),
     this.popupSpacing = 4.0,
     this.elevation = 2.0,
     this.shape = const RoundedRectangleBorder(
@@ -976,7 +971,6 @@ class RichTextToolbarState extends State<RichTextToolbar> {
       items: _toolbarItems,
       alignment: widget.alignment,
       backgroundColor: widget.backgroundColor,
-      buttonSize: widget.buttonSize,
       contentPadding: widget.contentPadding,
       buttonSpacing: widget.buttonSpacing,
       popupSpacing: widget.popupSpacing,
