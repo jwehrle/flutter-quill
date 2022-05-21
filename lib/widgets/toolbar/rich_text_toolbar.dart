@@ -7,24 +7,6 @@ import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter_quill/widgets/toolbar/utils/controller_utility.dart';
 import 'package:mdi/mdi.dart';
 
-class OptionButtonData {
-  final ToggleState state;
-  final IconData iconData;
-  final String label;
-  final String tooltip;
-  final bool preferTooltipBelow;
-  final VoidCallback onPressed;
-
-  OptionButtonData({
-    required this.state,
-    required this.iconData,
-    required this.label,
-    required this.tooltip,
-    required this.preferTooltipBelow,
-    required this.onPressed,
-  });
-}
-
 /// h1 > h2 > h3 > header
 Attribute? incrementSize(Attribute? attribute) {
   print('incrementSize called with $attribute');
@@ -212,8 +194,15 @@ ButtonState _indentMinus(Attribute? attribute) {
 }
 
 class RichTextToolbar extends StatefulWidget {
+  /// Used to listen for changes in text selection which determines which buttons
+  /// are selected, unSelected, or disabled. Also used to effect changes in the
+  /// document from button presses.
   final QuillController controller;
-  final OptionButtonData? optionButton;
+
+  /// Optional IconicButtons to be inserted at the start of the underlying
+  /// [FloatingToolbar]. These buttons will not be selectable in radio-button
+  /// fashion as the provided buttons are.
+  final List<IconicButton> optionButtons;
 
   /// The location of the toolbar. The first direction indicates alignment along
   /// a side, the second direction indicates alignment relative to that side.
@@ -266,7 +255,7 @@ class RichTextToolbar extends StatefulWidget {
     required this.controller,
     required this.backgroundColor,
     required this.popupStyle,
-    this.optionButton,
+    this.optionButtons = const [],
     this.alignment = ToolbarAlignment.bottomCenterHorizontal,
     this.contentPadding = const EdgeInsets.all(2.0),
     this.buttonSpacing = 2.0,
@@ -379,8 +368,6 @@ class RichTextToolbarState extends State<RichTextToolbar> {
   late final ButtonController _rightController;
   late final ButtonController _centerController;
   late final ButtonController _justifyController;
-
-  ButtonController? _optionController;
 
   void _boldListener() {
     switch (_conUtil.bold) {
@@ -640,20 +627,9 @@ class RichTextToolbarState extends State<RichTextToolbar> {
 
     _preferTooltipBelow = _preferBelow();
 
-    if (widget.optionButton != null) {
-      _optionController = ButtonController();
-      _toolbarItems.add(FloatingToolbarItem.custom(
-        IconicButton(
-          controller: _optionController!,
-          iconData: widget.optionButton!.iconData,
-          onPressed: widget.optionButton!.onPressed,
-          label: widget.optionButton!.label,
-          tooltip: widget.optionButton!.tooltip,
-          preferTooltipBelow: _preferTooltipBelow,
-          style: widget.toolbarStyle,
-        ),
-      ));
-    }
+    widget.optionButtons.forEach((button) {
+      _toolbarItems.add(FloatingToolbarItem.custom(button));
+    });
 
     _toolbarItems.addAll([
       FloatingToolbarItem.standard(
@@ -1006,7 +982,6 @@ class RichTextToolbarState extends State<RichTextToolbar> {
     _justifyController.dispose();
     _linkController.dispose();
     _imageController.dispose();
-    _optionController?.dispose();
     super.dispose();
   }
 }
