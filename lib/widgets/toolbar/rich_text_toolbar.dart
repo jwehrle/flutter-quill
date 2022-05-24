@@ -208,10 +208,7 @@ abstract class QuillButtonController<T> {
 
   void _controllerListener() => _onChanged(_data);
 
-  @mustCallSuper
-  void dispose() {
-    controller.removeListener(_controllerListener);
-  }
+  void dispose();
 }
 
 /// Methods required for classes that produce [FloatingToolbarItem]
@@ -307,7 +304,6 @@ class StyleController extends QuillButtonController<Set<String>> {
     _italicStateNotifier.dispose();
     _underStateNotifier.dispose();
     _strikeStateNotifier.dispose();
-    super.dispose();
   }
 }
 
@@ -355,7 +351,6 @@ class ListController extends QuillButtonController<Set<String>> {
   void dispose() {
     _bulletStateNotifier.dispose();
     _numberStateNotifier.dispose();
-    super.dispose();
   }
 }
 
@@ -407,7 +402,6 @@ class BlockController extends QuillButtonController<Set<String>> {
   void dispose() {
     _quoteStateNotifier.dispose();
     _codeStateNotifier.dispose();
-    super.dispose();
   }
 }
 
@@ -462,7 +456,6 @@ class InsertController extends QuillButtonController<_InsertData> {
   void dispose() {
     _linkStateNotifier.dispose();
     _imageStateNotifier.dispose();
-    super.dispose();
   }
 }
 
@@ -487,7 +480,6 @@ class SizeController extends QuillButtonController<Attribute?> {
   @override
   void dispose() {
     _sizeNotifier.dispose();
-    super.dispose();
   }
 }
 
@@ -512,7 +504,6 @@ class IndentController extends QuillButtonController<Attribute?> {
   @override
   void dispose() {
     _indentNotifier.dispose();
-    super.dispose();
   }
 }
 
@@ -536,7 +527,6 @@ class AlignController extends QuillButtonController<Attribute?> {
   @override
   dispose() {
     _alignmentNotifier.dispose();
-    super.dispose();
   }
 }
 
