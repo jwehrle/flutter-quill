@@ -8,292 +8,6 @@ import 'package:flutter_quill/widgets/toolbar/models/constants.dart';
 import 'package:floating_toolbar/toolbar.dart';
 import 'package:mdi/mdi.dart';
 
-/// h1 > h2 > h3 > header
-Attribute? _incrementSize(Attribute? attribute) {
-  print('incrementSize called with $attribute');
-  if (attribute == null) {
-    attribute = Attribute.header;
-  }
-  if (attribute == Attribute.h1) {
-    return null;
-  }
-  if (attribute == Attribute.h2) {
-    return Attribute.h1;
-  }
-  if (attribute == Attribute.h3) {
-    return Attribute.h2;
-  }
-  if (attribute == Attribute.header) {
-    return Attribute.h3;
-  }
-  return null;
-}
-
-/// header < h3 < h2 < h1
-Attribute? _decrementSize(Attribute? attribute) {
-  if (attribute == null) {
-    attribute = Attribute.header;
-  }
-  if (attribute == Attribute.header) {
-    return null;
-  }
-  if (attribute == Attribute.h1) {
-    return Attribute.h2;
-  }
-  if (attribute == Attribute.h2) {
-    return Attribute.h3;
-  }
-  if (attribute == Attribute.h3) {
-    return Attribute.header;
-  }
-  return null;
-}
-
-/// indentL3 > indentL2 > indentL1
-Attribute? _incrementIndent(Attribute? attribute) {
-  if (attribute == null || attribute.value == null) {
-    return Attribute.indentL1;
-  }
-  if (attribute == Attribute.indentL3) {
-    return null;
-  }
-  return Attribute.getIndentLevel(attribute.value + 1);
-}
-
-/// indentL1 < indentL2 < indentL3
-Attribute? _decrementIndent(Attribute? attribute) {
-  if (attribute == null || attribute.value == null) {
-    return null;
-  }
-  if (attribute == Attribute.indentL1) {
-    return Attribute.clone(Attribute.indentL1, null);
-  }
-  return Attribute.getIndentLevel(attribute.value - 1);
-}
-
-final Attribute _noAlignment = Attribute(
-  key: 'align',
-  scope: AttributeScope.BLOCK,
-  value: null,
-);
-
-class _LinkDialog extends StatefulWidget {
-  const _LinkDialog({Key? key}) : super(key: key);
-
-  @override
-  _LinkDialogState createState() => _LinkDialogState();
-}
-
-class _LinkDialogState extends State<_LinkDialog> {
-  String _link = '';
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      content: TextField(
-        decoration: InputDecoration(labelText: 'Paste a link'),
-        autofocus: true,
-        onChanged: _linkChanged,
-      ),
-      actions: [
-        TextButton(
-          onPressed: _link.isNotEmpty ? _applyLink : null,
-          child: Text('Apply'),
-        ),
-      ],
-    );
-  }
-
-  void _linkChanged(String value) {
-    setState(() {
-      _link = value;
-    });
-  }
-
-  void _applyLink() {
-    Navigator.pop(context, _link);
-  }
-}
-
-class _ImageDialog extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => _ImageDialogState();
-}
-
-class _ImageDialogState extends State<_ImageDialog> {
-  String _url = '';
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      content: TextField(
-        decoration: InputDecoration(labelText: 'Paste a image link'),
-        autofocus: true,
-        onChanged: _urlChanged,
-      ),
-      actions: [
-        TextButton(
-          onPressed: _url.isNotEmpty ? _applyUrl : null,
-          child: Text('Apply'),
-        ),
-      ],
-    );
-  }
-
-  void _urlChanged(String value) {
-    setState(() {
-      _url = value;
-    });
-  }
-
-  void _applyUrl() {
-    Navigator.pop(context, _url);
-  }
-}
-
-ButtonState _toButton(ToggleState state) {
-  switch (state) {
-    case ToggleState.disabled:
-      return ButtonState.disabled;
-    case ToggleState.off:
-      return ButtonState.unselected;
-    case ToggleState.on:
-      return ButtonState.selected;
-  }
-}
-
-ButtonState _sizePlus(Attribute? attribute) {
-  if (attribute?.value == 1) {
-    return ButtonState.disabled;
-  } else {
-    return ButtonState.enabled;
-  }
-}
-
-ButtonState _sizeMinus(Attribute? attribute) {
-  if (attribute?.value == null) {
-    return ButtonState.disabled;
-  } else {
-    return ButtonState.enabled;
-  }
-}
-
-ButtonState _indentPlus(Attribute? attribute) {
-  if (attribute?.value == 3) {
-    return ButtonState.disabled;
-  } else {
-    return ButtonState.enabled;
-  }
-}
-
-ButtonState _indentMinus(Attribute? attribute) {
-  if (attribute?.value == null) {
-    return ButtonState.disabled;
-  } else {
-    return ButtonState.enabled;
-  }
-}
-
-void _toggleListener(ToggleState state, ButtonController controller) {
-  switch (state) {
-    case ToggleState.disabled:
-      controller.disable();
-      break;
-    case ToggleState.off:
-      controller.unSelect();
-      break;
-    case ToggleState.on:
-      controller.select();
-      break;
-  }
-}
-
-void _sizeListener({
-  required Attribute? size,
-  required ButtonController plusController,
-  required ButtonController minusController,
-}) {
-  if (_sizePlus(size) == ButtonState.disabled) {
-    plusController.disable();
-  } else {
-    plusController.enable();
-  }
-  if (_sizeMinus(size) == ButtonState.disabled) {
-    minusController.disable();
-  } else {
-    minusController.enable();
-  }
-}
-
-void _indentListener({
-  required Attribute? indent,
-  required ButtonController plusController,
-  required ButtonController minusController,
-}) {
-  if (_indentPlus(indent) == ButtonState.disabled) {
-    plusController.disable();
-  } else {
-    plusController.enable();
-  }
-  if (_indentMinus(indent) == ButtonState.disabled) {
-    minusController.disable();
-  } else {
-    minusController.enable();
-  }
-}
-
-void _alignmentListener({
-  required Attribute? attribute,
-  required ButtonController leftController,
-  required ButtonController rightController,
-  required ButtonController centerController,
-  required ButtonController justifyController,
-}) {
-  if (attribute == Attribute.leftAlignment) {
-    leftController.select();
-    rightController.unSelect();
-    centerController.unSelect();
-    justifyController.unSelect();
-  } else if (attribute == Attribute.rightAlignment) {
-    leftController.unSelect();
-    rightController.select();
-    centerController.unSelect();
-    justifyController.unSelect();
-  } else if (attribute == Attribute.centerAlignment) {
-    leftController.unSelect();
-    rightController.unSelect();
-    centerController.select();
-    justifyController.unSelect();
-  } else if (attribute == Attribute.justifyAlignment) {
-    leftController.unSelect();
-    rightController.unSelect();
-    centerController.unSelect();
-    justifyController.select();
-  } else {
-    leftController.unSelect();
-    rightController.unSelect();
-    centerController.unSelect();
-    justifyController.unSelect();
-  }
-}
-
-void _toggle(
-  ToggleState state,
-  Attribute attribute,
-  QuillController controller,
-) {
-  switch (state) {
-    case ToggleState.disabled:
-      break;
-    case ToggleState.off:
-      controller.formatSelection(attribute);
-      break;
-    case ToggleState.on:
-      controller.formatSelection(Attribute.clone(attribute, null));
-      break;
-  }
-}
-
 class RichTextToolbar extends StatefulWidget {
   /// Used to listen for changes in text selection which determines which buttons
   /// are selected, unSelected, or disabled. Also used to effect changes in the
@@ -479,34 +193,52 @@ class RichTextToolbarState extends State<RichTextToolbar> {
   }
 }
 
-class StyleData {
-  final Set<String> attrSet;
+/// Listens to QuillController, filters out relevant aspects, and propagates
+/// those changes to onChanged
+abstract class QuillButtonController<T> {
+  QuillButtonController(this.controller) {
+    controller.addListener(_controllerListener);
+  }
 
-  StyleData({
-    required this.attrSet,
-  });
+  final QuillController controller;
+
+  T get _data;
+
+  void _onChanged(T data);
+
+  void _controllerListener() => _onChanged(_data);
+
+  @mustCallSuper
+  void dispose() {
+    controller.removeListener(_controllerListener);
+  }
 }
 
-class StyleController {
-  StyleController(this.controller) {
-    StyleData data = _styleData;
+/// Methods required for classes that produce [FloatingToolbarItem]
+abstract class QuillButtonItem {
+  FloatingToolbarItem item({
+    required ButtonStyle popupStyle,
+    required bool preferBelow,
+  });
+
+  void dispose();
+}
+
+/// Translates QuillController to bold, strike, under, italic
+class StyleController extends QuillButtonController<Set<String>> {
+  StyleController(QuillController controller) : super(controller) {
     _boldStateNotifier = ValueNotifier(
-        data.attrSet.contains(Attribute.bold.key!)
-            ? ToggleState.on
-            : ToggleState.off);
+        _data.contains(Attribute.bold.key!) ? ToggleState.on : ToggleState.off);
     _strikeStateNotifier = ValueNotifier(
-        data.attrSet.contains(Attribute.strikeThrough.key!)
+        _data.contains(Attribute.strikeThrough.key!)
             ? ToggleState.on
             : ToggleState.off);
-    _underStateNotifier = ValueNotifier(
-        data.attrSet.contains(Attribute.underline.key!)
-            ? ToggleState.on
-            : ToggleState.off);
-    _italicStateNotifier = ValueNotifier(
-        data.attrSet.contains(Attribute.italic.key!)
-            ? ToggleState.on
-            : ToggleState.off);
-    controller.addListener(_controllerListener);
+    _underStateNotifier = ValueNotifier(_data.contains(Attribute.underline.key!)
+        ? ToggleState.on
+        : ToggleState.off);
+    _italicStateNotifier = ValueNotifier(_data.contains(Attribute.italic.key!)
+        ? ToggleState.on
+        : ToggleState.off);
   }
 
   static final Set<String> _styleAttrs = Set.unmodifiable({
@@ -515,8 +247,6 @@ class StyleController {
     Attribute.strikeThrough.key!,
     Attribute.underline.key!,
   });
-
-  final QuillController controller;
 
   late final ValueNotifier<ToggleState> _boldStateNotifier;
   ValueListenable<ToggleState> get boldListenable => _boldStateNotifier;
@@ -534,24 +264,8 @@ class StyleController {
   ValueListenable<ToggleState> get strikeListenable => _strikeStateNotifier;
   ToggleState get strike => strikeListenable.value;
 
-  void _controllerListener() {
-    final data = _styleData;
-    _boldStateNotifier.value = data.attrSet.contains(Attribute.bold.key!)
-        ? ToggleState.on
-        : ToggleState.off;
-    _strikeStateNotifier.value =
-        data.attrSet.contains(Attribute.strikeThrough.key!)
-            ? ToggleState.on
-            : ToggleState.off;
-    _underStateNotifier.value = data.attrSet.contains(Attribute.underline.key!)
-        ? ToggleState.on
-        : ToggleState.off;
-    _italicStateNotifier.value = data.attrSet.contains(Attribute.italic.key!)
-        ? ToggleState.on
-        : ToggleState.off;
-  }
-
-  StyleData get _styleData {
+  @override
+  Set<String> get _data {
     Set<String> attrSet = {};
     final Style style = controller.getSelectionStyle();
     TextSelection selection = controller.selection;
@@ -570,19 +284,309 @@ class StyleController {
       attrSet.addAll(style.attributes.keys
           .where((attrKey) => _styleAttrs.contains(attrKey)));
     }
-    return StyleData(attrSet: attrSet);
+    return attrSet;
   }
 
+  @override
+  void _onChanged(Set<String> data) {
+    _boldStateNotifier.value =
+        data.contains(Attribute.bold.key!) ? ToggleState.on : ToggleState.off;
+    _strikeStateNotifier.value = data.contains(Attribute.strikeThrough.key!)
+        ? ToggleState.on
+        : ToggleState.off;
+    _underStateNotifier.value = data.contains(Attribute.underline.key!)
+        ? ToggleState.on
+        : ToggleState.off;
+    _italicStateNotifier.value =
+        data.contains(Attribute.italic.key!) ? ToggleState.on : ToggleState.off;
+  }
+
+  @override
   void dispose() {
-    controller.removeListener(_controllerListener);
     _boldStateNotifier.dispose();
     _italicStateNotifier.dispose();
     _underStateNotifier.dispose();
     _strikeStateNotifier.dispose();
+    super.dispose();
   }
 }
 
-class StyleItem {
+/// Translates QuillController to bullet and number
+class ListController extends QuillButtonController<Set<String>> {
+  ListController(QuillController controller) : super(controller) {
+    _bulletStateNotifier = ValueNotifier(
+        _data.contains(Attribute.ul.value!) ? ToggleState.on : ToggleState.off);
+    _numberStateNotifier = ValueNotifier(
+        _data.contains(Attribute.ol.value!) ? ToggleState.on : ToggleState.off);
+  }
+
+  static final Set<String> _listAttrs = Set.unmodifiable({
+    Attribute.ol.value!,
+    Attribute.ul.value!,
+  });
+
+  late final ValueNotifier<ToggleState> _numberStateNotifier;
+  ValueListenable<ToggleState> get numberListenable => _numberStateNotifier;
+  ToggleState get number => numberListenable.value;
+
+  late final ValueNotifier<ToggleState> _bulletStateNotifier;
+  ValueListenable<ToggleState> get bulletListenable => _bulletStateNotifier;
+  ToggleState get bullet => bulletListenable.value;
+
+  @override
+  Set<String> get _data {
+    Set<String> attrSet = {};
+    final Style style = controller.getSelectionStyle();
+    attrSet.addAll(style.attributes.values
+        .where((attr) => _listAttrs.contains(attr.value))
+        .map((attr) => attr.value));
+    return attrSet;
+  }
+
+  @override
+  void _onChanged(Set<String> data) {
+    _bulletStateNotifier.value =
+        data.contains(Attribute.ul.value!) ? ToggleState.on : ToggleState.off;
+    _numberStateNotifier.value =
+        data.contains(Attribute.ol.value!) ? ToggleState.on : ToggleState.off;
+  }
+
+  @override
+  void dispose() {
+    _bulletStateNotifier.dispose();
+    _numberStateNotifier.dispose();
+    super.dispose();
+  }
+}
+
+/// Translates QuillController to quote and code
+class BlockController extends QuillButtonController<Set<String>> {
+  BlockController(QuillController controller) : super(controller) {
+    _quoteStateNotifier = ValueNotifier(
+        _data.contains(Attribute.blockQuote.key!)
+            ? ToggleState.on
+            : ToggleState.off);
+    _codeStateNotifier = ValueNotifier(_data.contains(Attribute.codeBlock.key!)
+        ? ToggleState.on
+        : ToggleState.off);
+  }
+
+  static final Set<String> _quoteCodeAttrs = Set.unmodifiable({
+    Attribute.blockQuote.key!,
+    Attribute.codeBlock.key!,
+  });
+
+  late final ValueNotifier<ToggleState> _quoteStateNotifier;
+  ValueListenable<ToggleState> get quoteListenable => _quoteStateNotifier;
+  ToggleState get quote => quoteListenable.value;
+
+  late final ValueNotifier<ToggleState> _codeStateNotifier;
+  ValueListenable<ToggleState> get codeListenable => _codeStateNotifier;
+  ToggleState get code => codeListenable.value;
+
+  @override
+  Set<String> get _data {
+    Set<String> attrSet = {};
+    final Style style = controller.getSelectionStyle();
+    attrSet.addAll(style.attributes.keys
+        .where((attrKey) => _quoteCodeAttrs.contains(attrKey)));
+    return attrSet;
+  }
+
+  @override
+  void _onChanged(Set<String> data) {
+    _quoteStateNotifier.value = data.contains(Attribute.blockQuote.key!)
+        ? ToggleState.on
+        : ToggleState.off;
+    _codeStateNotifier.value = data.contains(Attribute.codeBlock.key!)
+        ? ToggleState.on
+        : ToggleState.off;
+  }
+
+  @override
+  void dispose() {
+    _quoteStateNotifier.dispose();
+    _codeStateNotifier.dispose();
+    super.dispose();
+  }
+}
+
+class _InsertData {
+  final bool isCollapsed;
+  final bool canEmbedImage;
+
+  _InsertData({required this.isCollapsed, required this.canEmbedImage});
+}
+
+/// Translates QuillController to link and image
+class InsertController extends QuillButtonController<_InsertData> {
+  InsertController(QuillController controller) : super(controller) {
+    _linkStateNotifier = ValueNotifier(ToggleState.disabled);
+    _imageStateNotifier = ValueNotifier(ToggleState.disabled);
+  }
+
+  static final Set<String> _quoteCodeAttrs = Set.unmodifiable({
+    Attribute.blockQuote.key!,
+    Attribute.codeBlock.key!,
+  });
+
+  late final ValueNotifier<ToggleState> _linkStateNotifier;
+  ValueListenable<ToggleState> get linkListenable => _linkStateNotifier;
+  ToggleState get link => linkListenable.value;
+
+  late final ValueNotifier<ToggleState> _imageStateNotifier;
+  ValueListenable<ToggleState> get imageListenable => _imageStateNotifier;
+  ToggleState get image => imageListenable.value;
+
+  @override
+  _InsertData get _data {
+    Set<String> attrSet = {};
+    final Style style = controller.getSelectionStyle();
+    attrSet.addAll(style.attributes.keys
+        .where((attrKey) => _quoteCodeAttrs.contains(attrKey)));
+    return _InsertData(
+      isCollapsed: controller.selection.isCollapsed,
+      canEmbedImage: attrSet.intersection(_quoteCodeAttrs).isEmpty,
+    );
+  }
+
+  @override
+  void _onChanged(_InsertData data) {
+    _linkStateNotifier.value =
+        data.isCollapsed ? ToggleState.disabled : ToggleState.off;
+    _imageStateNotifier.value =
+        data.canEmbedImage ? ToggleState.off : ToggleState.disabled;
+  }
+
+  @override
+  void dispose() {
+    _linkStateNotifier.dispose();
+    _imageStateNotifier.dispose();
+    super.dispose();
+  }
+}
+
+/// Translates QuillController to size
+class SizeController extends QuillButtonController<Attribute?> {
+  SizeController(QuillController controller) : super(controller) {
+    _sizeNotifier = ValueNotifier(_data);
+  }
+
+  late final ValueNotifier<Attribute?> _sizeNotifier;
+  ValueListenable<Attribute?> get sizeListenable => _sizeNotifier;
+  Attribute? get size => sizeListenable.value;
+
+  @override
+  Attribute? get _data =>
+      controller.getSelectionStyle().attributes[Attribute.header.key!] ??
+      Attribute.header;
+
+  @override
+  void _onChanged(Attribute? data) => _sizeNotifier.value = data;
+
+  @override
+  void dispose() {
+    _sizeNotifier.dispose();
+    super.dispose();
+  }
+}
+
+/// Translates QuillController to indent
+class IndentController extends QuillButtonController<Attribute?> {
+  IndentController(QuillController controller) : super(controller) {
+    _indentNotifier = ValueNotifier(_data);
+  }
+
+  late final ValueNotifier<Attribute?> _indentNotifier;
+  ValueListenable<Attribute?> get indentListenable => _indentNotifier;
+  Attribute? get indent => indentListenable.value;
+
+  @override
+  Attribute? get _data =>
+      controller.getSelectionStyle().attributes[Attribute.indent.key!] ??
+      Attribute.indent;
+
+  @override
+  void _onChanged(Attribute? data) => _indentNotifier.value = data;
+
+  @override
+  void dispose() {
+    _indentNotifier.dispose();
+    super.dispose();
+  }
+}
+
+/// Translates QuillController to align
+class AlignController extends QuillButtonController<Attribute?> {
+  AlignController(QuillController controller) : super(controller) {
+    _alignmentNotifier = ValueNotifier(_data);
+  }
+
+  late final ValueNotifier<Attribute?> _alignmentNotifier;
+  ValueListenable<Attribute?> get alignmentListenable => _alignmentNotifier;
+  Attribute? get alignment => alignmentListenable.value;
+
+  @override
+  Attribute? get _data =>
+      controller.getSelectionStyle().attributes[Attribute.align.key!];
+
+  @override
+  void _onChanged(Attribute? data) => _alignmentNotifier.value = data;
+
+  @override
+  dispose() {
+    _alignmentNotifier.dispose();
+    super.dispose();
+  }
+}
+
+/// Provides methods for dealing with [ToggleState]
+class ToggleMixin {
+  void toggle({
+    required ToggleState state,
+    required Attribute attribute,
+    required QuillController controller,
+  }) {
+    switch (state) {
+      case ToggleState.disabled:
+        break;
+      case ToggleState.off:
+        controller.formatSelection(attribute);
+        break;
+      case ToggleState.on:
+        controller.formatSelection(Attribute.clone(attribute, null));
+        break;
+    }
+  }
+
+  ButtonState toButton(ToggleState state) {
+    switch (state) {
+      case ToggleState.disabled:
+        return ButtonState.disabled;
+      case ToggleState.off:
+        return ButtonState.unselected;
+      case ToggleState.on:
+        return ButtonState.selected;
+    }
+  }
+
+  void toggleListener(ToggleState state, ButtonController controller) {
+    switch (state) {
+      case ToggleState.disabled:
+        controller.disable();
+        break;
+      case ToggleState.off:
+        controller.unSelect();
+        break;
+      case ToggleState.on:
+        controller.select();
+        break;
+    }
+  }
+}
+
+/// Makes a [FloatingToolbarItem] with bold, italic, under, and strike popups
+class StyleItem with ToggleMixin implements QuillButtonItem {
   late final StyleController _styleController;
   late final ButtonController _boldController;
   late final ButtonController _italicController;
@@ -592,39 +596,40 @@ class StyleItem {
   StyleItem(QuillController controller) {
     this._styleController = StyleController(controller);
     _boldController = ButtonController(
-        value: _toButton(
+        value: toButton(
       _styleController.bold,
     ));
     _italicController = ButtonController(
-        value: _toButton(
+        value: toButton(
       _styleController.italic,
     ));
     _underController = ButtonController(
-        value: _toButton(
+        value: toButton(
       _styleController.under,
     ));
     _strikeController = ButtonController(
-        value: _toButton(
+        value: toButton(
       _styleController.strike,
     ));
-    _styleController.boldListenable.addListener(() => _toggleListener(
+    _styleController.boldListenable.addListener(() => toggleListener(
           _styleController.bold,
           _boldController,
         ));
-    _styleController.italicListenable.addListener(() => _toggleListener(
+    _styleController.italicListenable.addListener(() => toggleListener(
           _styleController.italic,
           _italicController,
         ));
-    _styleController.underListenable.addListener(() => _toggleListener(
+    _styleController.underListenable.addListener(() => toggleListener(
           _styleController.under,
           _underController,
         ));
-    _styleController.strikeListenable.addListener(() => _toggleListener(
+    _styleController.strikeListenable.addListener(() => toggleListener(
           _styleController.strike,
           _strikeController,
         ));
   }
 
+  @override
   FloatingToolbarItem item({
     required ButtonStyle popupStyle,
     required bool preferBelow,
@@ -641,10 +646,10 @@ class StyleItem {
           builder: (context, state, _) => BaseIconicButton(
             state: state,
             iconData: Icons.format_bold,
-            onPressed: () => _toggle(
-              _styleController.bold,
-              Attribute.bold,
-              _styleController.controller,
+            onPressed: () => toggle(
+              state: _styleController.bold,
+              attribute: Attribute.bold,
+              controller: _styleController.controller,
             ),
             style: popupStyle,
             tooltip: kBoldTooltip,
@@ -656,10 +661,10 @@ class StyleItem {
           builder: (context, state, _) => BaseIconicButton(
             state: state,
             iconData: Icons.format_italic,
-            onPressed: () => _toggle(
-              _styleController.italic,
-              Attribute.italic,
-              _styleController.controller,
+            onPressed: () => toggle(
+              state: _styleController.italic,
+              attribute: Attribute.italic,
+              controller: _styleController.controller,
             ),
             style: popupStyle,
             tooltip: kItalicTooltip,
@@ -671,10 +676,10 @@ class StyleItem {
           builder: (context, state, _) => BaseIconicButton(
             state: state,
             iconData: Icons.format_underline,
-            onPressed: () => _toggle(
-              _styleController.under,
-              Attribute.underline,
-              _styleController.controller,
+            onPressed: () => toggle(
+              state: _styleController.under,
+              attribute: Attribute.underline,
+              controller: _styleController.controller,
             ),
             style: popupStyle,
             tooltip: kUnderTooltip,
@@ -686,10 +691,10 @@ class StyleItem {
           builder: (context, state, _) => BaseIconicButton(
             state: state,
             iconData: Icons.format_strikethrough,
-            onPressed: () => _toggle(
-              _styleController.strike,
-              Attribute.strikeThrough,
-              _styleController.controller,
+            onPressed: () => toggle(
+              state: _styleController.strike,
+              attribute: Attribute.strikeThrough,
+              controller: _styleController.controller,
             ),
             style: popupStyle,
             tooltip: kStrikeTooltip,
@@ -700,6 +705,7 @@ class StyleItem {
     );
   }
 
+  @override
   void dispose() {
     _styleController.dispose();
     _boldController.dispose();
@@ -709,68 +715,8 @@ class StyleItem {
   }
 }
 
-class ListData {
-  final Set<String> attrSet;
-
-  ListData({
-    required this.attrSet,
-  });
-}
-
-class ListController {
-  ListController(this.controller) {
-    final ListData data = _listData;
-    _bulletStateNotifier = ValueNotifier(
-        data.attrSet.contains(Attribute.ul.value!)
-            ? ToggleState.on
-            : ToggleState.off);
-    _numberStateNotifier = ValueNotifier(
-        data.attrSet.contains(Attribute.ol.value!)
-            ? ToggleState.on
-            : ToggleState.off);
-    controller.addListener(_controllerListener);
-  }
-
-  static final Set<String> _listAttrs = Set.unmodifiable({
-    Attribute.ol.value!,
-    Attribute.ul.value!,
-  });
-
-  final QuillController controller;
-
-  late final ValueNotifier<ToggleState> _numberStateNotifier;
-  ValueListenable<ToggleState> get numberListenable => _numberStateNotifier;
-  ToggleState get number => numberListenable.value;
-
-  late final ValueNotifier<ToggleState> _bulletStateNotifier;
-  ValueListenable<ToggleState> get bulletListenable => _bulletStateNotifier;
-  ToggleState get bullet => bulletListenable.value;
-
-  ListData get _listData {
-    Set<String> attrSet = {};
-    final Style style = controller.getSelectionStyle();
-    attrSet.addAll(style.attributes.values
-        .where((attr) => _listAttrs.contains(attr.value))
-        .map((attr) => attr.value));
-    return ListData(attrSet: attrSet);
-  }
-
-  void _controllerListener() {
-    final data = _listData;
-    _bulletStateNotifier.value = data.attrSet.contains(Attribute.ul.value!)
-        ? ToggleState.on
-        : ToggleState.off;
-    _numberStateNotifier.value = data.attrSet.contains(Attribute.ol.value!)
-        ? ToggleState.on
-        : ToggleState.off;
-  }
-
-  void dispose() {
-    controller.dispose();
-  }
-}
-
-class ListItem {
+/// Makes a [FloatingToolbarItem] with bullet and number popups
+class ListItem with ToggleMixin implements QuillButtonItem {
   late final ListController _listController;
   late final ButtonController _numberController;
   late final ButtonController _bulletController;
@@ -778,23 +724,24 @@ class ListItem {
   ListItem(QuillController controller) {
     _listController = ListController(controller);
     _numberController = ButtonController(
-        value: _toButton(
+        value: toButton(
       _listController.number,
     ));
     _bulletController = ButtonController(
-        value: _toButton(
+        value: toButton(
       _listController.bullet,
     ));
-    _listController.numberListenable.addListener(() => _toggleListener(
+    _listController.numberListenable.addListener(() => toggleListener(
           _listController.number,
           _numberController,
         ));
-    _listController.bulletListenable.addListener(() => _toggleListener(
+    _listController.bulletListenable.addListener(() => toggleListener(
           _listController.bullet,
           _bulletController,
         ));
   }
 
+  @override
   FloatingToolbarItem item({
     required ButtonStyle popupStyle,
     required bool preferBelow,
@@ -811,10 +758,10 @@ class ListItem {
           builder: (context, state, _) => BaseIconicButton(
             state: state,
             iconData: Icons.format_list_numbered,
-            onPressed: () => _toggle(
-              _listController.number,
-              Attribute.ol,
-              _listController.controller,
+            onPressed: () => toggle(
+              state: _listController.number,
+              attribute: Attribute.ol,
+              controller: _listController.controller,
             ),
             style: popupStyle,
             tooltip: kNumberTooltip,
@@ -826,10 +773,10 @@ class ListItem {
           builder: (context, state, _) => BaseIconicButton(
             state: state,
             iconData: Icons.format_list_bulleted,
-            onPressed: () => _toggle(
-              _listController.bullet,
-              Attribute.ul,
-              _listController.controller,
+            onPressed: () => toggle(
+              state: _listController.bullet,
+              attribute: Attribute.ul,
+              controller: _listController.controller,
             ),
             style: popupStyle,
             tooltip: kBulletTooltip,
@@ -840,6 +787,7 @@ class ListItem {
     );
   }
 
+  @override
   void dispose() {
     _listController.dispose();
     _numberController.dispose();
@@ -847,68 +795,8 @@ class ListItem {
   }
 }
 
-class BlockData {
-  final Set<String> attrSet;
-
-  BlockData({
-    required this.attrSet,
-  });
-}
-
-class BlockController {
-  BlockController(this.controller) {
-    final BlockData data = _blockData;
-    _quoteStateNotifier = ValueNotifier(
-        data.attrSet.contains(Attribute.blockQuote.key!)
-            ? ToggleState.on
-            : ToggleState.off);
-    _codeStateNotifier = ValueNotifier(
-        data.attrSet.contains(Attribute.codeBlock.key!)
-            ? ToggleState.on
-            : ToggleState.off);
-    controller.addListener(_controllerListener);
-  }
-
-  static final Set<String> _quoteCodeAttrs = Set.unmodifiable({
-    Attribute.blockQuote.key!,
-    Attribute.codeBlock.key!,
-  });
-
-  final QuillController controller;
-
-  late final ValueNotifier<ToggleState> _quoteStateNotifier;
-  ValueListenable<ToggleState> get quoteListenable => _quoteStateNotifier;
-  ToggleState get quote => quoteListenable.value;
-
-  late final ValueNotifier<ToggleState> _codeStateNotifier;
-  ValueListenable<ToggleState> get codeListenable => _codeStateNotifier;
-  ToggleState get code => codeListenable.value;
-
-  BlockData get _blockData {
-    Set<String> attrSet = {};
-    final Style style = controller.getSelectionStyle();
-    attrSet.addAll(style.attributes.keys
-        .where((attrKey) => _quoteCodeAttrs.contains(attrKey)));
-    return BlockData(attrSet: attrSet);
-  }
-
-  void _controllerListener() {
-    final BlockData data = _blockData;
-    _quoteStateNotifier.value = data.attrSet.contains(Attribute.blockQuote.key!)
-        ? ToggleState.on
-        : ToggleState.off;
-    _codeStateNotifier.value = data.attrSet.contains(Attribute.codeBlock.key!)
-        ? ToggleState.on
-        : ToggleState.off;
-  }
-
-  void dispose() {
-    _quoteStateNotifier.dispose();
-    _codeStateNotifier.dispose();
-  }
-}
-
-class BlockItem {
+/// Makes a [FloatingToolbarItem] with quote and code popups
+class BlockItem with ToggleMixin implements QuillButtonItem {
   late final BlockController _blockController;
   late final ButtonController _quoteController;
   late final ButtonController _codeController;
@@ -916,23 +804,24 @@ class BlockItem {
   BlockItem(QuillController controller) {
     _blockController = BlockController(controller);
     _quoteController = ButtonController(
-        value: _toButton(
+        value: toButton(
       _blockController.quote,
     ));
     _codeController = ButtonController(
-        value: _toButton(
+        value: toButton(
       _blockController.code,
     ));
-    _blockController.quoteListenable.addListener(() => _toggleListener(
+    _blockController.quoteListenable.addListener(() => toggleListener(
           _blockController.quote,
           _quoteController,
         ));
-    _blockController.codeListenable.addListener(() => _toggleListener(
+    _blockController.codeListenable.addListener(() => toggleListener(
           _blockController.code,
           _codeController,
         ));
   }
 
+  @override
   FloatingToolbarItem item({
     required ButtonStyle popupStyle,
     required bool preferBelow,
@@ -949,10 +838,10 @@ class BlockItem {
           builder: (context, state, _) => BaseIconicButton(
             state: state,
             iconData: Icons.format_quote,
-            onPressed: () => _toggle(
-              _blockController.quote,
-              Attribute.blockQuote,
-              _blockController.controller,
+            onPressed: () => toggle(
+              state: _blockController.quote,
+              attribute: Attribute.blockQuote,
+              controller: _blockController.controller,
             ),
             style: popupStyle,
             tooltip: kQuoteTooltip,
@@ -964,10 +853,10 @@ class BlockItem {
           builder: (context, state, _) => BaseIconicButton(
             state: state,
             iconData: Icons.code,
-            onPressed: () => _toggle(
-              _blockController.code,
-              Attribute.codeBlock,
-              _blockController.controller,
+            onPressed: () => toggle(
+              state: _blockController.code,
+              attribute: Attribute.codeBlock,
+              controller: _blockController.controller,
             ),
             style: popupStyle,
             tooltip: kCodeTooltip,
@@ -978,6 +867,7 @@ class BlockItem {
     );
   }
 
+  @override
   void dispose() {
     _blockController.dispose();
     _quoteController.dispose();
@@ -985,61 +875,84 @@ class BlockItem {
   }
 }
 
-class InsertData {
-  final bool isCollapsed;
-  final bool canEmbedImage;
+/// AlertDialog for inserting a link
+class _LinkDialog extends StatefulWidget {
+  const _LinkDialog({Key? key}) : super(key: key);
 
-  InsertData({required this.isCollapsed, required this.canEmbedImage});
+  @override
+  _LinkDialogState createState() => _LinkDialogState();
 }
 
-class InsertController {
-  InsertController(this.controller) {
-    _linkStateNotifier = ValueNotifier(ToggleState.disabled);
-    _imageStateNotifier = ValueNotifier(ToggleState.disabled);
-    controller.addListener(_controllerListener);
-  }
+class _LinkDialogState extends State<_LinkDialog> {
+  String _link = '';
 
-  static final Set<String> _quoteCodeAttrs = Set.unmodifiable({
-    Attribute.blockQuote.key!,
-    Attribute.codeBlock.key!,
-  });
-
-  final QuillController controller;
-
-  late final ValueNotifier<ToggleState> _linkStateNotifier;
-  ValueListenable<ToggleState> get linkListenable => _linkStateNotifier;
-  ToggleState get link => linkListenable.value;
-
-  late final ValueNotifier<ToggleState> _imageStateNotifier;
-  ValueListenable<ToggleState> get imageListenable => _imageStateNotifier;
-  ToggleState get image => imageListenable.value;
-
-  InsertData get _insertData {
-    Set<String> attrSet = {};
-    final Style style = controller.getSelectionStyle();
-    attrSet.addAll(style.attributes.keys
-        .where((attrKey) => _quoteCodeAttrs.contains(attrKey)));
-    return InsertData(
-      isCollapsed: controller.selection.isCollapsed,
-      canEmbedImage: attrSet.intersection(_quoteCodeAttrs).isEmpty,
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: TextField(
+        decoration: InputDecoration(labelText: 'Paste a link'),
+        autofocus: true,
+        onChanged: _linkChanged,
+      ),
+      actions: [
+        TextButton(
+          onPressed: _link.isNotEmpty ? _applyLink : null,
+          child: Text('Apply'),
+        ),
+      ],
     );
   }
 
-  void _controllerListener() {
-    final InsertData data = _insertData;
-    _linkStateNotifier.value =
-        data.isCollapsed ? ToggleState.disabled : ToggleState.off;
-    _imageStateNotifier.value =
-        data.canEmbedImage ? ToggleState.off : ToggleState.disabled;
+  void _linkChanged(String value) {
+    setState(() {
+      _link = value;
+    });
   }
 
-  void dispose() {
-    _linkStateNotifier.dispose();
-    _imageStateNotifier.dispose();
+  void _applyLink() {
+    Navigator.pop(context, _link);
   }
 }
 
-class InsertItem {
+/// AlertDialog for inserting an image
+class _ImageDialog extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _ImageDialogState();
+}
+
+class _ImageDialogState extends State<_ImageDialog> {
+  String _url = '';
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: TextField(
+        decoration: InputDecoration(labelText: 'Paste a image link'),
+        autofocus: true,
+        onChanged: _urlChanged,
+      ),
+      actions: [
+        TextButton(
+          onPressed: _url.isNotEmpty ? _applyUrl : null,
+          child: Text('Apply'),
+        ),
+      ],
+    );
+  }
+
+  void _urlChanged(String value) {
+    setState(() {
+      _url = value;
+    });
+  }
+
+  void _applyUrl() {
+    Navigator.pop(context, _url);
+  }
+}
+
+/// Makes a [FloatingToolbarItem] with link and image popups
+class InsertItem with ToggleMixin implements QuillButtonItem {
   late final InsertController _insertController;
   late final ButtonController _linkController;
   late final ButtonController _imageController;
@@ -1047,21 +960,22 @@ class InsertItem {
   InsertItem(QuillController controller) {
     _insertController = InsertController(controller);
     _linkController = ButtonController(
-      value: _toButton(_insertController.link),
+      value: toButton(_insertController.link),
     );
     _imageController = ButtonController(
-      value: _toButton(_insertController.image),
+      value: toButton(_insertController.image),
     );
-    _insertController.linkListenable.addListener(() => _toggleListener(
+    _insertController.linkListenable.addListener(() => toggleListener(
           _insertController.link,
           _linkController,
         ));
-    _insertController.imageListenable.addListener(() => _toggleListener(
+    _insertController.imageListenable.addListener(() => toggleListener(
           _insertController.image,
           _imageController,
         ));
   }
 
+  @override
   FloatingToolbarItem item({
     required ButtonStyle popupStyle,
     required bool preferBelow,
@@ -1127,6 +1041,7 @@ class InsertItem {
     );
   }
 
+  @override
   void dispose() {
     _insertController.dispose();
     _linkController.dispose();
@@ -1134,33 +1049,8 @@ class InsertItem {
   }
 }
 
-class SizeData {
-  final Attribute? data;
-  SizeData(this.data);
-}
-
-class SizeController {
-  SizeController(this.controller) {
-    _sizeNotifier = ValueNotifier(_sizeData.data);
-    controller.addListener(() => _sizeNotifier.value = _sizeData.data);
-  }
-
-  final QuillController controller;
-
-  late final ValueNotifier<Attribute?> _sizeNotifier;
-  ValueListenable<Attribute?> get sizeListenable => _sizeNotifier;
-  Attribute? get size => sizeListenable.value;
-
-  SizeData get _sizeData => SizeData(
-      controller.getSelectionStyle().attributes[Attribute.header.key!] ??
-          Attribute.header);
-
-  void dispose() {
-    _sizeNotifier.dispose();
-  }
-}
-
-class SizeItem {
+/// Makes a [FloatingToolbarItem] with sizePlus and sizeMinus popups
+class SizeItem implements QuillButtonItem {
   late final SizeController _sizeController;
   late final ButtonController _sizePlusController;
   late final ButtonController _sizeMinusController;
@@ -1168,18 +1058,93 @@ class SizeItem {
   SizeItem(QuillController controller) {
     _sizeController = SizeController(controller);
     _sizePlusController = ButtonController(
-      value: _sizePlus(_sizeController.size),
+      value: _sizePlusStateFromAttribute(_sizeController.size),
     );
     _sizeMinusController = ButtonController(
-      value: _sizeMinus(_sizeController.size),
+      value: _sizeMinusStateFromAttribute(_sizeController.size),
     );
-    _sizeController.sizeListenable.addListener(() => _sizeListener(
+    _sizeController.sizeListenable.addListener(() => _onSizeChanged(
           size: _sizeController.size,
           plusController: _sizePlusController,
           minusController: _sizeMinusController,
         ));
   }
 
+  ButtonState _sizePlusStateFromAttribute(Attribute? attribute) {
+    if (attribute?.value == 1) {
+      return ButtonState.disabled;
+    } else {
+      return ButtonState.enabled;
+    }
+  }
+
+  ButtonState _sizeMinusStateFromAttribute(Attribute? attribute) {
+    if (attribute?.value == null) {
+      return ButtonState.disabled;
+    } else {
+      return ButtonState.enabled;
+    }
+  }
+
+  void _onSizeChanged({
+    required Attribute? size,
+    required ButtonController plusController,
+    required ButtonController minusController,
+  }) {
+    if (_sizePlusStateFromAttribute(size) == ButtonState.disabled) {
+      plusController.disable();
+    } else {
+      plusController.enable();
+    }
+    if (_sizeMinusStateFromAttribute(size) == ButtonState.disabled) {
+      minusController.disable();
+    } else {
+      minusController.enable();
+    }
+  }
+
+  /// h1 > h2 > h3 > header
+  Attribute? _incrementSize(Attribute? attribute) {
+    print('incrementSize called with $attribute');
+    if (attribute == null) {
+      attribute = Attribute.header;
+    }
+    if (attribute == Attribute.h1) {
+      return null;
+    }
+    if (attribute == Attribute.h2) {
+      return Attribute.h1;
+    }
+    if (attribute == Attribute.h3) {
+      return Attribute.h2;
+    }
+    if (attribute == Attribute.header) {
+      return Attribute.h3;
+    }
+    return null;
+  }
+
+  /// header < h3 < h2 < h1
+  Attribute? _decrementSize(Attribute? attribute) {
+    if (attribute == null) {
+      attribute = Attribute.header;
+    }
+    if (attribute == Attribute.header) {
+      return null;
+    }
+    if (attribute == Attribute.h1) {
+      return Attribute.h2;
+    }
+    if (attribute == Attribute.h2) {
+      return Attribute.h3;
+    }
+    if (attribute == Attribute.h3) {
+      return Attribute.header;
+    }
+    return null;
+  }
+
+  @override
   FloatingToolbarItem item({
     required ButtonStyle popupStyle,
     required bool preferBelow,
@@ -1227,6 +1192,7 @@ class SizeItem {
     );
   }
 
+  @override
   void dispose() {
     _sizeController.dispose();
     _sizePlusController.dispose();
@@ -1234,33 +1200,8 @@ class SizeItem {
   }
 }
 
-class IndentData {
-  final Attribute? data;
-  IndentData(this.data);
-}
-
-class IndentController {
-  IndentController(this.controller) {
-    _indentNotifier = ValueNotifier(_indentData.data);
-    controller.addListener(() => _indentNotifier.value = _indentData.data);
-  }
-
-  final QuillController controller;
-
-  late final ValueNotifier<Attribute?> _indentNotifier;
-  ValueListenable<Attribute?> get indentListenable => _indentNotifier;
-  Attribute? get indent => indentListenable.value;
-
-  IndentData get _indentData => IndentData(
-      controller.getSelectionStyle().attributes[Attribute.indent.key!] ??
-          Attribute.indent);
-
-  void dispose() {
-    _indentNotifier.dispose();
-  }
-}
-
-class IndentItem {
+/// Makes a [FloatingToolbarItem] with indentPlus and indentMinus popups
+class IndentItem implements QuillButtonItem {
   late final IndentController _indentController;
   late final ButtonController _indentPlusController;
   late final ButtonController _indentMinusController;
@@ -1268,18 +1209,74 @@ class IndentItem {
   IndentItem(QuillController controller) {
     _indentController = IndentController(controller);
     _indentPlusController = ButtonController(
-      value: _indentPlus(_indentController.indent),
+      value: _indentPlusStateFromAttribute(_indentController.indent),
     );
     _indentMinusController = ButtonController(
-      value: _indentMinus(_indentController.indent),
+      value: _indentMinusStateFromAttribute(_indentController.indent),
     );
-    _indentController.indentListenable.addListener(() => _indentListener(
+    _indentController.indentListenable.addListener(() => _onIndentChanged(
           indent: _indentController.indent,
           plusController: _indentPlusController,
           minusController: _indentMinusController,
         ));
   }
 
+  ButtonState _indentPlusStateFromAttribute(Attribute? attribute) {
+    if (attribute?.value == 3) {
+      return ButtonState.disabled;
+    } else {
+      return ButtonState.enabled;
+    }
+  }
+
+  ButtonState _indentMinusStateFromAttribute(Attribute? attribute) {
+    if (attribute?.value == null) {
+      return ButtonState.disabled;
+    } else {
+      return ButtonState.enabled;
+    }
+  }
+
+  void _onIndentChanged({
+    required Attribute? indent,
+    required ButtonController plusController,
+    required ButtonController minusController,
+  }) {
+    if (_indentPlusStateFromAttribute(indent) == ButtonState.disabled) {
+      plusController.disable();
+    } else {
+      plusController.enable();
+    }
+    if (_indentMinusStateFromAttribute(indent) == ButtonState.disabled) {
+      minusController.disable();
+    } else {
+      minusController.enable();
+    }
+  }
+
+  /// indentL3 > indentL2 > indentL1
+  Attribute? _incrementIndent(Attribute? attribute) {
+    if (attribute == null || attribute.value == null) {
+      return Attribute.indentL1;
+    }
+    if (attribute == Attribute.indentL3) {
+      return null;
+    }
+    return Attribute.getIndentLevel(attribute.value + 1);
+  }
+
+  /// indentL1 < indentL2 < indentL3
+  Attribute? _decrementIndent(Attribute? attribute) {
+    if (attribute == null || attribute.value == null) {
+      return null;
+    }
+    if (attribute == Attribute.indentL1) {
+      return Attribute.clone(Attribute.indentL1, null);
+    }
+    return Attribute.getIndentLevel(attribute.value - 1);
+  }
+
+  @override
   FloatingToolbarItem item({
     required ButtonStyle popupStyle,
     required bool preferBelow,
@@ -1327,6 +1324,7 @@ class IndentItem {
     );
   }
 
+  @override
   void dispose() {
     _indentController.dispose();
     _indentPlusController.dispose();
@@ -1334,32 +1332,9 @@ class IndentItem {
   }
 }
 
-class AlignData {
-  final Attribute? data;
-  AlignData(this.data);
-}
-
-class AlignController {
-  AlignController(this.controller) {
-    _alignmentNotifier = ValueNotifier(_alignData.data);
-    controller.addListener(() => _alignmentNotifier.value = _alignData.data);
-  }
-
-  final QuillController controller;
-
-  late final ValueNotifier<Attribute?> _alignmentNotifier;
-  ValueListenable<Attribute?> get alignmentListenable => _alignmentNotifier;
-  Attribute? get alignment => alignmentListenable.value;
-
-  AlignData get _alignData => AlignData(
-      controller.getSelectionStyle().attributes[Attribute.align.key!]);
-
-  dispose() {
-    _alignmentNotifier.dispose();
-  }
-}
-
-class AlignItem {
+/// Makes a [FloatingToolbarItem] with left, right, center, and justify
+/// alignment popups
+class AlignItem implements QuillButtonItem {
   late final AlignController _alignController;
   late final ButtonController _leftController;
   late final ButtonController _rightController;
@@ -1384,15 +1359,46 @@ class AlignItem {
         value: _alignController.alignment == Attribute.justifyAlignment
             ? ButtonState.selected
             : ButtonState.unselected);
-    _alignController.alignmentListenable.addListener(() => _alignmentListener(
-          attribute: _alignController.alignment,
-          leftController: _leftController,
-          rightController: _rightController,
-          centerController: _centerController,
-          justifyController: _justifyController,
-        ));
+    _alignController.alignmentListenable.addListener(
+        () => _alignmentListener(attribute: _alignController.alignment));
   }
 
+  Attribute get _noAlignment => Attribute(
+        key: 'align',
+        scope: AttributeScope.BLOCK,
+        value: null,
+      );
+
+  void _alignmentListener({required Attribute? attribute}) {
+    if (attribute == Attribute.leftAlignment) {
+      _leftController.select();
+      _rightController.unSelect();
+      _centerController.unSelect();
+      _justifyController.unSelect();
+    } else if (attribute == Attribute.rightAlignment) {
+      _leftController.unSelect();
+      _rightController.select();
+      _centerController.unSelect();
+      _justifyController.unSelect();
+    } else if (attribute == Attribute.centerAlignment) {
+      _leftController.unSelect();
+      _rightController.unSelect();
+      _centerController.select();
+      _justifyController.unSelect();
+    } else if (attribute == Attribute.justifyAlignment) {
+      _leftController.unSelect();
+      _rightController.unSelect();
+      _centerController.unSelect();
+      _justifyController.select();
+    } else {
+      _leftController.unSelect();
+      _rightController.unSelect();
+      _centerController.unSelect();
+      _justifyController.unSelect();
+    }
+  }
+
+  @override
   FloatingToolbarItem item({
     required ButtonStyle popupStyle,
     required bool preferBelow,
@@ -1480,6 +1486,7 @@ class AlignItem {
     );
   }
 
+  @override
   void dispose() {
     _alignController.dispose();
     _leftController.dispose();
