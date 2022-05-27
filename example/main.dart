@@ -22,7 +22,7 @@ class _HomePageState extends State<HomePage> {
           controller: _controller,
           alignment: ToolbarAlignment.bottomCenterHorizontal,
           backgroundColor: theme.primaryColor,
-          popupStyle: buttonStyleFrom(
+          popupStyle: selectableStyleFrom(
             shape: CircleBorder(),
             elevation: 4.0,
             primary: theme.primaryColor,
