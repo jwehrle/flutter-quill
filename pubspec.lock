@@ -76,7 +76,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: feb7b9b43bfe680074ae31c5a1e0dc4d2ddc9400
+      resolved-ref: "4599c919117b73d3a016578ad3e9a835ae8adce1"
       url: "https://github.com/jwehrle/floating_toolbar.git"
     source: git
     version: "0.0.1"

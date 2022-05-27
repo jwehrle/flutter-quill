@@ -135,7 +135,7 @@ class _HomePageState extends State<HomePage> {
             alignment: ToolbarAlignment.bottomCenterHorizontal,
             backgroundColor: theme.primaryColor,
             popupSpacing: 6.0,
-            popupStyle: buttonStyleFrom(
+            popupStyle: selectableStyleFrom(
               shape: CircleBorder(),
               elevation: 4.0,
               primary: theme.primaryColor,
