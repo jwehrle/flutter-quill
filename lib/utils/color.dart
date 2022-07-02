@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Color stringToColor(String s) {
+Color stringToColor(String? s, [Color? originalColor]) {
   switch (s) {
     case 'transparent':
       return Colors.transparent;
@@ -104,7 +104,7 @@ Color stringToColor(String s) {
       return Colors.brown;
   }
 
-  if (s.startsWith('rgba')) {
+  if (s!.startsWith('rgba')) {
     s = s.substring(5); // trim left 'rgba('
     s = s.substring(0, s.length - 1); // trim right ')'
     final arr = s.split(',').map((e) => e.trim()).toList();
@@ -112,12 +112,17 @@ Color stringToColor(String s) {
         int.parse(arr[2]), double.parse(arr[3]));
   }
 
-  if (!s.startsWith('#')) {
-    throw ("Color code not supported");
+  // TODO: take care of "color": "inherit"
+  if (s.startsWith('inherit')) {
+    return originalColor ?? Colors.black;
   }
 
-  String hex = s.replaceFirst('#', '');
-  hex = hex.length == 6 ? 'ff' + hex : hex;
-  int val = int.parse(hex, radix: 16);
+  if (!s.startsWith('#')) {
+    throw 'Color code not supported';
+  }
+
+  var hex = s.replaceFirst('#', '');
+  hex = hex.length == 6 ? 'ff$hex' : hex;
+  final val = int.parse(hex, radix: 16);
   return Color(val);
 }

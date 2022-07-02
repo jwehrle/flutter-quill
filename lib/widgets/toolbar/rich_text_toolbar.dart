@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
-import 'package:flutter_quill/models/documents/nodes/embed.dart';
+import 'package:flutter_quill/models/documents/nodes/embeddable.dart';
 import 'package:flutter_quill/models/documents/style.dart';
 import 'package:flutter_quill/widgets/controller.dart';
 import 'package:flutter_quill/widgets/toolbar/models/constants.dart';
@@ -231,24 +231,24 @@ abstract class QuillButtonItem {
 class StyleController extends QuillButtonController<Set<String>> {
   StyleController(QuillController controller) : super(controller) {
     _boldStateNotifier = ValueNotifier(
-        _data.contains(Attribute.bold.key!) ? ToggleState.on : ToggleState.off);
+        _data.contains(Attribute.bold.key) ? ToggleState.on : ToggleState.off);
     _strikeStateNotifier = ValueNotifier(
-        _data.contains(Attribute.strikeThrough.key!)
+        _data.contains(Attribute.strikeThrough.key)
             ? ToggleState.on
             : ToggleState.off);
-    _underStateNotifier = ValueNotifier(_data.contains(Attribute.underline.key!)
+    _underStateNotifier = ValueNotifier(_data.contains(Attribute.underline.key)
         ? ToggleState.on
         : ToggleState.off);
-    _italicStateNotifier = ValueNotifier(_data.contains(Attribute.italic.key!)
+    _italicStateNotifier = ValueNotifier(_data.contains(Attribute.italic.key)
         ? ToggleState.on
         : ToggleState.off);
   }
 
   static final Set<String> _styleAttrs = Set.unmodifiable({
-    Attribute.bold.key!,
-    Attribute.italic.key!,
-    Attribute.strikeThrough.key!,
-    Attribute.underline.key!,
+    Attribute.bold.key,
+    Attribute.italic.key,
+    Attribute.strikeThrough.key,
+    Attribute.underline.key,
   });
 
   late final ValueNotifier<ToggleState> _boldStateNotifier;
@@ -293,15 +293,15 @@ class StyleController extends QuillButtonController<Set<String>> {
   @override
   void _onChanged(Set<String> data) {
     _boldStateNotifier.value =
-        data.contains(Attribute.bold.key!) ? ToggleState.on : ToggleState.off;
-    _strikeStateNotifier.value = data.contains(Attribute.strikeThrough.key!)
+        data.contains(Attribute.bold.key) ? ToggleState.on : ToggleState.off;
+    _strikeStateNotifier.value = data.contains(Attribute.strikeThrough.key)
         ? ToggleState.on
         : ToggleState.off;
-    _underStateNotifier.value = data.contains(Attribute.underline.key!)
+    _underStateNotifier.value = data.contains(Attribute.underline.key)
         ? ToggleState.on
         : ToggleState.off;
     _italicStateNotifier.value =
-        data.contains(Attribute.italic.key!) ? ToggleState.on : ToggleState.off;
+        data.contains(Attribute.italic.key) ? ToggleState.on : ToggleState.off;
   }
 
   @override
@@ -365,18 +365,17 @@ class ListController extends QuillButtonController<Set<String>> {
 /// Translates QuillController to quote and code
 class BlockController extends QuillButtonController<Set<String>> {
   BlockController(QuillController controller) : super(controller) {
-    _quoteStateNotifier = ValueNotifier(
-        _data.contains(Attribute.blockQuote.key!)
-            ? ToggleState.on
-            : ToggleState.off);
-    _codeStateNotifier = ValueNotifier(_data.contains(Attribute.codeBlock.key!)
+    _quoteStateNotifier = ValueNotifier(_data.contains(Attribute.blockQuote.key)
+        ? ToggleState.on
+        : ToggleState.off);
+    _codeStateNotifier = ValueNotifier(_data.contains(Attribute.codeBlock.key)
         ? ToggleState.on
         : ToggleState.off);
   }
 
   static final Set<String> _quoteCodeAttrs = Set.unmodifiable({
-    Attribute.blockQuote.key!,
-    Attribute.codeBlock.key!,
+    Attribute.blockQuote.key,
+    Attribute.codeBlock.key,
   });
 
   late final ValueNotifier<ToggleState> _quoteStateNotifier;
@@ -398,10 +397,10 @@ class BlockController extends QuillButtonController<Set<String>> {
 
   @override
   void _onChanged(Set<String> data) {
-    _quoteStateNotifier.value = data.contains(Attribute.blockQuote.key!)
+    _quoteStateNotifier.value = data.contains(Attribute.blockQuote.key)
         ? ToggleState.on
         : ToggleState.off;
-    _codeStateNotifier.value = data.contains(Attribute.codeBlock.key!)
+    _codeStateNotifier.value = data.contains(Attribute.codeBlock.key)
         ? ToggleState.on
         : ToggleState.off;
   }
@@ -429,8 +428,8 @@ class InsertController extends QuillButtonController<_InsertData> {
   }
 
   static final Set<String> _quoteCodeAttrs = Set.unmodifiable({
-    Attribute.blockQuote.key!,
-    Attribute.codeBlock.key!,
+    Attribute.blockQuote.key,
+    Attribute.codeBlock.key,
   });
 
   late final ValueNotifier<ToggleState> _linkStateNotifier;
@@ -481,7 +480,7 @@ class SizeController extends QuillButtonController<Attribute?> {
 
   @override
   Attribute? get _data =>
-      controller.getSelectionStyle().attributes[Attribute.header.key!] ??
+      controller.getSelectionStyle().attributes[Attribute.header.key] ??
       Attribute.header;
 
   @override
@@ -506,7 +505,7 @@ class IndentController extends QuillButtonController<Attribute?> {
 
   @override
   Attribute? get _data =>
-      controller.getSelectionStyle().attributes[Attribute.indent.key!] ??
+      controller.getSelectionStyle().attributes[Attribute.indent.key] ??
       Attribute.indent;
 
   @override
@@ -531,7 +530,7 @@ class AlignController extends QuillButtonController<Attribute?> {
 
   @override
   Attribute? get _data =>
-      controller.getSelectionStyle().attributes[Attribute.align.key!];
+      controller.getSelectionStyle().attributes[Attribute.align.key];
 
   @override
   void _onChanged(Attribute? data) => _alignmentNotifier.value = data;
@@ -1003,9 +1002,8 @@ class InsertItem with ToggleMixin implements QuillButtonItem {
                   LinkAttribute(value),
                 );
               }
-              _insertController.controller.selection = TextSelection.collapsed(
-                offset: _insertController.controller.selection.extentOffset,
-              );
+              _insertController.controller.moveCursorToPosition(
+                  _insertController.controller.selection.extentOffset);
             }),
             style: popupStyle,
             tooltip: kLinkTooltip,
@@ -1366,11 +1364,7 @@ class AlignItem implements QuillButtonItem {
         () => _alignmentListener(attribute: _alignController.alignment));
   }
 
-  Attribute get _noAlignment => Attribute(
-        key: 'align',
-        scope: AttributeScope.BLOCK,
-        value: null,
-      );
+  Attribute get _noAlignment => Attribute('align', AttributeScope.BLOCK, null);
 
   void _alignmentListener({required Attribute? attribute}) {
     if (attribute == Attribute.leftAlignment) {

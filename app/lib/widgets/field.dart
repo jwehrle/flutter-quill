@@ -96,7 +96,7 @@ class _QuillFieldState extends State<QuillField> {
       keyboardAppearance: widget.keyboardAppearance,
       scrollPhysics: widget.scrollPhysics,
       onLaunchUrl: widget.onLaunchUrl,
-      embedBuilder: widget.embedBuilder,
+      // embedBuilder: widget.embedBuilder,
     );
 
     if (widget.toolbar != null) {

@@ -138,6 +138,7 @@ class _HomePageState extends State<HomePage> {
             popupStyle: selectableStyleFrom(
               shape: CircleBorder(),
               elevation: 4.0,
+              padding: EdgeInsets.all(8.0),
               primary: theme.primaryColor,
               onPrimary: theme.colorScheme.onPrimary,
               onSurface: theme.colorScheme.onSurface,

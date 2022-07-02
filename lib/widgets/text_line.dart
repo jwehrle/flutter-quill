@@ -1,101 +1,234 @@
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_quill/models/documents/attribute.dart';
-import 'package:flutter_quill/models/documents/nodes/container.dart'
-    as container;
-import 'package:flutter_quill/models/documents/nodes/leaf.dart' as leaf;
-import 'package:flutter_quill/models/documents/nodes/leaf.dart';
-import 'package:flutter_quill/models/documents/nodes/line.dart';
-import 'package:flutter_quill/models/documents/nodes/node.dart';
-import 'package:flutter_quill/models/documents/style.dart';
-import 'package:flutter_quill/utils/color.dart';
-import 'package:flutter_quill/widgets/cursor.dart';
-import 'package:flutter_quill/widgets/proxy.dart';
-import 'package:flutter_quill/widgets/text_selection.dart';
+import 'package:flutter/services.dart';
 import 'package:tuple/tuple.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../models/documents/attribute.dart';
+import '../models/documents/nodes/container.dart' as container_node;
+import '../models/documents/nodes/leaf.dart';
+import '../models/documents/nodes/leaf.dart' as leaf;
+import '../models/documents/nodes/line.dart';
+import '../models/documents/nodes/node.dart';
+import '../models/documents/style.dart';
+import '../utils/color.dart';
+import '../utils/font.dart';
+import '../utils/platform.dart';
 import 'box.dart';
+import 'controller.dart';
+import 'cursor.dart';
 import 'default_styles.dart';
 import 'delegate.dart';
+import 'keyboard_listener.dart';
+import 'link.dart';
+import 'proxy.dart';
+import 'text_selection.dart';
 
-class TextLine extends StatelessWidget {
-  final Line line;
-  final TextDirection textDirection;
-  final EmbedBuilder embedBuilder;
-  final DefaultStyles styles;
-
+class TextLine extends StatefulWidget {
   const TextLine({
-    Key? key,
     required this.line,
-    required this.textDirection,
     required this.embedBuilder,
     required this.styles,
+    required this.readOnly,
+    required this.controller,
+    required this.onLaunchUrl,
+    required this.linkActionPicker,
+    this.textDirection,
+    this.customStyleBuilder,
+    Key? key,
   }) : super(key: key);
+
+  final Line line;
+  final TextDirection? textDirection;
+  final EmbedBuilder embedBuilder;
+  final DefaultStyles styles;
+  final bool readOnly;
+  final QuillController controller;
+  final CustomStyleBuilder? customStyleBuilder;
+  final ValueChanged<String>? onLaunchUrl;
+  final LinkActionPicker linkActionPicker;
+
+  @override
+  State<TextLine> createState() => _TextLineState();
+}
+
+class _TextLineState extends State<TextLine> {
+  bool _metaOrControlPressed = false;
+
+  UniqueKey _richTextKey = UniqueKey();
+
+  final _linkRecognizers = <Node, GestureRecognizer>{};
+
+  QuillPressedKeys? _pressedKeys;
+
+  void _pressedKeysChanged() {
+    final newValue = _pressedKeys!.metaPressed || _pressedKeys!.controlPressed;
+    if (_metaOrControlPressed != newValue) {
+      setState(() {
+        _metaOrControlPressed = newValue;
+        _richTextKey = UniqueKey();
+      });
+    }
+  }
+
+  bool get canLaunchLinks {
+    // In readOnly mode users can launch links
+    // by simply tapping (clicking) on them
+    if (widget.readOnly) return true;
+
+    // In editing mode it depends on the platform:
+
+    // Desktop platforms (macos, linux, windows):
+    // only allow Meta(Control)+Click combinations
+    if (isDesktop()) {
+      return _metaOrControlPressed;
+    }
+    // Mobile platforms (ios, android): always allow but we install a
+    // long-press handler instead of a tap one. LongPress is followed by a
+    // context menu with actions.
+    return true;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_pressedKeys == null) {
+      _pressedKeys = QuillPressedKeys.of(context);
+      _pressedKeys!.addListener(_pressedKeysChanged);
+    } else {
+      _pressedKeys!.removeListener(_pressedKeysChanged);
+      _pressedKeys = QuillPressedKeys.of(context);
+      _pressedKeys!.addListener(_pressedKeysChanged);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant TextLine oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.readOnly != widget.readOnly) {
+      _richTextKey = UniqueKey();
+      _linkRecognizers
+        ..forEach((key, value) {
+          value.dispose();
+        })
+        ..clear();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pressedKeys?.removeListener(_pressedKeysChanged);
+    _linkRecognizers
+      ..forEach((key, value) => value.dispose())
+      ..clear();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
-
-    if (line.hasEmbed) {
-      Embed embed = line.children.single as Embed;
-      return EmbedProxy(embedBuilder(context, embed));
+    if (widget.line.hasEmbed && widget.line.childCount == 1) {
+      // For video, it is always single child
+      final embed = widget.line.children.single as Embed;
+      return EmbedProxy(widget.embedBuilder(
+          context, widget.controller, embed, widget.readOnly));
     }
-
-    TextSpan textSpan = _buildTextSpan(context);
-    StrutStyle strutStyle =
-        StrutStyle.fromTextStyle(textSpan.style!, forceStrutHeight: true);
+    final textSpan = _getTextSpanForWholeLine(context);
+    final strutStyle = StrutStyle.fromTextStyle(textSpan.style!);
     final textAlign = _getTextAlign();
-    RichText child = RichText(
-      text: TextSpan(children: [textSpan]),
+    final child = RichText(
+      key: _richTextKey,
+      text: textSpan,
       textAlign: textAlign,
-      textDirection: textDirection,
+      textDirection: widget.textDirection,
       strutStyle: strutStyle,
       textScaleFactor: MediaQuery.textScaleFactorOf(context),
     );
     return RichTextProxy(
-        child,
-        textSpan.style!,
-        textAlign,
-        textDirection,
-        1.0,
-        Localizations.localeOf(context),
-        strutStyle,
-        TextWidthBasis.parent,
-        null);
+        textStyle: textSpan.style!,
+        textAlign: textAlign,
+        textDirection: widget.textDirection!,
+        strutStyle: strutStyle,
+        locale: Localizations.localeOf(context),
+        child: child);
+  }
+
+  InlineSpan _getTextSpanForWholeLine(BuildContext context) {
+    final lineStyle = _getLineStyle(widget.styles);
+    if (!widget.line.hasEmbed) {
+      return _buildTextSpan(widget.styles, widget.line.children, lineStyle);
+    }
+
+    // The line could contain more than one Embed & more than one Text
+    final textSpanChildren = <InlineSpan>[];
+    var textNodes = LinkedList<Node>();
+    for (final child in widget.line.children) {
+      if (child is Embed) {
+        if (textNodes.isNotEmpty) {
+          textSpanChildren
+              .add(_buildTextSpan(widget.styles, textNodes, lineStyle));
+          textNodes = LinkedList<Node>();
+        }
+        // Here it should be image
+        final embed = WidgetSpan(
+            child: EmbedProxy(widget.embedBuilder(
+                context, widget.controller, child, widget.readOnly)));
+        textSpanChildren.add(embed);
+        continue;
+      }
+
+      // here child is Text node and its value is cloned
+      textNodes.add(child.clone());
+    }
+
+    if (textNodes.isNotEmpty) {
+      textSpanChildren.add(_buildTextSpan(widget.styles, textNodes, lineStyle));
+    }
+
+    return TextSpan(style: lineStyle, children: textSpanChildren);
   }
 
   TextAlign _getTextAlign() {
-    final alignment = line.style.attributes[Attribute.align.key];
+    final alignment = widget.line.style.attributes[Attribute.align.key];
     if (alignment == Attribute.leftAlignment) {
-      return TextAlign.left;
+      return TextAlign.start;
     } else if (alignment == Attribute.centerAlignment) {
       return TextAlign.center;
     } else if (alignment == Attribute.rightAlignment) {
-      return TextAlign.right;
+      return TextAlign.end;
     } else if (alignment == Attribute.justifyAlignment) {
       return TextAlign.justify;
     }
     return TextAlign.start;
   }
 
-  TextSpan _buildTextSpan(BuildContext context) {
-    DefaultStyles defaultStyles = styles;
-    List<TextSpan> children = line.children
-        .map((node) => _getTextSpanFromNode(defaultStyles, node))
+  TextSpan _buildTextSpan(DefaultStyles defaultStyles, LinkedList<Node> nodes,
+      TextStyle lineStyle) {
+    if (nodes.isEmpty && kIsWeb) {
+      nodes = LinkedList<Node>()..add(leaf.Text('\u{200B}'));
+    }
+    final children = nodes
+        .map((node) =>
+            _getTextSpanFromNode(defaultStyles, node, widget.line.style))
         .toList(growable: false);
 
-    TextStyle textStyle = TextStyle();
+    return TextSpan(children: children, style: lineStyle);
+  }
 
-    if (line.style.containsKey(Attribute.placeholder.key!)) {
-      textStyle = defaultStyles.placeHolder!.style;
-      return TextSpan(children: children, style: textStyle);
+  TextStyle _getLineStyle(DefaultStyles defaultStyles) {
+    var textStyle = const TextStyle();
+
+    if (widget.line.style.containsKey(Attribute.placeholder.key)) {
+      return defaultStyles.placeHolder!.style;
     }
 
-    Attribute? header = line.style.attributes[Attribute.header.key!];
-    Map<Attribute, TextStyle> m = {
+    final header = widget.line.style.attributes[Attribute.header.key];
+    final m = <Attribute, TextStyle>{
       Attribute.h1: defaultStyles.h1!.style,
       Attribute.h2: defaultStyles.h2!.style,
       Attribute.h3: defaultStyles.h3!.style,
@@ -103,45 +236,101 @@ class TextLine extends StatelessWidget {
 
     textStyle = textStyle.merge(m[header] ?? defaultStyles.paragraph!.style);
 
-    Attribute? block = line.style.getBlockExceptHeader();
+    // Only retrieve exclusive block format for the line style purpose
+    Attribute? block;
+    widget.line.style.getBlocksExceptHeader().forEach((key, value) {
+      if (Attribute.exclusiveBlockKeys.contains(key)) {
+        block = value;
+      }
+    });
+
     TextStyle? toMerge;
     if (block == Attribute.blockQuote) {
       toMerge = defaultStyles.quote!.style;
     } else if (block == Attribute.codeBlock) {
       toMerge = defaultStyles.code!.style;
-    } else if (block != null) {
+    } else if (block == Attribute.list) {
       toMerge = defaultStyles.lists!.style;
     }
 
     textStyle = textStyle.merge(toMerge);
+    textStyle = _applyCustomAttributes(textStyle, widget.line.style.attributes);
 
-    return TextSpan(children: children, style: textStyle);
+    return textStyle;
   }
 
-  TextSpan _getTextSpanFromNode(DefaultStyles defaultStyles, Node node) {
-    leaf.Text textNode = node as leaf.Text;
-    Style style = textNode.style;
-    TextStyle res = TextStyle();
+  TextStyle _applyCustomAttributes(
+      TextStyle textStyle, Map<String, Attribute> attributes) {
+    if (widget.customStyleBuilder == null) {
+      return textStyle;
+    }
+    attributes.keys.forEach((key) {
+      final attr = attributes[key];
+      if (attr != null) {
+        /// Custom Attribute
+        final customAttr = widget.customStyleBuilder!.call(attr);
+        textStyle = textStyle.merge(customAttr);
+      }
+    });
+    return textStyle;
+  }
 
-    Map<String, TextStyle> m = {
-      Attribute.bold.key!: defaultStyles.bold!,
-      Attribute.italic.key!: defaultStyles.italic!,
-      Attribute.link.key!: defaultStyles.link!,
-      Attribute.underline.key!: defaultStyles.underline!,
-      Attribute.strikeThrough.key!: defaultStyles.strikeThrough!,
-    };
-    m.forEach((k, s) {
-      if (style.values.any((v) => v.key == k)) {
-        res = _merge(res, s);
+  TextSpan _getTextSpanFromNode(
+      DefaultStyles defaultStyles, Node node, Style lineStyle) {
+    final textNode = node as leaf.Text;
+    final nodeStyle = textNode.style;
+    final isLink = nodeStyle.containsKey(Attribute.link.key) &&
+        nodeStyle.attributes[Attribute.link.key]!.value != null;
+
+    return TextSpan(
+      text: textNode.value,
+      style: _getInlineTextStyle(
+          textNode, defaultStyles, nodeStyle, lineStyle, isLink),
+      recognizer: isLink && canLaunchLinks ? _getRecognizer(node) : null,
+      mouseCursor: isLink && canLaunchLinks ? SystemMouseCursors.click : null,
+    );
+  }
+
+  TextStyle _getInlineTextStyle(leaf.Text textNode, DefaultStyles defaultStyles,
+      Style nodeStyle, Style lineStyle, bool isLink) {
+    var res = const TextStyle(); // This is inline text style
+    final color = textNode.style.attributes[Attribute.color.key];
+
+    <String, TextStyle?>{
+      Attribute.bold.key: defaultStyles.bold,
+      Attribute.italic.key: defaultStyles.italic,
+      Attribute.small.key: defaultStyles.small,
+      Attribute.link.key: defaultStyles.link,
+      Attribute.underline.key: defaultStyles.underline,
+      Attribute.strikeThrough.key: defaultStyles.strikeThrough,
+    }.forEach((k, s) {
+      if (nodeStyle.values.any((v) => v.key == k)) {
+        if (k == Attribute.underline.key || k == Attribute.strikeThrough.key) {
+          var textColor = defaultStyles.color;
+          if (color?.value is String) {
+            textColor = stringToColor(color?.value, textColor);
+          }
+          res = _merge(res.copyWith(decorationColor: textColor),
+              s!.copyWith(decorationColor: textColor));
+        } else if (k == Attribute.link.key && !isLink) {
+          // null value for link should be ignored
+          // i.e. nodeStyle.attributes[Attribute.link.key]!.value == null
+        } else {
+          res = _merge(res, s!);
+        }
       }
     });
 
-    Attribute? font = textNode.style.attributes[Attribute.font.key];
+    if (nodeStyle.containsKey(Attribute.inlineCode.key)) {
+      res = _merge(res, defaultStyles.inlineCode!.styleFor(lineStyle));
+    }
+
+    final font = textNode.style.attributes[Attribute.font.key];
     if (font != null && font.value != null) {
       res = res.merge(TextStyle(fontFamily: font.value));
     }
 
-    Attribute? size = textNode.style.attributes[Attribute.size.key];
+    final size = textNode.style.attributes[Attribute.size.key];
     if (size != null && size.value != null) {
       switch (size.value) {
         case 'small':
@@ -154,46 +343,125 @@ class TextLine extends StatelessWidget {
           res = res.merge(defaultStyles.sizeHuge);
           break;
         default:
-          double? fontSize = double.tryParse(size.value);
-          if (fontSize != null) {
-            res = res.merge(TextStyle(fontSize: fontSize));
-          } else {
-            throw "Invalid size ${size.value}";
-          }
+          res = res.merge(TextStyle(fontSize: getFontSize(size.value)));
       }
     }
 
-    Attribute? color = textNode.style.attributes[Attribute.color.key];
     if (color != null && color.value != null) {
-      final textColor = stringToColor(color.value);
-      res = res.merge(new TextStyle(color: textColor));
+      var textColor = defaultStyles.color;
+      if (color.value is String) {
+        textColor = stringToColor(color.value);
+      }
+      if (textColor != null) {
+        res = res.merge(TextStyle(color: textColor));
+      }
     }
 
-    Attribute? background = textNode.style.attributes[Attribute.background.key];
+    final background = textNode.style.attributes[Attribute.background.key];
     if (background != null && background.value != null) {
       final backgroundColor = stringToColor(background.value);
-      res = res.merge(new TextStyle(backgroundColor: backgroundColor));
+      res = res.merge(TextStyle(backgroundColor: backgroundColor));
     }
 
-    return TextSpan(text: textNode.value, style: res);
+    res = _applyCustomAttributes(res, textNode.style.attributes);
+    return res;
+  }
+
+  GestureRecognizer _getRecognizer(Node segment) {
+    if (_linkRecognizers.containsKey(segment)) {
+      return _linkRecognizers[segment]!;
+    }
+
+    if (isDesktop() || widget.readOnly) {
+      _linkRecognizers[segment] = TapGestureRecognizer()
+        ..onTap = () => _tapNodeLink(segment);
+    } else {
+      _linkRecognizers[segment] = LongPressGestureRecognizer()
+        ..onLongPress = () => _longPressLink(segment);
+    }
+    return _linkRecognizers[segment]!;
+  }
+
+  Future<void> _launchUrl(String url) async {
+    await launchUrl(Uri.parse(url));
+  }
+
+  void _tapNodeLink(Node node) {
+    final link = node.style.attributes[Attribute.link.key]!.value;
+
+    _tapLink(link);
+  }
+
+  void _tapLink(String? link) {
+    if (link == null) {
+      return;
+    }
+
+    var launchUrl = widget.onLaunchUrl;
+    launchUrl ??= _launchUrl;
+
+    link = link.trim();
+    if (!linkPrefixes
+        .any((linkPrefix) => link!.toLowerCase().startsWith(linkPrefix))) {
+      link = 'https://$link';
+    }
+    launchUrl(link);
+  }
+
+  Future<void> _longPressLink(Node node) async {
+    final link = node.style.attributes[Attribute.link.key]!.value!;
+    final action = await widget.linkActionPicker(node);
+    switch (action) {
+      case LinkMenuAction.launch:
+        _tapLink(link);
+        break;
+      case LinkMenuAction.copy:
+        // ignore: unawaited_futures
+        Clipboard.setData(ClipboardData(text: link));
+        break;
+      case LinkMenuAction.remove:
+        final range = getLinkRange(node);
+        widget.controller
+            .formatText(range.start, range.end - range.start, Attribute.link);
+        break;
+      case LinkMenuAction.none:
+        break;
+    }
   }
 
   TextStyle _merge(TextStyle a, TextStyle b) {
-    final decorations = <TextDecoration>[];
+    final decorations = <TextDecoration?>[];
     if (a.decoration != null) {
-      decorations.add(a.decoration!);
+      decorations.add(a.decoration);
     }
     if (b.decoration != null) {
-      decorations.add(b.decoration!);
+      decorations.add(b.decoration);
     }
-    return a.merge(b).apply(decoration: TextDecoration.combine(decorations));
+    return a.merge(b).apply(
+        decoration: TextDecoration.combine(
+            List.castFrom<dynamic, TextDecoration>(decorations)));
   }
 }
 
 class EditableTextLine extends RenderObjectWidget {
+  const EditableTextLine(
+    this.line,
+    this.leading,
+    this.body,
+    this.indentWidth,
+    this.verticalSpacing,
+    this.textDirection,
+    this.textSelection,
+    this.color,
+    this.enableInteractiveSelection,
+    this.hasFocus,
+    this.devicePixelRatio,
+    this.cursorCont,
+  );
+
   final Line line;
   final Widget? leading;
-  final Widget? body;
+  final Widget body;
   final double indentWidth;
   final Tuple2 verticalSpacing;
   final TextDirection textDirection;
@@ -204,20 +472,6 @@ class EditableTextLine extends RenderObjectWidget {
   final double devicePixelRatio;
   final CursorCont cursorCont;
 
-  EditableTextLine(
-      {required this.line,
-      this.leading,
-      this.body,
-      required this.indentWidth,
-      required this.verticalSpacing,
-      required this.textDirection,
-      required this.textSelection,
-      required this.color,
-      required this.enableInteractiveSelection,
-      required this.hasFocus,
-      required this.devicePixelRatio,
-      required this.cursorCont});
-
   @override
   RenderObjectElement createElement() {
     return _TextLineElement(this);
@@ -225,30 +479,35 @@ class EditableTextLine extends RenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
+    final defaultStyles = DefaultStyles.getInstance(context);
     return RenderEditableTextLine(
-        line: line,
-        textDirection: textDirection,
-        textSelection: textSelection,
-        enableInteractiveSelection: enableInteractiveSelection,
-        hasFocus: hasFocus,
-        devicePixelRatio: devicePixelRatio,
-        padding: _getPadding(),
-        color: this.color,
-        cursorCont: cursorCont);
+        line,
+        textDirection,
+        textSelection,
+        enableInteractiveSelection,
+        hasFocus,
+        devicePixelRatio,
+        _getPadding(),
+        color,
+        cursorCont,
+        defaultStyles.inlineCode!);
   }
 
   @override
-  updateRenderObject(
+  void updateRenderObject(
       BuildContext context, covariant RenderEditableTextLine renderObject) {
-    renderObject.setLine(line);
-    renderObject.setPadding(_getPadding());
-    renderObject.setTextDirection(textDirection);
-    renderObject.setTextSelection(textSelection);
-    renderObject.setColor(color);
-    renderObject.setEnableInteractiveSelection(enableInteractiveSelection);
-    renderObject.hasFocus = hasFocus;
-    renderObject.setDevicePixelRatio(devicePixelRatio);
-    renderObject.setCursorCont(cursorCont);
+    final defaultStyles = DefaultStyles.getInstance(context);
+    renderObject
+      ..setLine(line)
+      ..setPadding(_getPadding())
+      ..setTextDirection(textDirection)
+      ..setTextSelection(textSelection)
+      ..setColor(color)
+      ..setEnableInteractiveSelection(enableInteractiveSelection)
+      ..hasFocus = hasFocus
+      ..setDevicePixelRatio(devicePixelRatio)
+      ..setCursorCont(cursorCont)
+      ..setInlineCodeStyle(defaultStyles.inlineCode!);
   }
 
   EdgeInsetsGeometry _getPadding() {
@@ -262,13 +521,26 @@ class EditableTextLine extends RenderObjectWidget {
 enum TextLineSlot { LEADING, BODY }
 
 class RenderEditableTextLine extends RenderEditableBox {
+  /// Creates new editable paragraph render box.
+  RenderEditableTextLine(
+      this.line,
+      this.textDirection,
+      this.textSelection,
+      this.enableInteractiveSelection,
+      this.hasFocus,
+      this.devicePixelRatio,
+      this.padding,
+      this.color,
+      this.cursorCont,
+      this.inlineCodeStyle);
+
   RenderBox? _leading;
   RenderContentProxyBox? _body;
   Line line;
-  TextDirection? textDirection;
-  TextSelection? textSelection;
+  TextDirection textDirection;
+  TextSelection textSelection;
   Color color;
-  bool? enableInteractiveSelection;
+  bool enableInteractiveSelection;
   bool hasFocus = false;
   double devicePixelRatio;
   EdgeInsetsGeometry padding;
@@ -276,20 +548,9 @@ class RenderEditableTextLine extends RenderEditableBox {
   EdgeInsets? _resolvedPadding;
   bool? _containsCursor;
   List<TextBox>? _selectedRects;
-  Rect? _caretPrototype;
+  late Rect _caretPrototype;
+  InlineCodeStyle inlineCodeStyle;
   final Map<TextLineSlot, RenderBox> children = <TextLineSlot, RenderBox>{};
-
-  RenderEditableTextLine({
-    required this.line,
-    this.textDirection,
-    this.textSelection,
-    this.enableInteractiveSelection,
-    required this.hasFocus,
-    required this.devicePixelRatio,
-    required this.padding,
-    required this.color,
-    required this.cursorCont,
-  }) : assert(padding.isNonNegative);
 
   Iterable<RenderBox> get _children sync* {
     if (_leading != null) {
@@ -300,7 +561,7 @@ class RenderEditableTextLine extends RenderEditableBox {
     }
   }
 
-  setCursorCont(CursorCont c) {
+  void setCursorCont(CursorCont c) {
     if (cursorCont == c) {
       return;
     }
@@ -308,7 +569,7 @@ class RenderEditableTextLine extends RenderEditableBox {
     markNeedsLayout();
   }
 
-  setDevicePixelRatio(double d) {
+  void setDevicePixelRatio(double d) {
     if (devicePixelRatio == d) {
       return;
     }
@@ -316,7 +577,7 @@ class RenderEditableTextLine extends RenderEditableBox {
     markNeedsLayout();
   }
 
-  setEnableInteractiveSelection(bool val) {
+  void setEnableInteractiveSelection(bool val) {
     if (enableInteractiveSelection == val) {
       return;
     }
@@ -325,26 +586,27 @@ class RenderEditableTextLine extends RenderEditableBox {
     markNeedsSemanticsUpdate();
   }
 
-  setColor(Color c) {
+  void setColor(Color c) {
     if (color == c) {
       return;
     }
 
     color = c;
     if (containsTextSelection()) {
-      markNeedsPaint();
+      safeMarkNeedsPaint();
     }
   }
 
-  setTextSelection(TextSelection t) {
+  void setTextSelection(TextSelection t) {
     if (textSelection == t) {
       return;
     }
 
-    bool containsSelection = containsTextSelection();
-    if (attached && containsCursor()) {
+    final containsSelection = containsTextSelection();
+    if (_attachedToCursorController) {
       cursorCont.removeListener(markNeedsLayout);
-      cursorCont.color.removeListener(markNeedsPaint);
+      cursorCont.color.removeListener(safeMarkNeedsPaint);
+      _attachedToCursorController = false;
     }
 
     textSelection = t;
@@ -352,15 +614,16 @@ class RenderEditableTextLine extends RenderEditableBox {
     _containsCursor = null;
     if (attached && containsCursor()) {
       cursorCont.addListener(markNeedsLayout);
-      cursorCont.color.addListener(markNeedsPaint);
+      cursorCont.color.addListener(safeMarkNeedsPaint);
+      _attachedToCursorController = true;
     }
 
     if (containsSelection || containsTextSelection()) {
-      markNeedsPaint();
+      safeMarkNeedsPaint();
     }
   }
 
-  setTextDirection(TextDirection t) {
+  void setTextDirection(TextDirection t) {
     if (textDirection == t) {
       return;
     }
@@ -369,7 +632,7 @@ class RenderEditableTextLine extends RenderEditableBox {
     markNeedsLayout();
   }
 
-  setLine(Line l) {
+  void setLine(Line l) {
     if (line == l) {
       return;
     }
@@ -378,7 +641,7 @@ class RenderEditableTextLine extends RenderEditableBox {
     markNeedsLayout();
   }
 
-  setPadding(EdgeInsetsGeometry p) {
+  void setPadding(EdgeInsetsGeometry p) {
     assert(p.isNonNegative);
     if (padding == p) {
       return;
@@ -388,29 +651,37 @@ class RenderEditableTextLine extends RenderEditableBox {
     markNeedsLayout();
   }
 
-  setLeading(RenderBox? l) {
+  void setLeading(RenderBox? l) {
     _leading = _updateChild(_leading, l, TextLineSlot.LEADING);
   }
 
-  setBody(RenderContentProxyBox? b) {
-    _body = _updateChild(_body, b, TextLineSlot.BODY) as RenderContentProxyBox;
+  void setBody(RenderContentProxyBox? b) {
+    _body = _updateChild(_body, b, TextLineSlot.BODY) as RenderContentProxyBox?;
   }
 
+  void setInlineCodeStyle(InlineCodeStyle newStyle) {
+    if (inlineCodeStyle == newStyle) return;
+    inlineCodeStyle = newStyle;
+    markNeedsLayout();
+  }
+
+  // Start selection implementation
+
   bool containsTextSelection() {
-    return line.getDocumentOffset() <= textSelection!.end &&
-        textSelection!.start <= line.getDocumentOffset() + line.length - 1;
+    return line.documentOffset <= textSelection.end &&
+        textSelection.start <= line.documentOffset + line.length - 1;
   }
 
   bool containsCursor() {
-    return _containsCursor ??= textSelection!.isCollapsed &&
-        line.containsOffset(textSelection!.baseOffset);
+    return _containsCursor ??= cursorCont.isFloatingCursorActive
+        ? line
+            .containsOffset(cursorCont.floatingCursorTextPosition.value!.offset)
+        : textSelection.isCollapsed &&
+            line.containsOffset(textSelection.baseOffset);
   }
 
   RenderBox? _updateChild(
-    RenderBox? old,
-    RenderBox? newChild,
-    TextLineSlot slot,
-  ) {
+      RenderBox? old, RenderBox? newChild, TextLineSlot slot) {
     if (old != null) {
       dropChild(old);
       children.remove(slot);
@@ -423,10 +694,10 @@ class RenderEditableTextLine extends RenderEditableBox {
   }
 
   List<TextBox> _getBoxes(TextSelection textSelection) {
-    BoxParentData parentData = _body!.parentData as BoxParentData;
+    final parentData = _body!.parentData as BoxParentData?;
     return _body!.getBoxesForSelection(textSelection).map((box) {
       return TextBox.fromLTRBD(
-        box.left + parentData.offset.dx,
+        box.left + parentData!.offset.dx,
         box.top + parentData.offset.dy,
         box.right + parentData.offset.dx,
         box.bottom + parentData.offset.dy,
@@ -435,7 +706,7 @@ class RenderEditableTextLine extends RenderEditableBox {
     }).toList(growable: false);
   }
 
-  _resolvePadding() {
+  void _resolvePadding() {
     if (_resolvedPadding != null) {
       return;
     }
@@ -458,13 +729,13 @@ class RenderEditableTextLine extends RenderEditableBox {
       TextSelection textSelection, bool first) {
     if (textSelection.isCollapsed) {
       return TextSelectionPoint(
-          Offset(0.0, preferredLineHeight(textSelection.extent)) +
+          Offset(0, preferredLineHeight(textSelection.extent)) +
               getOffsetForCaret(textSelection.extent),
           null);
     }
-    List<TextBox> boxes = _getBoxes(textSelection);
+    final boxes = _getBoxes(textSelection);
     assert(boxes.isNotEmpty);
-    TextBox targetBox = first ? boxes.first : boxes.last;
+    final targetBox = first ? boxes.first : boxes.last;
     return TextSelectionPoint(
         Offset(first ? targetBox.start : targetBox.end, targetBox.bottom),
         targetBox.direction);
@@ -472,10 +743,10 @@ class RenderEditableTextLine extends RenderEditableBox {
 
   @override
   TextRange getLineBoundary(TextPosition position) {
-    double lineDy = getOffsetForCaret(position)
-        .translate(0.0, 0.5 * preferredLineHeight(position))
+    final lineDy = getOffsetForCaret(position)
+        .translate(0, 0.5 * preferredLineHeight(position))
         .dy;
-    List<TextBox> lineBoxes =
+    final lineBoxes =
         _getBoxes(TextSelection(baseOffset: 0, extentOffset: line.length - 1))
             .where((element) => element.top < lineDy && element.bottom > lineDy)
             .toList(growable: false);
@@ -487,7 +758,7 @@ class RenderEditableTextLine extends RenderEditableBox {
 
   @override
   Offset getOffsetForCaret(TextPosition position) {
-    return _body!.getOffsetForCaret(position, _caretPrototype!) +
+    return _body!.getOffsetForCaret(position, _caretPrototype) +
         (_body!.parentData as BoxParentData).offset;
   }
 
@@ -501,9 +772,12 @@ class RenderEditableTextLine extends RenderEditableBox {
     return _getPosition(position, 1.5);
   }
 
+  @override
+  bool get isRepaintBoundary => true;
+
   TextPosition? _getPosition(TextPosition textPosition, double dyScale) {
     assert(textPosition.offset < line.length);
-    Offset offset = getOffsetForCaret(textPosition)
+    final offset = getOffsetForCaret(textPosition)
         .translate(0, dyScale * preferredLineHeight(textPosition));
     if (_body!.size
         .contains(offset - (_body!.parentData as BoxParentData).offset)) {
@@ -525,83 +799,100 @@ class RenderEditableTextLine extends RenderEditableBox {
 
   @override
   double preferredLineHeight(TextPosition position) {
-    return _body!.getPreferredLineHeight();
+    return _body!.preferredLineHeight;
   }
 
   @override
-  container.Container getContainer() {
-    return line;
-  }
+  container_node.Container get container => line;
 
   double get cursorWidth => cursorCont.style.width;
 
   double get cursorHeight =>
-      cursorCont.style.height ?? preferredLineHeight(TextPosition(offset: 0));
+      cursorCont.style.height ??
+      preferredLineHeight(const TextPosition(offset: 0));
 
-  _computeCaretPrototype() {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        _caretPrototype =
-            Rect.fromLTWH(0.0, 0.0, cursorWidth, cursorHeight + 2);
-        break;
-      case TargetPlatform.android:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-        _caretPrototype =
-            Rect.fromLTWH(0.0, 2.0, cursorWidth, cursorHeight - 4.0);
-        break;
-      default:
-        throw ('Invalid platform');
+  // TODO: This is no longer producing the highest-fidelity caret
+  // heights for Android, especially when non-alphabetic languages
+  // are involved. The current implementation overrides the height set
+  // here with the full measured height of the text on Android which looks
+  // superior (subjectively and in terms of fidelity) in _paintCaret. We
+  // should rework this properly to once again match the platform. The constant
+  // _kCaretHeightOffset scales poorly for small font sizes.
+  //
+  /// On iOS, the cursor is taller than the cursor on Android. The height
+  /// of the cursor for iOS is approximate and obtained through an eyeball
+  /// comparison.
+  void _computeCaretPrototype() {
+    if (isAppleOS()) {
+      _caretPrototype = Rect.fromLTWH(0, 0, cursorWidth, cursorHeight + 2);
+    } else {
+      _caretPrototype = Rect.fromLTWH(0, 2, cursorWidth, cursorHeight - 4.0);
     }
   }
 
+  void _onFloatingCursorChange() {
+    _containsCursor = null;
+    markNeedsPaint();
+  }
+
+  // End caret implementation
+
+  //
+
+  // Start render box overrides
+
+  bool _attachedToCursorController = false;
+
   @override
-  attach(covariant PipelineOwner owner) {
+  void attach(covariant PipelineOwner owner) {
     super.attach(owner);
     for (final child in _children) {
       child.attach(owner);
     }
+    cursorCont.floatingCursorTextPosition.addListener(_onFloatingCursorChange);
     if (containsCursor()) {
       cursorCont.addListener(markNeedsLayout);
-      cursorCont.cursorColor.addListener(markNeedsPaint);
+      cursorCont.color.addListener(safeMarkNeedsPaint);
+      _attachedToCursorController = true;
     }
   }
 
   @override
-  detach() {
+  void detach() {
     super.detach();
-    for (RenderBox child in _children) {
+    for (final child in _children) {
       child.detach();
     }
-    if (containsCursor()) {
+    cursorCont.floatingCursorTextPosition
+        .removeListener(_onFloatingCursorChange);
+    if (_attachedToCursorController) {
       cursorCont.removeListener(markNeedsLayout);
-      cursorCont.cursorColor.removeListener(markNeedsPaint);
+      cursorCont.color.removeListener(safeMarkNeedsPaint);
+      _attachedToCursorController = false;
     }
   }
 
   @override
-  redepthChildren() {
+  void redepthChildren() {
     _children.forEach(redepthChild);
   }
 
   @override
-  visitChildren(RenderObjectVisitor visitor) {
+  void visitChildren(RenderObjectVisitor visitor) {
     _children.forEach(visitor);
   }
 
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
-    var value = <DiagnosticsNode>[];
+    final value = <DiagnosticsNode>[];
     void add(RenderBox? child, String name) {
       if (child != null) {
         value.add(child.toDiagnosticsNode(name: name));
       }
     }
 
-    add(_leading!, 'leading');
-    add(_body!, 'body');
+    add(_leading, 'leading');
+    add(_body, 'body');
     return value;
   }
 
@@ -611,41 +902,43 @@ class RenderEditableTextLine extends RenderEditableBox {
   @override
   double computeMinIntrinsicWidth(double height) {
     _resolvePadding();
-    double horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
-    double verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
-    int leadingWidth = _leading == null
+    final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
+    final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
+    final leadingWidth = _leading == null
         ? 0
-        : (_leading!.getMinIntrinsicWidth(height - verticalPadding) as int);
-    int bodyWidth = _body == null
+        : _leading!.getMinIntrinsicWidth(height - verticalPadding).ceil();
+    final bodyWidth = _body == null
         ? 0
-        : (_body!.getMinIntrinsicWidth(math.max(0.0, height - verticalPadding))
-            as int);
+        : _body!
+            .getMinIntrinsicWidth(math.max(0, height - verticalPadding))
+            .ceil();
     return horizontalPadding + leadingWidth + bodyWidth;
   }
 
   @override
   double computeMaxIntrinsicWidth(double height) {
     _resolvePadding();
-    double horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
-    double verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
-    int leadingWidth = _leading == null
+    final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
+    final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
+    final leadingWidth = _leading == null
         ? 0
-        : (_leading!.getMaxIntrinsicWidth(height - verticalPadding) as int);
-    int bodyWidth = _body == null
+        : _leading!.getMaxIntrinsicWidth(height - verticalPadding).ceil();
+    final bodyWidth = _body == null
         ? 0
-        : (_body!.getMaxIntrinsicWidth(math.max(0.0, height - verticalPadding))
-            as int);
+        : _body!
+            .getMaxIntrinsicWidth(math.max(0, height - verticalPadding))
+            .ceil();
     return horizontalPadding + leadingWidth + bodyWidth;
   }
 
   @override
   double computeMinIntrinsicHeight(double width) {
     _resolvePadding();
-    double horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
-    double verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
+    final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
+    final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
     if (_body != null) {
       return _body!
-              .getMinIntrinsicHeight(math.max(0.0, width - horizontalPadding)) +
+              .getMinIntrinsicHeight(math.max(0, width - horizontalPadding)) +
           verticalPadding;
     }
     return verticalPadding;
@@ -654,11 +947,11 @@ class RenderEditableTextLine extends RenderEditableBox {
   @override
   double computeMaxIntrinsicHeight(double width) {
     _resolvePadding();
-    double horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
-    double verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
+    final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
+    final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
     if (_body != null) {
       return _body!
-              .getMaxIntrinsicHeight(math.max(0.0, width - horizontalPadding)) +
+              .getMaxIntrinsicHeight(math.max(0, width - horizontalPadding)) +
           verticalPadding;
     }
     return verticalPadding;
@@ -693,8 +986,7 @@ class RenderEditableTextLine extends RenderEditableBox {
         : _resolvedPadding!.right;
 
     _body!.layout(innerConstraints, parentUsesSize: true);
-    final bodyParentData = _body!.parentData as BoxParentData;
-    bodyParentData.offset =
+    (_body!.parentData as BoxParentData).offset =
         Offset(_resolvedPadding!.left, _resolvedPadding!.top);
 
     if (_leading != null) {
@@ -703,8 +995,8 @@ class RenderEditableTextLine extends RenderEditableBox {
           maxWidth: indentWidth,
           maxHeight: _body!.size.height);
       _leading!.layout(leadingConstraints, parentUsesSize: true);
-      final parentData = _leading!.parentData as BoxParentData;
-      parentData.offset = Offset(0.0, _resolvedPadding!.top);
+      (_leading!.parentData as BoxParentData).offset =
+          Offset(0, _resolvedPadding!.top);
     }
 
     size = constraints.constrain(Size(
@@ -716,15 +1008,17 @@ class RenderEditableTextLine extends RenderEditableBox {
   }
 
   CursorPainter get _cursorPainter => CursorPainter(
-        editable: _body!,
+        editable: _body,
         style: cursorCont.style,
-        prototype: _caretPrototype!,
-        color: cursorCont.cursorColor.value,
+        prototype: _caretPrototype,
+        color: cursorCont.isFloatingCursorActive
+            ? cursorCont.style.backgroundColor
+            : cursorCont.color.value,
         devicePixelRatio: devicePixelRatio,
       );
 
   @override
-  paint(PaintingContext context, Offset offset) {
+  void paint(PaintingContext context, Offset offset) {
     if (_leading != null) {
       final parentData = _leading!.parentData as BoxParentData;
       final effectiveOffset = offset + parentData.offset;
@@ -734,21 +1028,37 @@ class RenderEditableTextLine extends RenderEditableBox {
     if (_body != null) {
       final parentData = _body!.parentData as BoxParentData;
       final effectiveOffset = offset + parentData.offset;
-      if ((enableInteractiveSelection ?? true) &&
-          line.getDocumentOffset() <= textSelection!.end &&
-          textSelection!.start <= line.getDocumentOffset() + line.length - 1) {
-        final local = localSelection(line, textSelection!, false);
-        _selectedRects ??= _body!.getBoxesForSelection(
-          local,
-        );
-        _paintSelection(context, effectiveOffset);
+
+      if (inlineCodeStyle.backgroundColor != null) {
+        for (final item in line.children) {
+          if (item is! leaf.Text ||
+              !item.style.containsKey(Attribute.inlineCode.key)) {
+            continue;
+          }
+          final textRange = TextSelection(
+              baseOffset: item.offset, extentOffset: item.offset + item.length);
+          final rects = _body!.getBoxesForSelection(textRange);
+          final paint = Paint()..color = inlineCodeStyle.backgroundColor!;
+          for (final box in rects) {
+            final rect = box.toRect().translate(0, 1).shift(effectiveOffset);
+            if (inlineCodeStyle.radius == null) {
+              final paintRect = Rect.fromLTRB(
+                  rect.left - 2, rect.top, rect.right + 2, rect.bottom);
+              context.canvas.drawRect(paintRect, paint);
+            } else {
+              final paintRect = RRect.fromLTRBR(rect.left - 2, rect.top,
+                  rect.right + 2, rect.bottom, inlineCodeStyle.radius!);
+              context.canvas.drawRRect(paintRect, paint);
+            }
+          }
+        }
       }
 
       if (hasFocus &&
           cursorCont.show.value &&
           containsCursor() &&
           !cursorCont.style.paintAboveText) {
-        _paintCursor(context, effectiveOffset);
+        _paintCursor(context, effectiveOffset, line.hasEmbed);
       }
 
       context.paintChild(_body!, effectiveOffset);
@@ -757,12 +1067,23 @@ class RenderEditableTextLine extends RenderEditableBox {
           cursorCont.show.value &&
           containsCursor() &&
           cursorCont.style.paintAboveText) {
-        _paintCursor(context, effectiveOffset);
+        _paintCursor(context, effectiveOffset, line.hasEmbed);
+      }
+
+      // paint the selection on the top
+      if (enableInteractiveSelection &&
+          line.documentOffset <= textSelection.end &&
+          textSelection.start <= line.documentOffset + line.length - 1) {
+        final local = localSelection(line, textSelection, false);
+        _selectedRects ??= _body!.getBoxesForSelection(
+          local,
+        );
+        _paintSelection(context, effectiveOffset);
       }
     }
   }
 
-  _paintSelection(PaintingContext context, Offset effectiveOffset) {
+  void _paintSelection(PaintingContext context, Offset effectiveOffset) {
     assert(_selectedRects != null);
     final paint = Paint()..color = color;
     for (final box in _selectedRects!) {
@@ -770,12 +1091,41 @@ class RenderEditableTextLine extends RenderEditableBox {
     }
   }
 
-  _paintCursor(PaintingContext context, Offset effectiveOffset) {
-    final position = TextPosition(
-      offset: textSelection!.extentOffset - line.getDocumentOffset(),
-      affinity: textSelection!.base.affinity,
-    );
-    _cursorPainter.paint(context.canvas, effectiveOffset, position);
+  void _paintCursor(
+      PaintingContext context, Offset effectiveOffset, bool lineHasEmbed) {
+    final position = cursorCont.isFloatingCursorActive
+        ? TextPosition(
+            offset: cursorCont.floatingCursorTextPosition.value!.offset -
+                line.documentOffset,
+            affinity: cursorCont.floatingCursorTextPosition.value!.affinity)
+        : TextPosition(
+            offset: textSelection.extentOffset - line.documentOffset,
+            affinity: textSelection.base.affinity);
+    _cursorPainter.paint(
+        context.canvas, effectiveOffset, position, lineHasEmbed);
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    if (_leading != null) {
+      final childParentData = _leading!.parentData as BoxParentData;
+      final isHit = result.addWithPaintOffset(
+          offset: childParentData.offset,
+          position: position,
+          hitTest: (result, transformed) {
+            assert(transformed == position - childParentData.offset);
+            return _leading!.hitTest(result, position: transformed);
+          });
+      if (isHit) return true;
+    }
+    if (_body == null) return false;
+    final parentData = _body!.parentData as BoxParentData;
+    return result.addWithPaintOffset(
+        offset: parentData.offset,
+        position: position,
+        hitTest: (result, position) {
+          return _body!.hitTest(result, position: position);
+        });
   }
 
   @override
@@ -791,13 +1141,24 @@ class RenderEditableTextLine extends RenderEditableBox {
 
   @override
   TextPosition globalToLocalPosition(TextPosition position) {
-    assert(getContainer().containsOffset(position.offset),
+    assert(container.containsOffset(position.offset),
         'The provided text position is not in the current node');
     return TextPosition(
-      offset: position.offset - getContainer().getDocumentOffset(),
+      offset: position.offset - container.documentOffset,
       affinity: position.affinity,
     );
   }
+
+  void safeMarkNeedsPaint() {
+    if (!attached) {
+      //Should not paint if it was unattached.
+      return;
+    }
+    markNeedsPaint();
+  }
+
+  @override
+  Rect getCaretPrototype(TextPosition position) => _caretPrototype;
 }
 
 class _TextLineElement extends RenderObjectElement {
@@ -813,12 +1174,12 @@ class _TextLineElement extends RenderObjectElement {
       super.renderObject as RenderEditableTextLine;
 
   @override
-  visitChildren(ElementVisitor visitor) {
+  void visitChildren(ElementVisitor visitor) {
     _slotToChildren.values.forEach(visitor);
   }
 
   @override
-  forgetChild(Element child) {
+  void forgetChild(Element child) {
     assert(_slotToChildren.containsValue(child));
     assert(child.slot is TextLineSlot);
     assert(_slotToChildren.containsKey(child.slot));
@@ -827,14 +1188,14 @@ class _TextLineElement extends RenderObjectElement {
   }
 
   @override
-  mount(Element? parent, dynamic newSlot) {
+  void mount(Element? parent, dynamic newSlot) {
     super.mount(parent, newSlot);
     _mountChild(widget.leading, TextLineSlot.LEADING);
     _mountChild(widget.body, TextLineSlot.BODY);
   }
 
   @override
-  update(EditableTextLine newWidget) {
+  void update(EditableTextLine newWidget) {
     super.update(newWidget);
     assert(widget == newWidget);
     _updateChild(widget.leading, TextLineSlot.LEADING);
@@ -842,28 +1203,29 @@ class _TextLineElement extends RenderObjectElement {
   }
 
   @override
-  insertRenderObjectChild(RenderObject child, TextLineSlot slot) {
-    assert(child is RenderBox);
+  void insertRenderObjectChild(RenderBox child, TextLineSlot? slot) {
+    // assert(child is RenderBox);
     _updateRenderObject(child, slot);
     assert(renderObject.children.keys.contains(slot));
   }
 
   @override
-  removeRenderObjectChild(RenderObject child, TextLineSlot slot) {
+  void removeRenderObjectChild(RenderObject child, TextLineSlot? slot) {
     assert(child is RenderBox);
-    assert(renderObject.children[slot] == child);
+    assert(renderObject.children[slot!] == child);
     _updateRenderObject(null, slot);
     assert(!renderObject.children.keys.contains(slot));
   }
 
   @override
-  moveRenderObjectChild(RenderObject child, dynamic oldSlot, dynamic newSlot) {
+  void moveRenderObjectChild(
+      RenderObject child, dynamic oldSlot, dynamic newSlot) {
     throw UnimplementedError();
   }
 
-  _mountChild(Widget? widget, TextLineSlot slot) {
-    Element? oldChild = _slotToChildren[slot];
-    Element? newChild = updateChild(oldChild, widget, slot);
+  void _mountChild(Widget? widget, TextLineSlot slot) {
+    final oldChild = _slotToChildren[slot];
+    final newChild = updateChild(oldChild, widget, slot);
     if (oldChild != null) {
       _slotToChildren.remove(slot);
     }
@@ -872,23 +1234,22 @@ class _TextLineElement extends RenderObjectElement {
     }
   }
 
-  _updateRenderObject(RenderObject? child, TextLineSlot slot) {
+  void _updateRenderObject(RenderBox? child, TextLineSlot? slot) {
     switch (slot) {
       case TextLineSlot.LEADING:
-        renderObject.setLeading(child != null ? child as RenderBox : null);
+        renderObject.setLeading(child);
         break;
       case TextLineSlot.BODY:
-        renderObject
-            .setBody(child != null ? child as RenderContentProxyBox : null);
+        renderObject.setBody(child as RenderContentProxyBox?);
         break;
       default:
         throw UnimplementedError();
     }
   }
 
-  _updateChild(Widget? widget, TextLineSlot slot) {
-    Element? oldChild = _slotToChildren[slot];
-    Element? newChild = updateChild(oldChild, widget, slot);
+  void _updateChild(Widget? widget, TextLineSlot slot) {
+    final oldChild = _slotToChildren[slot];
+    final newChild = updateChild(oldChild, widget, slot);
     if (oldChild != null) {
       _slotToChildren.remove(slot);
     }
