@@ -79,9 +79,20 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: QuillEditor.basic(
-                controller: _controller!,
-                readOnly: false,
+              child: Theme(
+                data: ThemeData(
+                    textSelectionTheme: TextSelectionThemeData(
+                  cursorColor: Colors.deepOrangeAccent,
+                  selectionColor: Colors.deepOrangeAccent.withOpacity(0.5),
+                  selectionHandleColor: Colors.deepOrangeAccent,
+                )),
+                child: DefaultTextStyle(
+                  style: TextStyle(color: Colors.deepOrange),
+                  child: QuillEditor.basic(
+                    controller: _controller!,
+                    readOnly: false,
+                  ),
+                ),
               ),
             ),
             RichTextToolbar(

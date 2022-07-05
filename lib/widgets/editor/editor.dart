@@ -158,7 +158,6 @@ class QuillEditor extends StatefulWidget {
       this.maxContentWidth,
       this.customStyles,
       this.textCapitalization = TextCapitalization.sentences,
-      // this.keyboardAppearance = Brightness.light,
       this.scrollPhysics,
       this.onLaunchUrl,
       this.onTapDown,
@@ -168,7 +167,6 @@ class QuillEditor extends StatefulWidget {
       this.onSingleLongTapEnd,
       this.embedBuilder = defaultEmbedBuilder,
       this.customStyleBuilder,
-      // this.locale,
       this.floatingCursorDisabled = false,
       this.textSelectionControls,
       Key? key})
