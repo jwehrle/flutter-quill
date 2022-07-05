@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 
 bool isMobile([TargetPlatform? targetPlatform]) {
@@ -25,13 +22,4 @@ bool isAppleOS([TargetPlatform? targetPlatform]) {
     TargetPlatform.macOS,
     TargetPlatform.iOS,
   }.contains(targetPlatform);
-}
-
-Future<bool> isIOSSimulator() async {
-  if (Platform.isIOS) {
-    final deviceInfo = DeviceInfoPlugin();
-    final iosInfo = await deviceInfo.iosInfo;
-    return !iosInfo.isPhysicalDevice;
-  }
-  return false;
 }

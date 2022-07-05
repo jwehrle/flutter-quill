@@ -1,7 +1,9 @@
-// import 'package:app/pages/home_page.dart';
 import 'package:flutter/material.dart';
-
-import 'pages/home_page.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_quill/models/documents/document.dart';
+import 'package:flutter_quill/controllers/controller.dart';
+import 'package:flutter_quill/widgets/editor/editor.dart';
+import 'package:flutter_quill/widgets/toolbar/toolbar.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,29 +11,96 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Quill Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-        // This makes the visual density adapt to the platform that you run
-        // the app on. For desktop platforms, the controls will be smaller and
-        // closer together (more dense) than on mobile platforms.
+        primarySwatch: Colors.teal,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  QuillController? _controller;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFromAssets();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadFromAssets() async {
+    try {
+      final result = await rootBundle.loadString('assets/sample_data.json');
+      setState(() {
+        _controller = QuillController.json(result);
+      });
+    } catch (error) {
+      final doc = Document()..insert(0, 'Empty asset');
+      setState(() {
+        _controller = QuillController(
+            document: doc, selection: TextSelection.collapsed(offset: 0));
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_controller == null) {
+      return Scaffold(body: Center(child: Text('Loading...')));
+    }
+    ThemeData theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Flutter Quill',
+        ),
+      ),
+      body: SafeArea(
+        child: Stack(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: QuillEditor.basic(
+                controller: _controller!,
+                readOnly: false,
+              ),
+            ),
+            RichTextToolbar(
+              controller: _controller!,
+              alignment: ToolbarAlignment.bottomCenterHorizontal,
+              backgroundColor: theme.primaryColor,
+              popupSpacing: 6.0,
+              popupStyle: selectableStyleFrom(
+                shape: CircleBorder(),
+                elevation: 4.0,
+                padding: EdgeInsets.all(8.0),
+                primary: theme.primaryColor,
+                onPrimary: theme.colorScheme.onPrimary,
+                onSurface: theme.colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
