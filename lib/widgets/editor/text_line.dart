@@ -278,12 +278,15 @@ class _TextLineState extends State<TextLine> {
     final nodeStyle = textNode.style;
     final isLink = nodeStyle.containsKey(Attribute.link.key) &&
         nodeStyle.attributes[Attribute.link.key]!.value != null;
-
+    GestureRecognizer? recognizer;
+    if (isLink && canLaunchLinks) {
+      recognizer = _getRecognizer(node);
+    }
     return TextSpan(
       text: textNode.value,
       style: _getInlineTextStyle(
           textNode, defaultStyles, nodeStyle, lineStyle, isLink),
-      recognizer: isLink && canLaunchLinks ? _getRecognizer(node) : null,
+      recognizer: recognizer,
       mouseCursor: isLink && canLaunchLinks ? SystemMouseCursors.click : null,
     );
   }
@@ -367,16 +370,28 @@ class _TextLineState extends State<TextLine> {
   GestureRecognizer? _getRecognizer(Node segment) {
     if (_linkRecognizers.containsKey(segment)) {
       return _linkRecognizers[segment]!;
-    }
-
-    if (isDesktop() || widget.readOnly) {
-      _linkRecognizers[segment] = TapGestureRecognizer()
-        ..onTap = () => _tapNodeLink(segment);
     } else {
-      // long press to open flutter-quill link dialog is deleted on this fork.
-      return null;
+      TapGestureRecognizer recognizer = TapGestureRecognizer();
+      recognizer.onTap = () {
+        _tapNodeLink(segment);
+      };
+      _linkRecognizers[segment] = recognizer;
+      return _linkRecognizers[segment];
     }
-    return _linkRecognizers[segment]!;
+    // What moron decided to systematically break all links? Seriously - WTAF?!
+    // if (isDesktop() || widget.readOnly) {
+    //   TapGestureRecognizer recognizer = TapGestureRecognizer();
+    //   recognizer.onTap = () {
+    //     _tapNodeLink(segment);
+    //   };
+    //   _linkRecognizers[segment] = recognizer;
+    //   // TapGestureRecognizer()
+    //   //   ..onTap = () => _tapNodeLink(segment);
+    // } else {
+    //   // long press to open flutter-quill link dialog is deleted on this fork.
+    //   return null;
+    // }
+    // return _linkRecognizers[segment]!;
   }
 
   Future<void> _launchUrl(String url) async {
