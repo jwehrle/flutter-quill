@@ -279,7 +279,7 @@ class _TextLineState extends State<TextLine> {
     final isLink = nodeStyle.containsKey(Attribute.link.key) &&
         nodeStyle.attributes[Attribute.link.key]!.value != null;
     GestureRecognizer? recognizer;
-    if (isLink && canLaunchLinks) {
+    if (isLink) {
       recognizer = _getRecognizer(node);
     }
     return TextSpan(

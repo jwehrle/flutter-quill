@@ -343,6 +343,13 @@ class _LinkDialogState extends State<_LinkDialog> {
   }
 
   void _applyLink() {
+    if (!_link.startsWith('https://')) {
+      if (_link.startsWith('www.')) {
+        _link = 'https://' + _link;
+      } else {
+        _link = 'https://www.' + _link;
+      }
+    }
     Navigator.pop(context, _link);
   }
 }

@@ -193,17 +193,17 @@ class DefaultStyles {
       height: 1.3,
     );
     const baseSpacing = Tuple2<double, double>(6, 0);
-    String fontFamily;
+    String codeFontFamily;
     if (isAppleOS(themeData.platform)) {
-      fontFamily = 'Menlo';
+      codeFontFamily = 'Menlo';
     } else {
-      fontFamily = 'Roboto Mono';
+      codeFontFamily = 'Roboto Mono';
     }
 
     final inlineCodeStyle = TextStyle(
       fontSize: 14,
       color: themeData.colorScheme.primary.withOpacity(0.8),
-      fontFamily: fontFamily,
+      fontFamily: codeFontFamily,
     );
 
     return DefaultStyles(
@@ -284,8 +284,8 @@ class DefaultStyles {
             )),
         code: DefaultTextBlockStyle(
             TextStyle(
-              color: Colors.blue.shade900.withOpacity(0.9),
-              fontFamily: fontFamily,
+              color: DefaultTextStyle.of(context).style.color?.withOpacity(0.9),
+              fontFamily: codeFontFamily,
               fontSize: 13,
               height: 1.15,
             ),

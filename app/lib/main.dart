@@ -88,9 +88,17 @@ class _HomePageState extends State<HomePage> {
                 )),
                 child: DefaultTextStyle(
                   style: TextStyle(color: Colors.deepOrange),
-                  child: QuillEditor.basic(
-                    controller: _controller!,
-                    readOnly: false,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        QuillEditor.basic(
+                          controller: _controller!,
+                          readOnly: false,
+                        ),
+                        // toolbar spacing
+                        Container(height: 72.0)
+                      ],
+                    ),
                   ),
                 ),
               ),
