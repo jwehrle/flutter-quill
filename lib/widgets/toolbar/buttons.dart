@@ -67,7 +67,7 @@ class StyleItem with ToggleMixin implements QuillButtonItem {
     required ButtonStyle popupStyle,
     required bool preferBelow,
   }) {
-    return FloatingToolbarItem.standard(
+    return FloatingToolbarItem.popup(
       IconicItem(
         iconData: MdiIcons.formatFont,
         label: kStyleLabel,
@@ -179,7 +179,7 @@ class ListItem with ToggleMixin implements QuillButtonItem {
     required ButtonStyle popupStyle,
     required bool preferBelow,
   }) {
-    return FloatingToolbarItem.standard(
+    return FloatingToolbarItem.popup(
       IconicItem(
         iconData: MdiIcons.viewList,
         label: kListLabel,
@@ -259,7 +259,7 @@ class BlockItem with ToggleMixin implements QuillButtonItem {
     required ButtonStyle popupStyle,
     required bool preferBelow,
   }) {
-    return FloatingToolbarItem.standard(
+    return FloatingToolbarItem.popup(
       IconicItem(
         iconData: MdiIcons.formatPilcrow,
         label: kBlockLabel,
@@ -420,7 +420,7 @@ class InsertItem with ToggleMixin implements QuillButtonItem {
     required ButtonStyle popupStyle,
     required bool preferBelow,
   }) {
-    return FloatingToolbarItem.standard(
+    return FloatingToolbarItem.popup(
       IconicItem(
         iconData: Icons.attachment_sharp,
         label: kInsertLabel,
@@ -588,7 +588,7 @@ class SizeItem implements QuillButtonItem {
     required ButtonStyle popupStyle,
     required bool preferBelow,
   }) {
-    return FloatingToolbarItem.standard(
+    return FloatingToolbarItem.popup(
       IconicItem(
         iconData: Icons.format_size,
         label: kSizeLabel,
@@ -720,7 +720,7 @@ class IndentItem implements QuillButtonItem {
     required ButtonStyle popupStyle,
     required bool preferBelow,
   }) {
-    return FloatingToolbarItem.standard(
+    return FloatingToolbarItem.popup(
       IconicItem(
         iconData: Icons.format_indent_increase,
         label: kIndentLabel,
@@ -838,7 +838,7 @@ class AlignItem implements QuillButtonItem {
     required ButtonStyle popupStyle,
     required bool preferBelow,
   }) {
-    return FloatingToolbarItem.standard(
+    return FloatingToolbarItem.popup(
       IconicItem(
         iconData: Icons.format_align_left,
         label: kAlignLabel,
