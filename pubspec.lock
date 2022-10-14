@@ -62,7 +62,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "098009af9a2edbd1dd1d6fae65ce772caceefc94"
+      resolved-ref: d3f742ed070a82b09d2d8cb1f3598244b55ee306
       url: "https://github.com/jwehrle/floating_toolbar.git"
     source: git
     version: "0.0.1"
@@ -107,7 +107,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "4aab87e90e0d138d964e59445bd21178c85499fc"
+      resolved-ref: ad783763be2362c616e1b9b56673c34b124f43fb
       url: "https://github.com/jwehrle/iconic_button.git"
     source: git
     version: "0.0.1"

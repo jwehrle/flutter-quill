@@ -79,7 +79,6 @@ class RichTextToolbar extends StatefulWidget {
 }
 
 class RichTextToolbarState extends State<RichTextToolbar> {
-  final ValueNotifier<int?> _selectNotifier = ValueNotifier(null);
   late final List<FloatingToolbarItem> _toolbarItems;
   late final bool _preferTooltipBelow;
 
@@ -159,7 +158,6 @@ class RichTextToolbarState extends State<RichTextToolbar> {
   @override
   Widget build(BuildContext context) {
     return FloatingToolbar(
-      selectNotifier: _selectNotifier,
       items: _toolbarItems,
       alignment: widget.alignment,
       backgroundColor: widget.backgroundColor,
@@ -179,7 +177,6 @@ class RichTextToolbarState extends State<RichTextToolbar> {
 
   @override
   void dispose() {
-    _selectNotifier.dispose();
     _styleItem.dispose();
     _sizeItem.dispose();
     _indentItem.dispose();

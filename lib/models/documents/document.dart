@@ -94,6 +94,7 @@ class Document {
   final History _history = History();
 
   /// Stream of [Change]s applied to this document.
+  /// Tuple3 = Original (Delta) , Change (Delta), Source
   Stream<Tuple3<Delta, Delta, ChangeSource>> get changes => _observer.stream;
 
   /// Inserts [data] in this document at specified [index].
@@ -288,6 +289,10 @@ class Document {
     final change = Tuple3(originalDelta, delta, changeSource);
     _observer.add(change);
     _history.handleDocChange(change);
+  }
+
+  void merge(Delta delta) {
+    // compare each op to original op
   }
 
   Tuple2 undo() {
