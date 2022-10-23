@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:quiver/core.dart';
+import 'package:flutter_quill/models/documents/utilities/hash.dart';
 
 enum AttributeScope {
   INLINE, // refer to https://quilljs.com/docs/formats/#inline

@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:quiver/core.dart';
+import 'package:flutter_quill/models/documents/utilities/hash.dart';
 
 import 'attribute.dart';
 

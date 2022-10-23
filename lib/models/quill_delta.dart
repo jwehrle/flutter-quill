@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:diff_match_patch/diff_match_patch.dart' as dmp;
-import 'package:quiver/core.dart';
+import 'package:flutter_quill/models/documents/utilities/hash.dart';
 
 const _attributeEquality = DeepCollectionEquality();
 const _valueEquality = DeepCollectionEquality();
