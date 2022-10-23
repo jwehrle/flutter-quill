@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/controllers/button_controllers.dart';
@@ -8,14 +10,24 @@ import 'package:flutter_quill/controllers/controller.dart';
 import 'package:flutter_quill/utils/labels.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
+class Disposer {
+  final Completer completer = Completer();
+
+  Disposer();
+
+  Future get onDispose => completer.future;
+
+  void dispose() {
+    completer.complete();
+  }
+}
+
 /// Methods required for classes that produce [FloatingToolbarItem]
 abstract class QuillButtonItem {
   FloatingToolbarItem item({
     required ButtonStyle popupStyle,
     required bool preferBelow,
   });
-
-  void dispose();
 }
 
 /// Makes a [FloatingToolbarItem] with bold, italic, under, and strike popups
@@ -26,8 +38,8 @@ class StyleItem with ToggleMixin implements QuillButtonItem {
   late final ButtonController _underController;
   late final ButtonController _strikeController;
 
-  StyleItem(QuillController controller) {
-    this._styleController = StyleController(controller);
+  StyleItem({required QuillController controller, required Disposer disposer}) {
+    _styleController = StyleController(controller);
     _boldController = ButtonController(
         value: toButton(
       _styleController.bold,
@@ -60,6 +72,13 @@ class StyleItem with ToggleMixin implements QuillButtonItem {
           _styleController.strike,
           _strikeController,
         ));
+    disposer.onDispose.then((_) {
+      _styleController.dispose();
+      _boldController.dispose();
+      _italicController.dispose();
+      _underController.dispose();
+      _strikeController.dispose();
+    });
   }
 
   @override
@@ -137,15 +156,6 @@ class StyleItem with ToggleMixin implements QuillButtonItem {
       ],
     );
   }
-
-  @override
-  void dispose() {
-    _styleController.dispose();
-    _boldController.dispose();
-    _italicController.dispose();
-    _underController.dispose();
-    _strikeController.dispose();
-  }
 }
 
 /// Makes a [FloatingToolbarItem] with bullet and number popups
@@ -154,7 +164,7 @@ class ListItem with ToggleMixin implements QuillButtonItem {
   late final ButtonController _numberController;
   late final ButtonController _bulletController;
 
-  ListItem(QuillController controller) {
+  ListItem({required QuillController controller, required Disposer disposer}) {
     _listController = ListController(controller);
     _numberController = ButtonController(
         value: toButton(
@@ -172,6 +182,11 @@ class ListItem with ToggleMixin implements QuillButtonItem {
           _listController.bullet,
           _bulletController,
         ));
+    disposer.onDispose.then((_) {
+      _listController.dispose();
+      _numberController.dispose();
+      _bulletController.dispose();
+    });
   }
 
   @override
@@ -219,13 +234,6 @@ class ListItem with ToggleMixin implements QuillButtonItem {
       ],
     );
   }
-
-  @override
-  void dispose() {
-    _listController.dispose();
-    _numberController.dispose();
-    _bulletController.dispose();
-  }
 }
 
 /// Makes a [FloatingToolbarItem] with quote and code popups
@@ -234,7 +242,7 @@ class BlockItem with ToggleMixin implements QuillButtonItem {
   late final ButtonController _quoteController;
   late final ButtonController _codeController;
 
-  BlockItem(QuillController controller) {
+  BlockItem({required QuillController controller, required Disposer disposer}) {
     _blockController = BlockController(controller);
     _quoteController = ButtonController(
         value: toButton(
@@ -252,6 +260,11 @@ class BlockItem with ToggleMixin implements QuillButtonItem {
           _blockController.code,
           _codeController,
         ));
+    disposer.onDispose.then((_) {
+      _blockController.dispose();
+      _quoteController.dispose();
+      _codeController.dispose();
+    });
   }
 
   @override
@@ -298,13 +311,6 @@ class BlockItem with ToggleMixin implements QuillButtonItem {
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _blockController.dispose();
-    _quoteController.dispose();
-    _codeController.dispose();
   }
 }
 
@@ -397,7 +403,8 @@ class InsertItem with ToggleMixin implements QuillButtonItem {
   late final ButtonController _linkController;
   late final ButtonController _imageController;
 
-  InsertItem(QuillController controller) {
+  InsertItem(
+      {required QuillController controller, required Disposer disposer}) {
     _insertController = InsertController(controller);
     _linkController = ButtonController(
       value: toButton(_insertController.link),
@@ -413,6 +420,11 @@ class InsertItem with ToggleMixin implements QuillButtonItem {
           _insertController.image,
           _imageController,
         ));
+    disposer.onDispose.then((_) {
+      _insertController.dispose();
+      _linkController.dispose();
+      _imageController.dispose();
+    });
   }
 
   @override
@@ -479,13 +491,6 @@ class InsertItem with ToggleMixin implements QuillButtonItem {
       ],
     );
   }
-
-  @override
-  void dispose() {
-    _insertController.dispose();
-    _linkController.dispose();
-    _imageController.dispose();
-  }
 }
 
 /// Makes a [FloatingToolbarItem] with sizePlus and sizeMinus popups
@@ -494,7 +499,7 @@ class SizeItem implements QuillButtonItem {
   late final ButtonController _sizePlusController;
   late final ButtonController _sizeMinusController;
 
-  SizeItem(QuillController controller) {
+  SizeItem({required QuillController controller, required Disposer disposer}) {
     _sizeController = SizeController(controller);
     _sizePlusController = ButtonController(
       value: _sizePlusStateFromAttribute(_sizeController.size),
@@ -507,6 +512,11 @@ class SizeItem implements QuillButtonItem {
           plusController: _sizePlusController,
           minusController: _sizeMinusController,
         ));
+    disposer.onDispose.then((_) {
+      _sizeController.dispose();
+      _sizePlusController.dispose();
+      _sizeMinusController.dispose();
+    });
   }
 
   ButtonState _sizePlusStateFromAttribute(Attribute? attribute) {
@@ -630,13 +640,6 @@ class SizeItem implements QuillButtonItem {
       ],
     );
   }
-
-  @override
-  void dispose() {
-    _sizeController.dispose();
-    _sizePlusController.dispose();
-    _sizeMinusController.dispose();
-  }
 }
 
 /// Makes a [FloatingToolbarItem] with indentPlus and indentMinus popups
@@ -645,7 +648,8 @@ class IndentItem implements QuillButtonItem {
   late final ButtonController _indentPlusController;
   late final ButtonController _indentMinusController;
 
-  IndentItem(QuillController controller) {
+  IndentItem(
+      {required QuillController controller, required Disposer disposer}) {
     _indentController = IndentController(controller);
     _indentPlusController = ButtonController(
       value: _indentPlusStateFromAttribute(_indentController.indent),
@@ -658,6 +662,11 @@ class IndentItem implements QuillButtonItem {
           plusController: _indentPlusController,
           minusController: _indentMinusController,
         ));
+    disposer.onDispose.then((_) {
+      _indentController.dispose();
+      _indentPlusController.dispose();
+      _indentMinusController.dispose();
+    });
   }
 
   ButtonState _indentPlusStateFromAttribute(Attribute? attribute) {
@@ -762,13 +771,6 @@ class IndentItem implements QuillButtonItem {
       ],
     );
   }
-
-  @override
-  void dispose() {
-    _indentController.dispose();
-    _indentPlusController.dispose();
-    _indentMinusController.dispose();
-  }
 }
 
 /// Makes a [FloatingToolbarItem] with left, right, center, and justify
@@ -780,7 +782,7 @@ class AlignItem implements QuillButtonItem {
   late final ButtonController _centerController;
   late final ButtonController _justifyController;
 
-  AlignItem(QuillController controller) {
+  AlignItem({required QuillController controller, required Disposer disposer}) {
     _alignController = AlignController(controller);
     _leftController = ButtonController(
         value: _alignController.alignment == Attribute.leftAlignment
@@ -800,6 +802,13 @@ class AlignItem implements QuillButtonItem {
             : ButtonState.unselected);
     _alignController.alignmentListenable.addListener(
         () => _alignmentListener(attribute: _alignController.alignment));
+    disposer.onDispose.then((_) {
+      _alignController.dispose();
+      _leftController.dispose();
+      _rightController.dispose();
+      _centerController.dispose();
+      _justifyController.dispose();
+    });
   }
 
   Attribute get _noAlignment => Attribute('align', AttributeScope.BLOCK, null);
@@ -919,14 +928,5 @@ class AlignItem implements QuillButtonItem {
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _alignController.dispose();
-    _leftController.dispose();
-    _rightController.dispose();
-    _centerController.dispose();
-    _justifyController.dispose();
   }
 }

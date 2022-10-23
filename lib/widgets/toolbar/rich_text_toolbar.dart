@@ -79,7 +79,7 @@ class RichTextToolbar extends StatefulWidget {
 }
 
 class RichTextToolbarState extends State<RichTextToolbar> {
-  late final List<FloatingToolbarItem> _toolbarItems;
+  // late final List<FloatingToolbarItem> _toolbarItems;
   late final bool _preferTooltipBelow;
 
   bool _preferBelow() {
@@ -101,64 +101,55 @@ class RichTextToolbarState extends State<RichTextToolbar> {
     }
   }
 
-  late final StyleItem _styleItem;
-  late final SizeItem _sizeItem;
-  late final IndentItem _indentItem;
-  late final ListItem _listItem;
-  late final BlockItem _blockItem;
-  late final InsertItem _insertItem;
-  late final AlignItem _alignItem;
+  final Disposer _styleDisposer = Disposer();
+  final Disposer _sizeDisposer = Disposer();
+  final Disposer _indentDisposer = Disposer();
+  final Disposer _listDisposer = Disposer();
+  final Disposer _blockDisposer = Disposer();
+  final Disposer _insertDisposer = Disposer();
+  final Disposer _alignDisposer = Disposer();
 
   @override
   void initState() {
     super.initState();
-
-    _styleItem = StyleItem(widget.controller);
-    _sizeItem = SizeItem(widget.controller);
-    _indentItem = IndentItem(widget.controller);
-    _listItem = ListItem(widget.controller);
-    _blockItem = BlockItem(widget.controller);
-    _alignItem = AlignItem(widget.controller);
-    _insertItem = InsertItem(widget.controller);
-
     _preferTooltipBelow = _preferBelow();
-
-    _toolbarItems = [
-      _styleItem.item(
-        popupStyle: widget.popupStyle,
-        preferBelow: _preferTooltipBelow,
-      ),
-      _sizeItem.item(
-        popupStyle: widget.popupStyle,
-        preferBelow: _preferTooltipBelow,
-      ),
-      _indentItem.item(
-        popupStyle: widget.popupStyle,
-        preferBelow: _preferTooltipBelow,
-      ),
-      _listItem.item(
-        popupStyle: widget.popupStyle,
-        preferBelow: _preferTooltipBelow,
-      ),
-      _blockItem.item(
-        popupStyle: widget.popupStyle,
-        preferBelow: _preferTooltipBelow,
-      ),
-      _alignItem.item(
-        popupStyle: widget.popupStyle,
-        preferBelow: _preferTooltipBelow,
-      ),
-      _insertItem.item(
-        popupStyle: widget.popupStyle,
-        preferBelow: _preferTooltipBelow,
-      ),
-    ];
   }
 
   @override
   Widget build(BuildContext context) {
     return FloatingToolbar(
-      items: _toolbarItems,
+      items: [
+        StyleItem(controller: widget.controller, disposer: _styleDisposer).item(
+          popupStyle: widget.popupStyle,
+          preferBelow: _preferTooltipBelow,
+        ),
+        SizeItem(controller: widget.controller, disposer: _sizeDisposer).item(
+          popupStyle: widget.popupStyle,
+          preferBelow: _preferTooltipBelow,
+        ),
+        IndentItem(controller: widget.controller, disposer: _indentDisposer)
+            .item(
+          popupStyle: widget.popupStyle,
+          preferBelow: _preferTooltipBelow,
+        ),
+        ListItem(controller: widget.controller, disposer: _listDisposer).item(
+          popupStyle: widget.popupStyle,
+          preferBelow: _preferTooltipBelow,
+        ),
+        BlockItem(controller: widget.controller, disposer: _blockDisposer).item(
+          popupStyle: widget.popupStyle,
+          preferBelow: _preferTooltipBelow,
+        ),
+        AlignItem(controller: widget.controller, disposer: _alignDisposer).item(
+          popupStyle: widget.popupStyle,
+          preferBelow: _preferTooltipBelow,
+        ),
+        InsertItem(controller: widget.controller, disposer: _insertDisposer)
+            .item(
+          popupStyle: widget.popupStyle,
+          preferBelow: _preferTooltipBelow,
+        ),
+      ],
       alignment: widget.alignment,
       backgroundColor: widget.backgroundColor,
       contentPadding: widget.contentPadding,
@@ -177,13 +168,13 @@ class RichTextToolbarState extends State<RichTextToolbar> {
 
   @override
   void dispose() {
-    _styleItem.dispose();
-    _sizeItem.dispose();
-    _indentItem.dispose();
-    _listItem.dispose();
-    _blockItem.dispose();
-    _insertItem.dispose();
-    _alignItem.dispose();
+    _styleDisposer.dispose();
+    _sizeDisposer.dispose();
+    _indentDisposer.dispose();
+    _listDisposer.dispose();
+    _blockDisposer.dispose();
+    _insertDisposer.dispose();
+    _alignDisposer.dispose();
     super.dispose();
   }
 }
