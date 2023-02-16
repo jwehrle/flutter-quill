@@ -82,7 +82,7 @@ class EditorTextSelectionOverlay {
     this.dragStartBehavior = DragStartBehavior.start,
     this.handlesVisible = false,
   }) {
-    final overlay = Overlay.of(context, rootOverlay: true)!;
+    final overlay = Overlay.of(context, rootOverlay: true);
 
     _toolbarController = AnimationController(
         duration: const Duration(milliseconds: 150), vsync: overlay);
@@ -179,6 +179,8 @@ class EditorTextSelectionOverlay {
   /// A copy/paste toolbar.
   OverlayEntry? toolbar;
 
+  bool get toolbarIsVisible => toolbar != null;
+
   TextSelection get _selection => value.selection;
 
   Animation<double> get _toolbarOpacity => _toolbarController.view;
@@ -222,7 +224,7 @@ class EditorTextSelectionOverlay {
   void showToolbar() {
     assert(toolbar == null);
     toolbar = OverlayEntry(builder: _buildToolbar);
-    Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)!
+    Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)
         .insert(toolbar!);
     _toolbarController.forward(from: 0);
 
@@ -407,7 +409,7 @@ class EditorTextSelectionOverlay {
               _buildHandle(context, _TextSelectionHandlePosition.END)),
     ];
 
-    Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)!
+    Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)
         .insertAll(_handles!);
   }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:ui' as ui hide TextStyle;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -248,6 +249,49 @@ class RawEditorState extends EditorState
   ScrollController get scrollController => _scrollController;
   late ScrollController _scrollController;
 
+  // @override
+  // bool showToolbar() {
+  //   // Web is using native dom elements to enable clipboard functionality of the
+  //   // toolbar: copy, paste, select, cut. It might also provide additional
+  //   // functionality depending on the browser (such as translate). Due to this
+  //   // we should not show a Flutter toolbar for the editable text elements.
+  //   if (kIsWeb) {
+  //     return false;
+  //   }
+  //
+  //   if (_selectionOverlay == null || _selectionOverlay!.toolbarIsVisible) {
+  //     return false;
+  //   }
+  //   _clipboardStatus.update();
+  //   _selectionOverlay!.showToolbar();
+  //   return true;
+  // }
+  //
+  // int _placeholderLocation = -1;
+  //
+  // @override
+  // void insertTextPlaceholder(Size size) {
+  //   // if (!widget.scribbleEnabled)
+  //   //   return;
+  //
+  //   if (!widget.controller.selection.isValid) return;
+  //
+  //   setState(() {
+  //     //_value.text.length - widget.controller.selection.end;
+  //     _placeholderLocation = widget.controller.selection.end;
+  //   });
+  // }
+  //
+  // @override
+  // void removeTextPlaceholder() {
+  //   // if (!widget.scribbleEnabled)
+  //   //   return;
+  //
+  //   setState(() {
+  //     _placeholderLocation = -1;
+  //   });
+  // }
+
   // Cursors
   late CursorCont _cursorCont;
 
@@ -275,6 +319,127 @@ class RawEditorState extends EditorState
 
   TextDirection get _textDirection => Directionality.of(context);
 
+  // void _openInputConnection() {
+  //   if (!_shouldCreateInputConnection) {
+  //     return;
+  //   }
+  //   if (!_hasInputConnection) {
+  //     final TextEditingValue localValue = _value;
+  //
+  //     // When _needsAutofill == true && currentAutofillScope == null, autofill
+  //     // is allowed but saving the user input from the text field is
+  //     // discouraged.
+  //     //
+  //     // In case the autofillScope changes from a non-null value to null, or
+  //     // _needsAutofill changes to false from true, the platform needs to be
+  //     // notified to exclude this field from the autofill context. So we need to
+  //     // provide the autofillId.
+  //     _textInputConnection = _needsAutofill && currentAutofillScope != null
+  //         ? currentAutofillScope!
+  //             .attach(this, _effectiveAutofillClient.textInputConfiguration)
+  //         : TextInput.attach(
+  //             this, _effectiveAutofillClient.textInputConfiguration);
+  //     _updateSizeAndTransform();
+  //     _updateComposingRectIfNeeded();
+  //     _updateCaretRectIfNeeded();
+  //     final TextStyle style = widget.style;
+  //     _textInputConnection!
+  //       ..setStyle(
+  //         fontFamily: style.fontFamily,
+  //         fontSize: style.fontSize,
+  //         fontWeight: style.fontWeight,
+  //         textDirection: _textDirection,
+  //         textAlign: widget.textAlign,
+  //       )
+  //       ..setEditingState(localValue)
+  //       ..show();
+  //     if (_needsAutofill) {
+  //       // Request autofill AFTER the size and the transform have been sent to
+  //       // the platform text input plugin.
+  //       _textInputConnection!.requestAutofill();
+  //     }
+  //     _lastKnownRemoteTextEditingValue = localValue;
+  //   } else {
+  //     _textInputConnection!.show();
+  //   }
+  // }
+
+  // void _updateSelectionRects({bool force = false}) {
+  //   // if (!widget.scribbleEnabled)
+  //   //   return;
+  //   if (defaultTargetPlatform != TargetPlatform.iOS) return;
+  //   // This is to avoid sending selection rects on non-iPad devices.
+  //   if (WidgetsBinding.instance.window.physicalSize.shortestSide < _kIPadWidth)
+  //     return;
+  //
+  //   final String text =
+  //       renderEditable.text?.toPlainText(includeSemanticsLabels: false) ?? '';
+  //   final List<Rect> firstSelectionBoxes = renderEditable.getBoxesForSelection(
+  //       const TextSelection(baseOffset: 0, extentOffset: 1));
+  //   final Rect? firstRect =
+  //       firstSelectionBoxes.isNotEmpty ? firstSelectionBoxes.first : null;
+  //   final ScrollDirection scrollDirection =
+  //       _scrollController.position.userScrollDirection;
+  //   final Size size = renderEditable.size;
+  //   final bool textChanged = text != _cachedText;
+  //   final bool textStyleChanged = _cachedTextStyle != widget.style;
+  //   final bool firstRectChanged = _cachedFirstRect != firstRect;
+  //   final bool sizeChanged = _cachedSize != size;
+  //   final bool placeholderChanged = _cachedPlaceholder != _placeholderLocation;
+  //   if (scrollDirection == ScrollDirection.idle &&
+  //       (force ||
+  //           textChanged ||
+  //           textStyleChanged ||
+  //           firstRectChanged ||
+  //           sizeChanged ||
+  //           placeholderChanged)) {
+  //     _cachedText = text;
+  //     _cachedFirstRect = firstRect;
+  //     _cachedTextStyle = widget.style;
+  //     _cachedSize = size;
+  //     _cachedPlaceholder = _placeholderLocation;
+  //     bool belowRenderEditableBottom = false;
+  //     final List<SelectionRect> rects = List<SelectionRect?>.generate(
+  //       _cachedText.characters.length,
+  //       (int i) {
+  //         if (belowRenderEditableBottom) return null;
+  //
+  //         final int offset =
+  //             _cachedText.characters.getRange(0, i).string.length;
+  //         final List<Rect> boxes = renderEditable.getBoxesForSelection(
+  //             TextSelection(
+  //                 baseOffset: offset,
+  //                 extentOffset: offset +
+  //                     _cachedText.characters.characterAt(i).string.length));
+  //         if (boxes.isEmpty) return null;
+  //
+  //         final SelectionRect selectionRect = SelectionRect(
+  //           bounds: boxes.first,
+  //           position: offset,
+  //         );
+  //         if (renderEditable.paintBounds.bottom < selectionRect.bounds.top) {
+  //           belowRenderEditableBottom = true;
+  //           return null;
+  //         }
+  //         return selectionRect;
+  //       },
+  //     )
+  //         .where((SelectionRect? selectionRect) {
+  //           if (selectionRect == null) return false;
+  //           if (renderEditable.paintBounds.right < selectionRect.bounds.left ||
+  //               selectionRect.bounds.right < renderEditable.paintBounds.left)
+  //             return false;
+  //           if (renderEditable.paintBounds.bottom < selectionRect.bounds.top ||
+  //               selectionRect.bounds.bottom < renderEditable.paintBounds.top)
+  //             return false;
+  //           return true;
+  //         })
+  //         .map<SelectionRect>((SelectionRect? selectionRect) => selectionRect!)
+  //         .toList();
+  //     _textInputConnection!.setSelectionRects(rects);
+  //   }
+  // }
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
@@ -289,23 +454,32 @@ class RawEditorState extends EditorState
     Widget child = CompositedTransformTarget(
       link: _toolbarLayerLink,
       child: Semantics(
-        child: _Editor(
-          key: _editorKey,
-          document: _doc,
-          selection: widget.controller.selection,
-          hasFocus: _hasFocus,
-          scrollable: widget.scrollable,
-          cursorController: _cursorCont,
-          textDirection: _textDirection,
-          startHandleLayerLink: _startHandleLayerLink,
-          endHandleLayerLink: _endHandleLayerLink,
-          onSelectionChanged: _handleSelectionChanged,
-          onSelectionCompleted: _handleSelectionCompleted,
-          scrollBottomInset: widget.scrollBottomInset,
-          padding: widget.padding,
-          maxContentWidth: widget.maxContentWidth,
-          floatingCursorDisabled: widget.floatingCursorDisabled,
-          children: _buildChildren(_doc, context),
+        child: _ScribbleFocusable(
+          focusNode: widget.focusNode,
+          editableKey: _editorKey,
+          enabled: true,
+          updateSelectionRects: () {
+            // _openInputConnection();
+            // _updateSelectionRects(force: true);
+          },
+          child: _Editor(
+            key: _editorKey,
+            document: _doc,
+            selection: widget.controller.selection,
+            hasFocus: _hasFocus,
+            scrollable: widget.scrollable,
+            cursorController: _cursorCont,
+            textDirection: _textDirection,
+            startHandleLayerLink: _startHandleLayerLink,
+            endHandleLayerLink: _endHandleLayerLink,
+            onSelectionChanged: _handleSelectionChanged,
+            onSelectionCompleted: _handleSelectionCompleted,
+            scrollBottomInset: widget.scrollBottomInset,
+            padding: widget.padding,
+            maxContentWidth: widget.maxContentWidth,
+            floatingCursorDisabled: widget.floatingCursorDisabled,
+            children: _buildChildren(_doc, context),
+          ),
         ),
       ),
     );
@@ -918,7 +1092,7 @@ class RawEditorState extends EditorState
       _updateOrDisposeSelectionOverlayIfNeeded();
     }
 
-    if (_selectionOverlay == null || _selectionOverlay!.toolbar != null) {
+    if (_selectionOverlay == null || _selectionOverlay!.toolbarIsVisible) {
       return false;
     }
 
@@ -1180,17 +1354,59 @@ class RawEditorState extends EditorState
     PasteTextIntent: _makeOverridable(CallbackAction<PasteTextIntent>(
         onInvoke: (intent) => pasteText(intent.cause))),
   };
+//todo
+
+  // Tracks the location a [_ScribblePlaceholder] should be rendered in the
+  // text.
+  //
+  // A value of -1 indicates there should be no placeholder, otherwise the
+  // value should be between 0 and the length of the text, inclusive.
+  int _placeholderLocation = -1;
 
   @override
   void insertTextPlaceholder(Size size) {
     // this is needed for Scribble (Stylus input) in Apple platforms
     // and this package does not implement this feature
+    // if (!widget.scribbleEnabled)
+    //   return;
+
+    if (!widget.controller.selection.isValid) return;
+
+    setState(() {
+      //_placeholderLocation = _value.text.length - widget.controller.selection.end;
+      // textEditingValue.selection.start
+      _placeholderLocation = widget.controller.selection.end;
+    });
   }
 
   @override
   void removeTextPlaceholder() {
     // this is needed for Scribble (Stylus input) in Apple platforms
     // and this package does not implement this feature
+    // if (!widget.scribbleEnabled)
+    //   return;
+
+    setState(() {
+      _placeholderLocation = -1;
+    });
+  }
+
+  @override
+  void didChangeInputControl(
+      TextInputControl? oldControl, TextInputControl? newControl) {
+    // TODO: implement didChangeInputControl
+  }
+
+  @override
+  void performSelector(String selectorName) {
+    final intent = intentForMacOSSelector(selectorName);
+
+    if (intent != null) {
+      final primaryContext = primaryFocus?.context;
+      if (primaryContext != null) {
+        Actions.invoke(primaryContext, intent);
+      }
+    }
   }
 }
 
@@ -1874,4 +2090,142 @@ class _CopySelectionAction extends ContextAction<CopySelectionTextIntent> {
   bool get isActionEnabled =>
       state.textEditingValue.selection.isValid &&
       !state.textEditingValue.selection.isCollapsed;
+}
+
+class _ScribbleFocusable extends StatefulWidget {
+  const _ScribbleFocusable({
+    Key? key,
+    required this.child,
+    required this.focusNode,
+    required this.editableKey,
+    required this.updateSelectionRects,
+    required this.enabled,
+  }) : super(key: key);
+
+  final Widget child;
+  final FocusNode focusNode;
+  final GlobalKey editableKey;
+  final VoidCallback updateSelectionRects;
+  final bool enabled;
+
+  @override
+  _ScribbleFocusableState createState() => _ScribbleFocusableState();
+}
+
+class _ScribbleFocusableState extends State<_ScribbleFocusable>
+    implements ScribbleClient {
+  _ScribbleFocusableState()
+      : _elementIdentifier = (_nextElementIdentifier++).toString();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.enabled) {
+      TextInput.registerScribbleElement(elementIdentifier, this);
+    }
+  }
+
+  @override
+  void didUpdateWidget(_ScribbleFocusable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.enabled && widget.enabled) {
+      TextInput.registerScribbleElement(elementIdentifier, this);
+    }
+
+    if (oldWidget.enabled && !widget.enabled) {
+      TextInput.unregisterScribbleElement(elementIdentifier);
+    }
+  }
+
+  @override
+  void dispose() {
+    TextInput.unregisterScribbleElement(elementIdentifier);
+    super.dispose();
+  }
+
+  RenderEditable? get renderEditable =>
+      widget.editableKey.currentContext?.findRenderObject() as RenderEditable?;
+
+  static int _nextElementIdentifier = 1;
+  final String _elementIdentifier;
+
+  @override
+  String get elementIdentifier => _elementIdentifier;
+
+  @override
+  void onScribbleFocus(Offset offset) {
+    widget.focusNode.requestFocus();
+    renderEditable?.selectPositionAt(
+        from: offset, cause: SelectionChangedCause.scribble);
+    widget.updateSelectionRects();
+  }
+
+  @override
+  bool isInScribbleRect(Rect rect) {
+    final Rect calculatedBounds = bounds;
+    if (renderEditable?.readOnly ?? false) return false;
+    if (calculatedBounds == Rect.zero) return false;
+    if (!calculatedBounds.overlaps(rect)) return false;
+    final Rect intersection = calculatedBounds.intersect(rect);
+    final HitTestResult result = HitTestResult();
+    WidgetsBinding.instance.hitTest(result, intersection.center);
+    return result.path
+        .any((HitTestEntry entry) => entry.target == renderEditable);
+  }
+
+  @override
+  Rect get bounds {
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
+    if (box == null || !mounted || !box.attached) return Rect.zero;
+    final Matrix4 transform = box.getTransformTo(null);
+    return MatrixUtils.transformRect(
+        transform, Rect.fromLTWH(0, 0, box.size.width, box.size.height));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+
+class _ScribblePlaceholder extends WidgetSpan {
+  const _ScribblePlaceholder({
+    required Widget child,
+    ui.PlaceholderAlignment alignment = ui.PlaceholderAlignment.bottom,
+    TextBaseline? baseline,
+    TextStyle? style,
+    required this.size,
+  })  : assert(child != null),
+        assert(baseline != null ||
+            !(identical(alignment, ui.PlaceholderAlignment.aboveBaseline) ||
+                identical(alignment, ui.PlaceholderAlignment.belowBaseline) ||
+                identical(alignment, ui.PlaceholderAlignment.baseline))),
+        super(
+          alignment: alignment,
+          baseline: baseline,
+          style: style,
+          child: child,
+        );
+
+  /// The size of the span, used in place of adding a placeholder size to the [TextPainter].
+  final Size size;
+
+  @override
+  void build(ui.ParagraphBuilder builder,
+      {double textScaleFactor = 1.0, List<PlaceholderDimensions>? dimensions}) {
+    assert(debugAssertIsValid());
+    final bool hasStyle = style != null;
+    if (hasStyle) {
+      builder.pushStyle(style!.getTextStyle(textScaleFactor: textScaleFactor));
+    }
+    builder.addPlaceholder(
+      size.width,
+      size.height,
+      alignment,
+      scale: textScaleFactor,
+    );
+    if (hasStyle) {
+      builder.pop();
+    }
+  }
 }
