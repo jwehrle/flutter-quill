@@ -1,3 +1,12 @@
+// Dialogs
+
+const String kLinkTitle = 'Text Link';
+const String kLinkTextLabel = 'Display text';
+const String kUrlLabel = 'Link';
+const String kImageTitle = 'Image Link';
+const String kDialogCancelLabel = 'Cancel';
+const String kDialogAcceptLabel = 'OK';
+
 /// Labels
 
 const String kSizeLabel = 'Size';
@@ -13,7 +22,7 @@ const String kInsertLabel = 'Insert';
 const String kBoldTooltip = 'Make text bold';
 const String kItalicTooltip = 'Make text italic';
 const String kUnderTooltip = 'Underline text';
-const String kStrikeTooltip = 'Strike_thru text';
+const String kStrikeTooltip = 'Strike thru text';
 const String kQuoteTooltip = 'Format text as quote block';
 const String kCodeTooltip = 'Format text as code block';
 const String kNumberTooltip = 'Format text as numbered list';

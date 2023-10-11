@@ -1,5 +1,3 @@
-import 'package:tuple/tuple.dart';
-
 import '../../models/documents/document.dart';
 import '../documents/attribute.dart';
 import '../documents/nodes/embeddable.dart';
@@ -37,26 +35,26 @@ class PreserveLineStyleOnSplitRule extends InsertRule {
 
     final itr = DeltaIterator(document);
     final before = itr.skip(index);
-    if (before == null ||
-        before.data is! String ||
-        (before.data as String).endsWith('\n')) {
+    if (before == null) {
       return null;
     }
-    final after = itr.next();
-    if (after.data is! String || (after.data as String).startsWith('\n')) {
+    if (before.data is String && (before.data as String).endsWith('\n')) {
       return null;
     }
 
-    final text = after.data as String;
+    final after = itr.next();
+    if (after.data is String && (after.data as String).startsWith('\n')) {
+      return null;
+    }
 
     final delta = Delta()..retain(index + (len ?? 0));
-    if (text.contains('\n')) {
+    if (after.data is String && (after.data as String).contains('\n')) {
       assert(after.isPlain);
       delta.insert('\n');
       return delta;
     }
     final nextNewLine = _getNextNewLine(itr);
-    final attributes = nextNewLine.item1?.attributes;
+    final attributes = nextNewLine.operation?.attributes;
 
     return delta..insert('\n', attributes);
   }
@@ -85,8 +83,8 @@ class PreserveBlockStyleOnInsertRule extends InsertRule {
 
     // Look for the next newline.
     final nextNewLine = _getNextNewLine(itr);
-    final lineStyle =
-        Style.fromJson(nextNewLine.item1?.attributes ?? <String, dynamic>{});
+    final lineStyle = Style.fromJson(
+        nextNewLine.operation?.attributes ?? <String, dynamic>{});
 
     final blockStyle = lineStyle.getBlocksExceptHeader();
     // Are we currently in a block? If not then ignore.
@@ -118,7 +116,7 @@ class PreserveBlockStyleOnInsertRule extends InsertRule {
         final blockAttributes = blockStyle.isEmpty
             ? null
             : blockStyle.map<String, dynamic>((_, attribute) =>
-                MapEntry<String, dynamic>(attribute.key, attribute.value));
+            MapEntry<String, dynamic>(attribute.key, attribute.value));
         delta.insert('\n', blockAttributes);
       }
     }
@@ -126,8 +124,8 @@ class PreserveBlockStyleOnInsertRule extends InsertRule {
     // Reset style of the original newline character if needed.
     if (resetStyle.isNotEmpty) {
       delta
-        ..retain(nextNewLine.item2!)
-        ..retain((nextNewLine.item1!.data as String).indexOf('\n'))
+        ..retain(nextNewLine.skipped!)
+        ..retain((nextNewLine.operation!.data as String).indexOf('\n'))
         ..retain(1, resetStyle);
     }
 
@@ -188,9 +186,10 @@ class AutoExitBlockRule extends InsertRule {
     // Keep looking for the next newline character to see if it shares the same
     // block style as `cur`.
     final nextNewLine = _getNextNewLine(itr);
-    if (nextNewLine.item1 != null &&
-        nextNewLine.item1!.attributes != null &&
-        Style.fromJson(nextNewLine.item1!.attributes).getBlockExceptHeader() ==
+    if (nextNewLine.operation != null &&
+        nextNewLine.operation!.attributes != null &&
+        Style.fromJson(nextNewLine.operation!.attributes)
+            .getBlockExceptHeader() ==
             blockStyle) {
       // We are not at the end of this block, ignore.
       return null;
@@ -200,7 +199,7 @@ class AutoExitBlockRule extends InsertRule {
     // therefore we can exit this block.
     final attributes = cur.attributes ?? <String, dynamic>{};
     final k =
-        attributes.keys.firstWhere(Attribute.blockKeysExceptHeader.contains);
+    attributes.keys.firstWhere(Attribute.blockKeysExceptHeader.contains);
     attributes[k] = null;
     // retain(1) should be '\n', set it with no attribute
     return Delta()
@@ -332,16 +331,16 @@ class AutoFormatMultipleLinksRule extends InsertRule {
   // URL generator tool (https://www.randomlists.com/urls) is used.
   static const _linkPattern =
       r'(https?:\/\/|www\.)[\w-\.]+\.[\w-\.]+(\/([\S]+)?)?';
-  static final linkRegExp = RegExp(_linkPattern);
+  static final linkRegExp = RegExp(_linkPattern, caseSensitive: false);
 
   @override
   Delta? applyRule(
-    Delta document,
-    int index, {
-    int? len,
-    Object? data,
-    Attribute? attribute,
-  }) {
+      Delta document,
+      int index, {
+        int? len,
+        Object? data,
+        Attribute? attribute,
+      }) {
     // Only format when inserting text.
     if (data is! String) return null;
 
@@ -350,24 +349,24 @@ class AutoFormatMultipleLinksRule extends InsertRule {
 
     // Get word before insertion.
     final leftWordPart = entireText
-        // Keep all text before insertion.
+    // Keep all text before insertion.
         .substring(0, index)
-        // Keep last paragraph.
+    // Keep last paragraph.
         .split('\n')
         .last
-        // Keep last word.
+    // Keep last word.
         .split(' ')
         .last
         .trimLeft();
 
     // Get word after insertion.
     final rightWordPart = entireText
-        // Keep all text after insertion.
+    // Keep all text after insertion.
         .substring(index)
-        // Keep first paragraph.
+    // Keep first paragraph.
         .split('\n')
         .first
-        // Keep first word.
+    // Keep first word.
         .split(' ')
         .first
         .trimRight();
@@ -477,7 +476,7 @@ class PreserveInlineStylesRule extends InsertRule {
     }
 
     final itr = DeltaIterator(document);
-    final prev = itr.skip(index);
+    final prev = itr.skip(len == 0 ? index : index + 1);
     if (prev == null ||
         prev.data is! String ||
         (prev.data as String).contains('\n')) {
@@ -524,15 +523,22 @@ class CatchAllInsertRule extends InsertRule {
   }
 }
 
-Tuple2<Operation?, int?> _getNextNewLine(DeltaIterator iterator) {
+_NextNewLine _getNextNewLine(DeltaIterator iterator) {
   Operation op;
   for (var skipped = 0; iterator.hasNext; skipped += op.length!) {
     op = iterator.next();
     final lineBreak =
-        (op.data is String ? op.data as String? : '')!.indexOf('\n');
+    (op.data is String ? op.data as String? : '')!.indexOf('\n');
     if (lineBreak >= 0) {
-      return Tuple2(op, skipped);
+      return _NextNewLine(op, skipped);
     }
   }
-  return const Tuple2(null, null);
+  return const _NextNewLine(null, null);
+}
+
+class _NextNewLine {
+  const _NextNewLine(this.operation, this.skipped);
+
+  final Operation? operation;
+  final int? skipped;
 }

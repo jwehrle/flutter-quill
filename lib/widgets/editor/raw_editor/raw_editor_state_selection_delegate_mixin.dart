@@ -2,13 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+
 import 'package:flutter_quill/models/documents/document.dart';
 import 'package:flutter_quill/models/documents/nodes/leaf.dart';
 import 'package:flutter_quill/utils/delta.dart';
-import 'package:flutter_quill/widgets/editor/editor.dart';
+import '../editor.dart';
 
 mixin RawEditorStateSelectionDelegateMixin on EditorState
-    implements TextSelectionDelegate {
+implements TextSelectionDelegate {
   @override
   TextEditingValue get textEditingValue {
     return widget.controller.plainTextEditingValue;
@@ -37,13 +38,13 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
     if (insertedText == pastePlainText && pastePlainText != '') {
       final pos = start;
       for (var i = 0; i < pasteStyle.length; i++) {
-        final offset = pasteStyle[i].item1;
-        final style = pasteStyle[i].item2;
+        final offset = pasteStyle[i].offset;
+        final style = pasteStyle[i].value;
         widget.controller.formatTextStyle(
             pos + offset,
             i == pasteStyle.length - 1
                 ? pastePlainText.length - offset
-                : pasteStyle[i + 1].item1,
+                : pasteStyle[i + 1].offset,
             style);
       }
     }
@@ -114,7 +115,7 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
     additionalOffset = expandedRect.height >= editableSize.height
         ? editableSize.height / 2 - expandedRect.center.dy
         : 0.0
-            .clamp(expandedRect.bottom - editableSize.height, expandedRect.top);
+        .clamp(expandedRect.bottom - editableSize.height, expandedRect.top);
     unitOffset = const Offset(0, 1);
 
     // No overscrolling when encountering tall fonts/scripts that extend past
@@ -149,14 +150,15 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
   }
 
   @override
-  bool get cutEnabled => widget.toolbarOptions.cut && !widget.readOnly;
+  bool get cutEnabled => widget.contextMenuBuilder != null && !widget.readOnly;
 
   @override
-  bool get copyEnabled => widget.toolbarOptions.copy;
+  bool get copyEnabled => widget.contextMenuBuilder != null;
 
   @override
-  bool get pasteEnabled => widget.toolbarOptions.paste && !widget.readOnly;
+  bool get pasteEnabled =>
+      widget.contextMenuBuilder != null && !widget.readOnly;
 
   @override
-  bool get selectAllEnabled => widget.toolbarOptions.selectAll;
+  bool get selectAllEnabled => widget.contextMenuBuilder != null;
 }

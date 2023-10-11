@@ -1,12 +1,12 @@
-import 'package:floating_toolbar/toolbar.dart';
 import 'package:flutter_quill/models/documents/attribute.dart';
 import 'package:flutter_quill/controllers/controller.dart';
+import 'package:iconic_button/iconic_button.dart';
 
 /// The three mutually exclusive states that a toggle type button can be in
 enum ToggleState { disabled, off, on }
 
 /// Provides methods for dealing with [ToggleState]
-class ToggleMixin {
+mixin ToggleMixin {
   void toggle({
     required ToggleState state,
     required Attribute attribute,
@@ -24,14 +24,15 @@ class ToggleMixin {
     }
   }
 
-  ButtonState toButton(ToggleState state) {
-    switch (state) {
+
+  Set<ButtonState> initButtonStateFromToggleState(ToggleState toggleState) {
+    switch (toggleState) {
       case ToggleState.disabled:
-        return ButtonState.disabled;
+        return {};
       case ToggleState.off:
-        return ButtonState.unselected;
+        return {ButtonState.enabled};
       case ToggleState.on:
-        return ButtonState.selected;
+        return {ButtonState.selected, ButtonState.enabled};
     }
   }
 
@@ -41,10 +42,12 @@ class ToggleMixin {
         controller.disable();
         break;
       case ToggleState.off:
-        controller.unSelect();
+        // controller.unSelect();
+        controller.value = {ButtonState.enabled};
         break;
       case ToggleState.on:
-        controller.select();
+        // controller.select();
+        controller.value = {ButtonState.enabled, ButtonState.selected};
         break;
     }
   }

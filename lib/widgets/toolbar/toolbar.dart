@@ -1,3 +1,9 @@
 export 'rich_text_toolbar.dart';
 export 'package:floating_toolbar/toolbar.dart';
-export 'buttons.dart';
+export 'items/align_item.dart';
+export 'items/block_item.dart';
+export 'items/indent_item.dart';
+export 'items/insert_item.dart';
+export 'items/list_item.dart';
+export 'items/size_item.dart';
+export 'items/style_item.dart';

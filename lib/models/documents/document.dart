@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:tuple/tuple.dart';
+import 'package:flutter_quill/models/structs/doc_change.dart';
+import 'package:flutter_quill/models/structs/history_changed.dart';
+import 'package:flutter_quill/models/structs/segment_leaf_node.dart';
 
 import '../quill_delta.dart';
 import '../rules/rule.dart';
+import '../structs/offset_value.dart';
 import 'attribute.dart';
 import 'history.dart';
 import 'nodes/block.dart';
@@ -88,14 +91,12 @@ class Document {
     _rules.setCustomRules(customRules);
   }
 
-  final StreamController<Tuple3<Delta, Delta, ChangeSource>> _observer =
-      StreamController.broadcast();
+  final StreamController<DocChange> _observer = StreamController.broadcast();
 
   final History _history = History();
 
-  /// Stream of [Change]s applied to this document.
-  /// Tuple3 = Original (Delta) , Change (Delta), Source
-  Stream<Tuple3<Delta, Delta, ChangeSource>> get changes => _observer.stream;
+  /// Stream of [DocChange]s applied to this document.
+  Stream<DocChange> get changes => _observer.stream;
 
   /// Inserts [data] in this document at specified [index].
   ///
@@ -197,7 +198,7 @@ class Document {
   }
 
   /// Returns all styles for each node within selection
-  List<Tuple2<int, Style>> collectAllIndividualStyles(int index, int len) {
+  List<OffsetValue<Style>> collectAllIndividualStyles(int index, int len) {
     final res = queryChild(index);
     return (res.node as Line).collectAllIndividualStyles(res.offset, len);
   }
@@ -206,6 +207,12 @@ class Document {
   List<Style> collectAllStyles(int index, int len) {
     final res = queryChild(index);
     return (res.node as Line).collectAllStyles(res.offset, len);
+  }
+
+  /// Returns all styles for any character within the specified text range.
+  List<OffsetValue<Style>> collectAllStylesWithOffset(int index, int len) {
+    final res = queryChild(index);
+    return (res.node as Line).collectAllStylesWithOffsets(res.offset, len);
   }
 
   /// Returns plain text within the specified text range.
@@ -225,20 +232,44 @@ class Document {
     return block.queryChild(res.offset, true);
   }
 
+  /// Search the whole document for any substring matching the pattern
+  /// Returns the offsets that matches the pattern
+  List<int> search(Pattern other) {
+    final matches = <int>[];
+    for (final node in _root.children) {
+      if (node is Line) {
+        _searchLine(other, node, matches);
+      } else if (node is Block) {
+        for (final line in Iterable.castFrom<dynamic, Line>(node.children)) {
+          _searchLine(other, line, matches);
+        }
+      } else {
+        throw StateError('Unreachable.');
+      }
+    }
+    return matches;
+  }
+  void _searchLine(Pattern other, Line line, List<int> matches) {
+    var index = -1;
+    while (true) {
+      index = line.toPlainText().indexOf(other, index + 1);
+      if (index < 0) {
+        break;
+      }
+      matches.add(index + line.documentOffset);
+    }
+  }
+
   /// Given offset, find its leaf node in document
-  Tuple2<Line?, Leaf?> querySegmentLeafNode(int offset) {
+  SegmentLeafNode querySegmentLeafNode(int offset) {
     final result = queryChild(offset);
     if (result.node == null) {
-      return const Tuple2(null, null);
+      return const SegmentLeafNode(null, null);
     }
 
     final line = result.node as Line;
     final segmentResult = line.queryChild(result.offset, false);
-    if (segmentResult.node == null) {
-      return Tuple2(line, null);
-    }
-    final segment = segmentResult.node as Leaf;
-    return Tuple2(line, segment);
+    return SegmentLeafNode(line, segmentResult.node as Leaf?);
   }
 
   /// Composes [change] Delta into this document.
@@ -286,7 +317,7 @@ class Document {
     if (_delta != _root.toDelta()) {
       throw 'Compose failed';
     }
-    final change = Tuple3(originalDelta, delta, changeSource);
+    final change = DocChange(originalDelta, delta, changeSource);
     _observer.add(change);
     _history.handleDocChange(change);
   }
@@ -295,11 +326,11 @@ class Document {
     // compare each op to original op
   }
 
-  Tuple2 undo() {
+  HistoryChanged undo() {
     return _history.undo(this);
   }
 
-  Tuple2 redo() {
+  HistoryChanged redo() {
     return _history.redo(this);
   }
 

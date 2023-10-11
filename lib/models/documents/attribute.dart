@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:flutter_quill/models/documents/utilities/hash.dart';
+import 'package:quiver/core.dart';
 
 enum AttributeScope {
   INLINE, // refer to https://quilljs.com/docs/formats/#inline
@@ -10,7 +10,7 @@ enum AttributeScope {
 }
 
 class Attribute<T> {
-  Attribute(this.key, this.scope, this.value);
+  const Attribute(this.key, this.scope, this.value);
 
   /// Unique key of this attribute.
   final String key;
@@ -19,6 +19,8 @@ class Attribute<T> {
 
   static final Map<String, Attribute> _registry = LinkedHashMap.of({
     Attribute.bold.key: Attribute.bold,
+    Attribute.subscript.key: Attribute.subscript,
+    Attribute.superscript.key: Attribute.superscript,
     Attribute.italic.key: Attribute.italic,
     Attribute.small.key: Attribute.small,
     Attribute.underline.key: Attribute.underline,
@@ -42,55 +44,63 @@ class Attribute<T> {
     Attribute.style.key: Attribute.style,
     Attribute.token.key: Attribute.token,
     Attribute.script.key: Attribute.script,
+    Attribute.image.key: Attribute.image,
+    Attribute.video.key: Attribute.video,
   });
 
-  static final BoldAttribute bold = BoldAttribute();
+  static const BoldAttribute bold = BoldAttribute();
 
-  static final ItalicAttribute italic = ItalicAttribute();
+  static final ScriptAttribute subscript =
+  ScriptAttribute(ScriptAttributes.sub);
 
-  static final SmallAttribute small = SmallAttribute();
+  static final ScriptAttribute superscript =
+  ScriptAttribute(ScriptAttributes.sup);
 
-  static final UnderlineAttribute underline = UnderlineAttribute();
+  static const ItalicAttribute italic = ItalicAttribute();
 
-  static final StrikeThroughAttribute strikeThrough = StrikeThroughAttribute();
+  static const SmallAttribute small = SmallAttribute();
 
-  static final InlineCodeAttribute inlineCode = InlineCodeAttribute();
+  static const UnderlineAttribute underline = UnderlineAttribute();
 
-  static final FontAttribute font = FontAttribute(null);
+  static const StrikeThroughAttribute strikeThrough = StrikeThroughAttribute();
 
-  static final SizeAttribute size = SizeAttribute(null);
+  static const InlineCodeAttribute inlineCode = InlineCodeAttribute();
 
-  static final LinkAttribute link = LinkAttribute(null);
+  static const FontAttribute font = FontAttribute(null);
 
-  static final ColorAttribute color = ColorAttribute(null);
+  static const SizeAttribute size = SizeAttribute(null);
 
-  static final BackgroundAttribute background = BackgroundAttribute(null);
+  static const LinkAttribute link = LinkAttribute(null);
 
-  static final PlaceholderAttribute placeholder = PlaceholderAttribute();
+  static const ColorAttribute color = ColorAttribute(null);
 
-  static final HeaderAttribute header = HeaderAttribute();
+  static const BackgroundAttribute background = BackgroundAttribute(null);
 
-  static final IndentAttribute indent = IndentAttribute();
+  static const PlaceholderAttribute placeholder = PlaceholderAttribute();
 
-  static final AlignAttribute align = AlignAttribute(null);
+  static const HeaderAttribute header = HeaderAttribute();
 
-  static final ListAttribute list = ListAttribute(null);
+  static const IndentAttribute indent = IndentAttribute();
 
-  static final CodeBlockAttribute codeBlock = CodeBlockAttribute();
+  static const AlignAttribute align = AlignAttribute(null);
 
-  static final BlockQuoteAttribute blockQuote = BlockQuoteAttribute();
+  static const ListAttribute list = ListAttribute(null);
 
-  static final DirectionAttribute direction = DirectionAttribute(null);
+  static const CodeBlockAttribute codeBlock = CodeBlockAttribute();
 
-  static final WidthAttribute width = WidthAttribute(null);
+  static const BlockQuoteAttribute blockQuote = BlockQuoteAttribute();
 
-  static final HeightAttribute height = HeightAttribute(null);
+  static const DirectionAttribute direction = DirectionAttribute(null);
 
-  static final StyleAttribute style = StyleAttribute(null);
+  static const WidthAttribute width = WidthAttribute(null);
 
-  static final TokenAttribute token = TokenAttribute('');
+  static const HeightAttribute height = HeightAttribute(null);
 
-  static final ScriptAttribute script = ScriptAttribute('');
+  static const StyleAttribute style = StyleAttribute(null);
+
+  static const TokenAttribute token = TokenAttribute('');
+
+  static final ScriptAttribute script = ScriptAttribute(null);
 
   static const String mobileWidth = 'mobileWidth';
 
@@ -100,8 +110,14 @@ class Attribute<T> {
 
   static const String mobileAlignment = 'mobileAlignment';
 
+  static const ImageAttribute image = ImageAttribute(null);
+
+  static const VideoAttribute video = VideoAttribute(null);
+
   static final Set<String> inlineKeys = {
     Attribute.bold.key,
+    Attribute.subscript.key,
+    Attribute.superscript.key,
     Attribute.italic.key,
     Attribute.small.key,
     Attribute.underline.key,
@@ -138,47 +154,52 @@ class Attribute<T> {
     Attribute.blockQuote.key,
   });
 
-  static Attribute<int?> get h1 => HeaderAttribute(level: 1);
+  static final Set<String> embedKeys = {
+    Attribute.image.key,
+    Attribute.video.key,
+  };
 
-  static Attribute<int?> get h2 => HeaderAttribute(level: 2);
+  static const Attribute<int?> h1 = HeaderAttribute(level: 1);
 
-  static Attribute<int?> get h3 => HeaderAttribute(level: 3);
+  static const Attribute<int?> h2 = HeaderAttribute(level: 2);
+
+  static const Attribute<int?> h3 = HeaderAttribute(level: 3);
 
   // "attributes":{"align":"left"}
-  static Attribute<String?> get leftAlignment => AlignAttribute('left');
+  static const Attribute<String?> leftAlignment = AlignAttribute('left');
 
   // "attributes":{"align":"center"}
-  static Attribute<String?> get centerAlignment => AlignAttribute('center');
+  static const Attribute<String?> centerAlignment = AlignAttribute('center');
 
   // "attributes":{"align":"right"}
-  static Attribute<String?> get rightAlignment => AlignAttribute('right');
+  static const Attribute<String?> rightAlignment = AlignAttribute('right');
 
   // "attributes":{"align":"justify"}
-  static Attribute<String?> get justifyAlignment => AlignAttribute('justify');
+  static const Attribute<String?> justifyAlignment = AlignAttribute('justify');
 
   // "attributes":{"list":"bullet"}
-  static Attribute<String?> get ul => ListAttribute('bullet');
+  static const Attribute<String?> ul = ListAttribute('bullet');
 
   // "attributes":{"list":"ordered"}
-  static Attribute<String?> get ol => ListAttribute('ordered');
+  static const Attribute<String?> ol = ListAttribute('ordered');
 
   // "attributes":{"list":"checked"}
-  static Attribute<String?> get checked => ListAttribute('checked');
+  static const Attribute<String?> checked = ListAttribute('checked');
 
   // "attributes":{"list":"unchecked"}
-  static Attribute<String?> get unchecked => ListAttribute('unchecked');
+  static const Attribute<String?> unchecked = ListAttribute('unchecked');
 
   // "attributes":{"direction":"rtl"}
-  static Attribute<String?> get rtl => DirectionAttribute('rtl');
+  static const Attribute<String?> rtl = DirectionAttribute('rtl');
 
   // "attributes":{"indent":1"}
-  static Attribute<int?> get indentL1 => IndentAttribute(level: 1);
+  static const Attribute<int?> indentL1 = IndentAttribute(level: 1);
 
   // "attributes":{"indent":2"}
-  static Attribute<int?> get indentL2 => IndentAttribute(level: 2);
+  static const Attribute<int?> indentL2 = IndentAttribute(level: 2);
 
   // "attributes":{"indent":3"}
-  static Attribute<int?> get indentL3 => IndentAttribute(level: 3);
+  static const Attribute<int?> indentL3 = IndentAttribute(level: 3);
 
   static Attribute<int?> getIndentLevel(int? level) {
     if (level == 1) {
@@ -244,101 +265,127 @@ class Attribute<T> {
 }
 
 class BoldAttribute extends Attribute<bool> {
-  BoldAttribute() : super('bold', AttributeScope.INLINE, true);
+  const BoldAttribute() : super('bold', AttributeScope.INLINE, true);
 }
 
 class ItalicAttribute extends Attribute<bool> {
-  ItalicAttribute() : super('italic', AttributeScope.INLINE, true);
+  const ItalicAttribute() : super('italic', AttributeScope.INLINE, true);
 }
 
 class SmallAttribute extends Attribute<bool> {
-  SmallAttribute() : super('small', AttributeScope.INLINE, true);
+  const SmallAttribute() : super('small', AttributeScope.INLINE, true);
 }
 
 class UnderlineAttribute extends Attribute<bool> {
-  UnderlineAttribute() : super('underline', AttributeScope.INLINE, true);
+  const UnderlineAttribute() : super('underline', AttributeScope.INLINE, true);
 }
 
 class StrikeThroughAttribute extends Attribute<bool> {
-  StrikeThroughAttribute() : super('strike', AttributeScope.INLINE, true);
+  const StrikeThroughAttribute() : super('strike', AttributeScope.INLINE, true);
 }
 
 class InlineCodeAttribute extends Attribute<bool> {
-  InlineCodeAttribute() : super('code', AttributeScope.INLINE, true);
+  const InlineCodeAttribute() : super('code', AttributeScope.INLINE, true);
 }
 
 class FontAttribute extends Attribute<String?> {
-  FontAttribute(String? val) : super('font', AttributeScope.INLINE, val);
+  const FontAttribute(String? val) : super('font', AttributeScope.INLINE, val);
 }
 
 class SizeAttribute extends Attribute<String?> {
-  SizeAttribute(String? val) : super('size', AttributeScope.INLINE, val);
+  const SizeAttribute(String? val) : super('size', AttributeScope.INLINE, val);
 }
 
 class LinkAttribute extends Attribute<String?> {
-  LinkAttribute(String? val) : super('link', AttributeScope.INLINE, val);
+  const LinkAttribute(String? val) : super('link', AttributeScope.INLINE, val);
 }
 
 class ColorAttribute extends Attribute<String?> {
-  ColorAttribute(String? val) : super('color', AttributeScope.INLINE, val);
+  const ColorAttribute(String? val)
+      : super('color', AttributeScope.INLINE, val);
 }
 
 class BackgroundAttribute extends Attribute<String?> {
-  BackgroundAttribute(String? val)
+  const BackgroundAttribute(String? val)
       : super('background', AttributeScope.INLINE, val);
 }
 
 /// This is custom attribute for hint
 class PlaceholderAttribute extends Attribute<bool> {
-  PlaceholderAttribute() : super('placeholder', AttributeScope.INLINE, true);
+  const PlaceholderAttribute()
+      : super('placeholder', AttributeScope.INLINE, true);
 }
 
 class HeaderAttribute extends Attribute<int?> {
-  HeaderAttribute({int? level}) : super('header', AttributeScope.BLOCK, level);
+  const HeaderAttribute({int? level})
+      : super('header', AttributeScope.BLOCK, level);
 }
 
 class IndentAttribute extends Attribute<int?> {
-  IndentAttribute({int? level}) : super('indent', AttributeScope.BLOCK, level);
+  const IndentAttribute({int? level})
+      : super('indent', AttributeScope.BLOCK, level);
 }
 
 class AlignAttribute extends Attribute<String?> {
-  AlignAttribute(String? val) : super('align', AttributeScope.BLOCK, val);
+  const AlignAttribute(String? val) : super('align', AttributeScope.BLOCK, val);
 }
 
 class ListAttribute extends Attribute<String?> {
-  ListAttribute(String? val) : super('list', AttributeScope.BLOCK, val);
+  const ListAttribute(String? val) : super('list', AttributeScope.BLOCK, val);
 }
 
 class CodeBlockAttribute extends Attribute<bool> {
-  CodeBlockAttribute() : super('code-block', AttributeScope.BLOCK, true);
+  const CodeBlockAttribute() : super('code-block', AttributeScope.BLOCK, true);
 }
 
 class BlockQuoteAttribute extends Attribute<bool> {
-  BlockQuoteAttribute() : super('blockquote', AttributeScope.BLOCK, true);
+  const BlockQuoteAttribute() : super('blockquote', AttributeScope.BLOCK, true);
 }
 
 class DirectionAttribute extends Attribute<String?> {
-  DirectionAttribute(String? val)
+  const DirectionAttribute(String? val)
       : super('direction', AttributeScope.BLOCK, val);
 }
 
 class WidthAttribute extends Attribute<String?> {
-  WidthAttribute(String? val) : super('width', AttributeScope.IGNORE, val);
+  const WidthAttribute(String? val)
+      : super('width', AttributeScope.IGNORE, val);
 }
 
 class HeightAttribute extends Attribute<String?> {
-  HeightAttribute(String? val) : super('height', AttributeScope.IGNORE, val);
+  const HeightAttribute(String? val)
+      : super('height', AttributeScope.IGNORE, val);
 }
 
 class StyleAttribute extends Attribute<String?> {
-  StyleAttribute(String? val) : super('style', AttributeScope.IGNORE, val);
+  const StyleAttribute(String? val)
+      : super('style', AttributeScope.IGNORE, val);
 }
 
 class TokenAttribute extends Attribute<String> {
-  TokenAttribute(String val) : super('token', AttributeScope.IGNORE, val);
+  const TokenAttribute(String val) : super('token', AttributeScope.IGNORE, val);
 }
 
-// `script` is supposed to be inline attribute but it is not supported yet
-class ScriptAttribute extends Attribute<String> {
-  ScriptAttribute(String val) : super('script', AttributeScope.IGNORE, val);
+class ScriptAttribute extends Attribute<String?> {
+  ScriptAttribute(ScriptAttributes? val)
+      : super('script', AttributeScope.INLINE, val?.value);
+}
+
+enum ScriptAttributes {
+  sup('super'),
+  sub('sub');
+
+  const ScriptAttributes(this.value);
+
+  final String value;
+}
+
+class ImageAttribute extends Attribute<String?> {
+  const ImageAttribute(String? url)
+      : super('image', AttributeScope.EMBEDS, url);
+}
+
+class VideoAttribute extends Attribute<String?> {
+  const VideoAttribute(String? url)
+      : super('video', AttributeScope.EMBEDS, url);
 }
