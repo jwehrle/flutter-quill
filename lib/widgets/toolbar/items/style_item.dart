@@ -19,6 +19,7 @@ class StyleItem extends QuillItem with ToggleMixin {
     super.iconData = CommunityMaterialIcons.format_font,
     super.label = kStyleLabel,
     super.tooltip = kStyleTooltip,
+    super.preferBelow = false,
     this.boldIconData = Icons.format_bold,
     this.boldLabel,
     this.boldTooltip = kBoldTooltip,

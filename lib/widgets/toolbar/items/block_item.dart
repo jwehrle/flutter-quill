@@ -19,6 +19,7 @@ class BlockItem extends QuillItem with ToggleMixin {
     super.iconData = CommunityMaterialIcons.format_pilcrow,
     super.label = kBlockLabel,
     super.tooltip = kBlockTooltip,
+    super.preferBelow = false,
     this.quoteBlockIconData = Icons.format_quote,
     this.quoteBlockLabel,
     this.quoteBlockTooltip = kQuoteTooltip,

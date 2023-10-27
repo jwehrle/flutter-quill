@@ -503,9 +503,7 @@ class RichTextToolbar extends StatefulWidget {
 }
 
 class RichTextToolbarState extends State<RichTextToolbar> {
-  /// Whether system should try to show tooltip below buttons
-  late final bool _preferTooltipBelow;
-
+  
   /// Determines tooltp display preference based on alignment
   bool _preferBelow() {
     switch (widget.alignment) {
@@ -553,13 +551,9 @@ class RichTextToolbarState extends State<RichTextToolbar> {
   /// Deselects items
   void _onFinished() => _itemSelector.selected = null;
 
-  late final PopupStyle _itemStyle;
-
   @override
-  void initState() {
-    super.initState();
-    _preferTooltipBelow = _preferBelow();
-    _itemStyle = PopupStyle(
+  Widget build(BuildContext context) {
+    final itemStyle = IconicButtonTheme.of(context).copyWith(
       shape: widget.popupShape,
       elevation: widget.popupElevation,
       padding: widget.popupPadding,
@@ -568,12 +562,8 @@ class RichTextToolbarState extends State<RichTextToolbar> {
       onSurface: widget.popupOnSurface,
       shadowColor: widget.popupShadowColor,
       textStyle: widget.popupTextStyle,
-      preferBelow: _preferTooltipBelow,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
+    ).style;
+    final preferBelow = _preferBelow();
     return FloatingToolbar(
       alignment: widget.alignment,
       backgroundColor: widget.backgroundColor,
@@ -586,7 +576,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
       elevation: widget.elevation,
       onValueChanged: widget.onValueChanged,
       tooltipOffset: widget.tooltipOffset,
-      preferTooltipBelow: _preferTooltipBelow,
+      preferTooltipBelow: preferBelow,
       primary: widget.toolbarPrimary,
       onPrimary: widget.toolbarOnPrimary,
       onSurface: widget.toolbarOnSurface,
@@ -601,7 +591,8 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         StyleItem(
           controller: widget.controller,
           disposer: _styleDisposer,
-          style: _itemStyle,
+          preferBelow: preferBelow,
+          style: itemStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.styleIconData,
           label: widget.styleLabel,
@@ -622,7 +613,8 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         SizeItem(
           controller: widget.controller,
           disposer: _sizeDisposer,
-          style: _itemStyle,
+          preferBelow: preferBelow,
+          style: itemStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.sizeIconData,
           label: widget.sizeLabel,
@@ -637,7 +629,8 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         IndentItem(
           controller: widget.controller,
           disposer: _indentDisposer,
-          style: _itemStyle,
+          preferBelow: preferBelow,
+          style: itemStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.indentIconData,
           label: widget.indentLabel,
@@ -652,7 +645,8 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         ListItem(
           controller: widget.controller,
           disposer: _listDisposer,
-          style: _itemStyle,
+          preferBelow: preferBelow,
+          style: itemStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.listIconData,
           label: widget.listLabel,
@@ -667,7 +661,8 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         BlockItem(
           controller: widget.controller,
           disposer: _blockDisposer,
-          style: _itemStyle,
+          preferBelow: preferBelow,
+          style: itemStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.blockIconData,
           label: widget.blockLabel,
@@ -682,7 +677,8 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         AlignItem(
           controller: widget.controller,
           disposer: _alignDisposer,
-          style: _itemStyle,
+          preferBelow: preferBelow,
+          style: itemStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.alignIconData,
           label: widget.alignLabel,
@@ -703,7 +699,8 @@ class RichTextToolbarState extends State<RichTextToolbar> {
         InsertItem(
           controller: widget.controller,
           disposer: _insertDisposer,
-          style: _itemStyle,
+          preferBelow: preferBelow,
+          style: itemStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.insertIconData,
           label: widget.insertLabel,

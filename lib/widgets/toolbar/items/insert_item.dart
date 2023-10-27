@@ -19,6 +19,7 @@ class InsertItem extends QuillItem with ToggleMixin {
     super.iconData = Icons.attachment_sharp,
     super.label = kInsertLabel,
     super.tooltip = kInsertTooltip,
+    super.preferBelow = false,
     this.textLinkIconData = Icons.link,
     this.textLinkLabel,
     this.textLinkTooltip = kLinkTooltip,

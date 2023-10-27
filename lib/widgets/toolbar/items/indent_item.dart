@@ -17,6 +17,7 @@ class IndentItem extends QuillItem {
     super.iconData = Icons.format_indent_increase,
     super.label = kIndentLabel,
     super.tooltip = kIndentTooltip,
+    super.preferBelow = false,
     this.indentPlusIconData = Icons.arrow_forward,
     this.indentPlusLabel,
     this.indentPlusTooltip = kIndentPlusTooltip,

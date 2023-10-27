@@ -32,30 +32,7 @@ class Disposer {
   }
 }
 
-class PopupStyle {
-  PopupStyle({
-    required this.shape,
-    required this.elevation,
-    required this.padding,
-    required this.primary,
-    required this.onPrimary,
-    required this.onSurface,
-    required this.shadowColor,
-    required this.textStyle,
-    required this.preferBelow,
-  });
-
-  final OutlinedBorder? shape;
-  final double? elevation;
-  final EdgeInsetsGeometry? padding;
-  final Color? primary;
-  final Color? onPrimary;
-  final Color? onSurface;
-  final Color? shadowColor;
-  final TextStyle? textStyle;
-  final bool? preferBelow;
-}
-
+/// The logic and content of a popup button
 class PopupData {
   final bool isSelectable;
   final bool isSelected;
@@ -82,6 +59,7 @@ abstract class QuillItem {
     required this.iconData,
     required this.label,
     required this.tooltip,
+    required this.preferBelow,
     required this.style,
     this.onFinished,
   });
@@ -95,11 +73,14 @@ abstract class QuillItem {
   /// The tooltip for the toolbar button of this item
   final String tooltip;
 
+  /// Whether to place the tooltuip below the button if there is room
+  final bool preferBelow;
+
   /// A callback triggered when popup logic is complete
   final VoidCallback? onFinished;
 
   /// Styling fields for popups
-  final PopupStyle style;
+  final ButtonStyle style;
 
   /// Builds a [FloatingToolbarItem] that follows and alters
   /// a [QuillController]
@@ -121,16 +102,9 @@ abstract class QuillItem {
       iconData: data.iconData,
       label: data.label,
       tooltip: data.tooltip,
+      preferTooltipBelow: preferBelow,
       onPressed: data.onPressed,
-      shape: style.shape,
-      elevation: style.elevation,
-      padding: style.padding,
-      primary: style.primary,
-      onPrimary: style.onPrimary,
-      onSurface: style.onSurface,
-      shadowColor: style.shadowColor,
-      textStyle: style.textStyle,
-      preferTooltipBelow: style.preferBelow,
+      style: style,
     );
   }
 }

@@ -17,6 +17,7 @@ class SizeItem extends QuillItem {
     super.iconData = Icons.format_size,
     super.label = kSizeLabel,
     super.tooltip = kSizeTooltip,
+    super.preferBelow = false,
     this.sizePlusIconData = Icons.arrow_upward,
     this.sizePlusLabel,
     this.sizePlusTooltip = kSizePlusTooltip,

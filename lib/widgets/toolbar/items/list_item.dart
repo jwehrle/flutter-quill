@@ -19,6 +19,7 @@ class ListItem extends QuillItem with ToggleMixin {
     super.iconData = CommunityMaterialIcons.view_list,
     super.label = kListLabel,
     super.tooltip = kListTooltip,
+    super.preferBelow = false,
     this.numberedListIconData = Icons.format_list_numbered,
     this.numberedListLabel,
     this.numberedListTooltip = kNumberTooltip,

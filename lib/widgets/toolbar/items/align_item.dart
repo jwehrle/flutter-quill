@@ -22,6 +22,7 @@ class AlignItem extends QuillItem {
     super.iconData = Icons.format_align_left,
     super.label = kAlignLabel,
     super.tooltip = kAlignTooltip,
+    super.preferBelow = false,
     this.leftAlignIconData = Icons.format_align_left,
     this.leftAlignLabel,
     this.leftAlignTooltip = kLeftAlignTooltip,
