@@ -13,18 +13,18 @@ import 'package:flutter_quill/widgets/toolbar/items/size_item.dart';
 import 'package:flutter_quill/widgets/toolbar/items/style_item.dart';
 import 'package:iconic_button/iconic_button.dart';
 
-const kDefaultToolbarShape = const RoundedRectangleBorder(
-    borderRadius: BorderRadius.all(Radius.circular(4.0)));
+// const kDefaultToolbarShape = const RoundedRectangleBorder(
+//     borderRadius: BorderRadius.all(Radius.circular(4.0)));
 const kDefaultPopupShape = const CircleBorder();
 
-const kDefaultToolbarContentPadding = const EdgeInsets.all(2.0);
-const kDefaultToolbarMargin = const EdgeInsets.all(2.0);
+// const kDefaultToolbarContentPadding = const EdgeInsets.all(2.0);
+// const kDefaultToolbarMargin = const EdgeInsets.all(2.0);
 const kDefaultPopupPadding = const EdgeInsets.all(8.0);
 
-const kDefaultPopupElevation = 4.0;
-const kDefaultButtonSpacing = 2.0;
-const kDefaultPopupSpacing = 4.0;
-const kDefaultToolbarElevation = 2.0;
+// const kDefaultPopupElevation = 4.0;
+// const kDefaultButtonSpacing = 2.0;
+// const kDefaultPopupSpacing = 4.0;
+// const kDefaultToolbarElevation = 2.0;
 
 class RichTextToolbar extends StatefulWidget {
   /// Creates a floating toolbar with standard formating options.
@@ -36,18 +36,20 @@ class RichTextToolbar extends StatefulWidget {
     Key? key,
     required this.controller,
     required this.backgroundColor,
-    this.alignment = ToolbarAlignment.bottomCenterHorizontal,
-    this.contentPadding = kDefaultToolbarContentPadding,
+    this.axis = Axis.horizontal,
+    this.alignment = Alignment.bottomCenter,
+    this.contentPadding = kDefaultContentPadding,
     this.buttonSpacing = kDefaultButtonSpacing,
     this.popupSpacing = kDefaultPopupSpacing,
-    this.elevation = kDefaultToolbarElevation,
+    this.elevation = kDefaultElevation,
     this.shape = kDefaultToolbarShape,
-    this.tooltipOffset,
+    this.tooltipOffset = kDefaultPopupSpacing,
+    this.preferTooltipBelow = false,
     this.clip = Clip.antiAlias,
-    this.margin = kDefaultToolbarMargin,
+    this.margin = kDefaultMargin,
     this.onValueChanged,
     this.popupShape = kDefaultPopupShape,
-    this.popupElevation = kDefaultPopupElevation,
+    this.popupElevation, // = kDefaultPopupElevation,
     this.popupPadding = kDefaultPopupPadding,
     this.popupPrimary,
     this.popupOnPrimary,
@@ -59,8 +61,8 @@ class RichTextToolbar extends StatefulWidget {
     this.toolbarOnSurface,
     this.toolbarShadowColor,
     this.toolbarButtonElevation = 0.0,
-    this.toolbarTextStyle,
-    this.toolbarPadding,
+    this.buttonTextStyle,
+    this.buttonPadding,
     this.toolbarButtonShape = kDefaultRectangularShape,
     this.dimissOnFinish = false,
     this.styleIconData = CommunityMaterialIcons.format_font,
@@ -154,11 +156,15 @@ class RichTextToolbar extends StatefulWidget {
   /// document from button presses.
   final QuillController controller;
 
-  /// The location of the toolbar. The first direction indicates alignment along
-  /// a side, the second direction indicates alignment relative to that side.
-  /// For example: leftTop means the toolbar will be placed vertically along the
-  /// left side, and, the start of the toolbar will be at the top.
-  final ToolbarAlignment alignment;
+  /// Direction of the toolbar. Defaults to [Alignment.bottomCenter] 
+  /// with [Axis.horizontal]. Note, toolbar can only be located
+  /// around the perimerter of the screen.
+  final Axis axis;
+
+  /// Where to locate the toolbar. Defaults to [Alignment.bottomCenter] 
+  /// with [Axis.horizontal]. Note, toolbar can only be located
+  /// around the perimerter of the screen.
+  final Alignment alignment;
 
   /// The padding around the buttons but not between them. Default is 2.0 on
   /// all sides.
@@ -190,6 +196,8 @@ class RichTextToolbar extends StatefulWidget {
 
   /// Offset of tooltips
   final double? tooltipOffset;
+
+  final bool preferTooltipBelow;
 
   /// The background of the toolbar. Defaults to [Theme.primaryColor]
   final Color backgroundColor;
@@ -234,10 +242,10 @@ class RichTextToolbar extends StatefulWidget {
   final double? toolbarButtonElevation;
 
   /// Textstyle of toolbar button labels
-  final TextStyle? toolbarTextStyle;
+  final TextStyle? buttonTextStyle;
 
   /// Padding between toolbar buttons
-  final EdgeInsetsGeometry? toolbarPadding;
+  final EdgeInsetsGeometry? buttonPadding;
 
   /// Shape of toolbar buttons
   final OutlinedBorder? toolbarButtonShape;
@@ -503,26 +511,6 @@ class RichTextToolbar extends StatefulWidget {
 }
 
 class RichTextToolbarState extends State<RichTextToolbar> {
-  
-  /// Determines tooltp display preference based on alignment
-  bool _preferBelow() {
-    switch (widget.alignment) {
-      case ToolbarAlignment.topLeftVertical:
-      case ToolbarAlignment.topLeftHorizontal:
-      case ToolbarAlignment.topCenterHorizontal:
-      case ToolbarAlignment.topRightHorizontal:
-      case ToolbarAlignment.topRightVertical:
-      case ToolbarAlignment.centerLeftVertical:
-      case ToolbarAlignment.centerRightVertical:
-        return true;
-      case ToolbarAlignment.bottomLeftVertical:
-      case ToolbarAlignment.bottomRightVertical:
-      case ToolbarAlignment.bottomLeftHorizontal:
-      case ToolbarAlignment.bottomCenterHorizontal:
-      case ToolbarAlignment.bottomRightHorizontal:
-        return false;
-    }
-  }
 
   /// Disposes of style controller
   final Disposer _styleDisposer = Disposer();
@@ -551,48 +539,14 @@ class RichTextToolbarState extends State<RichTextToolbar> {
   /// Deselects items
   void _onFinished() => _itemSelector.selected = null;
 
-  @override
-  Widget build(BuildContext context) {
-    final itemStyle = IconicButtonTheme.of(context).copyWith(
-      shape: widget.popupShape,
-      elevation: widget.popupElevation,
-      padding: widget.popupPadding,
-      primary: widget.popupPrimary,
-      onPrimary: widget.popupOnPrimary,
-      onSurface: widget.popupOnSurface,
-      shadowColor: widget.popupShadowColor,
-      textStyle: widget.popupTextStyle,
-    ).style;
-    final preferBelow = _preferBelow();
-    return FloatingToolbar(
-      alignment: widget.alignment,
-      backgroundColor: widget.backgroundColor,
-      contentPadding: widget.contentPadding,
-      buttonSpacing: widget.buttonSpacing,
-      popupSpacing: widget.popupSpacing,
-      shape: widget.shape,
-      margin: widget.margin,
-      clip: widget.clip,
-      elevation: widget.elevation,
-      onValueChanged: widget.onValueChanged,
-      tooltipOffset: widget.tooltipOffset,
-      preferTooltipBelow: preferBelow,
-      primary: widget.toolbarPrimary,
-      onPrimary: widget.toolbarOnPrimary,
-      onSurface: widget.toolbarOnSurface,
-      shadowColor: widget.toolbarShadowColor,
-      buttonElevation: widget.toolbarButtonElevation,
-      textStyle: widget.toolbarTextStyle,
-      padding: widget.toolbarPadding,
-      buttonShape: widget.toolbarButtonShape,
-      modalBarrier: false,
-      itemSelector: _itemSelector,
-      items: [
+  List<FloatingToolbarItem> itemList(
+          bool preferBelow, ButtonStyle popupStyle) =>
+      [
         StyleItem(
           controller: widget.controller,
           disposer: _styleDisposer,
           preferBelow: preferBelow,
-          style: itemStyle,
+          style: popupStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.styleIconData,
           label: widget.styleLabel,
@@ -614,7 +568,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           controller: widget.controller,
           disposer: _sizeDisposer,
           preferBelow: preferBelow,
-          style: itemStyle,
+          style: popupStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.sizeIconData,
           label: widget.sizeLabel,
@@ -630,7 +584,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           controller: widget.controller,
           disposer: _indentDisposer,
           preferBelow: preferBelow,
-          style: itemStyle,
+          style: popupStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.indentIconData,
           label: widget.indentLabel,
@@ -646,7 +600,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           controller: widget.controller,
           disposer: _listDisposer,
           preferBelow: preferBelow,
-          style: itemStyle,
+          style: popupStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.listIconData,
           label: widget.listLabel,
@@ -662,7 +616,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           controller: widget.controller,
           disposer: _blockDisposer,
           preferBelow: preferBelow,
-          style: itemStyle,
+          style: popupStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.blockIconData,
           label: widget.blockLabel,
@@ -678,7 +632,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           controller: widget.controller,
           disposer: _alignDisposer,
           preferBelow: preferBelow,
-          style: itemStyle,
+          style: popupStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.alignIconData,
           label: widget.alignLabel,
@@ -700,7 +654,7 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           controller: widget.controller,
           disposer: _insertDisposer,
           preferBelow: preferBelow,
-          style: itemStyle,
+          style: popupStyle,
           onFinished: widget.dimissOnFinish ? _onFinished : null,
           iconData: widget.insertIconData,
           label: widget.insertLabel,
@@ -721,7 +675,225 @@ class RichTextToolbarState extends State<RichTextToolbar> {
           imageLinkDialogCancelLabel: widget.imageLinkDialogCancelLabel,
           imageLinkDialogAcceptLabel: widget.imageLinkDialogAcceptLabel,
         ).build(),
-      ],
+      ];
+
+  ToolbarStyle get _toolbarStyle {
+    final fallBack = ToolbarStyle.bottomCenterHorizontal(
+      backgroundColor: widget.backgroundColor,
+      contentPadding: widget.contentPadding,
+      buttonSpacing: widget.buttonSpacing,
+      popupSpacing: widget.popupSpacing,
+      shape: widget.shape,
+      margin: widget.margin,
+      clip: widget.clip,
+      elevation: widget.elevation,
+    );
+    switch (widget.axis) {
+      case Axis.horizontal:
+        switch (widget.alignment) {
+          case Alignment.bottomCenter:
+            return ToolbarStyle.bottomCenterHorizontal(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.bottomLeft:
+            return ToolbarStyle.bottomLeftHorizontal(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.bottomRight:
+            return ToolbarStyle.bottomRightHorizontal(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.center:
+            return fallBack;
+          case Alignment.centerLeft:
+            return ToolbarStyle.centerLeftVertical(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.centerRight:
+            return fallBack;
+          case Alignment.topCenter:
+            return ToolbarStyle.topCenterHorizontal(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.topLeft:
+            return ToolbarStyle.topLeftHorizontal(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.topRight:
+            return ToolbarStyle.topRightHorizontal(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+        }
+        break;
+      case Axis.vertical:
+        switch (widget.alignment) {
+          case Alignment.bottomCenter:
+            return fallBack;
+          case Alignment.bottomLeft:
+            return ToolbarStyle.bottomLeftVertical(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.bottomRight:
+            return ToolbarStyle.bottomRightVertical(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.center:
+            return fallBack;
+          case Alignment.centerLeft:
+            return ToolbarStyle.centerLeftVertical(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.centerRight:
+            return ToolbarStyle.centerRightVertical(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.topCenter:
+            return fallBack;
+          case Alignment.topLeft:
+            return ToolbarStyle.topLeftVertical(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+          case Alignment.topRight:
+            return ToolbarStyle.topRightVertical(
+              backgroundColor: widget.backgroundColor,
+              contentPadding: widget.contentPadding,
+              buttonSpacing: widget.buttonSpacing,
+              popupSpacing: widget.popupSpacing,
+              shape: widget.shape,
+              margin: widget.margin,
+              clip: widget.clip,
+              elevation: widget.elevation,
+            );
+        }
+        break;
+      default:
+        return fallBack;
+    }
+    return fallBack;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final popupStyle = IconicButtonTheme.of(context)
+        .copyWith(
+          shape: widget.popupShape,
+          elevation: widget.popupElevation,
+          padding: widget.popupPadding,
+          primary: widget.popupPrimary,
+          onPrimary: widget.popupOnPrimary,
+          onSurface: widget.popupOnSurface,
+          shadowColor: widget.popupShadowColor,
+          textStyle: widget.popupTextStyle,
+        )
+        .style;
+    final items = itemList(widget.preferTooltipBelow, popupStyle);
+    return FloatingToolbar(
+      toolbarStyle: _toolbarStyle,
+      toolbarButtonStyle: ToolbarButtonStyle(
+        tooltipOffset: widget.tooltipOffset,
+        preferTooltipBelow: widget.preferTooltipBelow,
+        primary: widget.toolbarPrimary,
+        onPrimary: widget.toolbarOnPrimary,
+        onSurface: widget.toolbarOnSurface,
+        shadowColor: widget.toolbarShadowColor,
+        elevation: widget.toolbarButtonElevation ?? 0.0,
+        textStyle: widget.buttonTextStyle,
+        padding: widget.buttonPadding,
+        shape: widget.toolbarButtonShape,
+        equalizedSize: findEqualizedSize(
+          context: context,
+          items: items,
+          padding: widget.buttonPadding,
+          textStyle: widget.buttonTextStyle,
+        ),
+      ),
+      onValueChanged: widget.onValueChanged,
+      itemSelector: _itemSelector,
+      items: items,
     );
   }
 

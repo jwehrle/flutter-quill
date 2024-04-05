@@ -105,7 +105,6 @@ class _HomePageState extends State<HomePage> {
             ),
             RichTextToolbar(
               controller: _controller!,
-              alignment: ToolbarAlignment.bottomCenterHorizontal,
               backgroundColor: theme.primaryColor,
               popupSpacing: 6.0,
               contentPadding: EdgeInsets.all(4.0),
@@ -113,7 +112,7 @@ class _HomePageState extends State<HomePage> {
               toolbarPrimary: theme.primaryColor,
               toolbarOnPrimary: theme.colorScheme.onPrimary,
               toolbarOnSurface: theme.colorScheme.onSurface,
-              toolbarPadding: EdgeInsets.zero,
+              buttonPadding: EdgeInsets.all(4.0),
             ),
           ],
         ),
