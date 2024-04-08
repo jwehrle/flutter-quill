@@ -168,9 +168,9 @@ class IndentItem extends QuillItem {
 
   @override
   FloatingToolbarItem build() {
-    return FloatingToolbarItem.popup(
-      toolbarButton,
-      [
+    return FloatingToolbarItem.buttonWithPopups(
+      item: toolbarButton,
+      popups: [
         PopupItemBuilder(
             controller: _indentPlusController,
             builder: (context, state, _) =>

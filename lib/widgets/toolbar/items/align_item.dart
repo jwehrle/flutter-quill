@@ -191,9 +191,9 @@ class AlignItem extends QuillItem {
 
   @override
   FloatingToolbarItem build() {
-    return FloatingToolbarItem.popup(
-      toolbarButton,
-      [
+    return FloatingToolbarItem.buttonWithPopups(
+      item: toolbarButton,
+      popups: [
         PopupItemBuilder(
           controller: _leftController,
           builder: (context, state, _) =>

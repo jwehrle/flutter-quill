@@ -187,9 +187,9 @@ class SizeItem extends QuillItem {
 
   @override
   FloatingToolbarItem build() {
-    return FloatingToolbarItem.popup(
-      toolbarButton,
-      [
+    return FloatingToolbarItem.buttonWithPopups(
+      item: toolbarButton,
+      popups: [
         PopupItemBuilder(
           controller: _sizePlusController,
           builder: (context, state, _) =>

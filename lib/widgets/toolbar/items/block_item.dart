@@ -112,9 +112,9 @@ class BlockItem extends QuillItem with ToggleMixin {
 
   @override
   FloatingToolbarItem build() {
-    return FloatingToolbarItem.popup(
-      toolbarButton,
-      [
+    return FloatingToolbarItem.buttonWithPopups(
+      item: toolbarButton,
+      popups: [
         PopupItemBuilder(
           controller: _quoteController,
           builder: (context, state, _) =>

@@ -163,9 +163,9 @@ class StyleItem extends QuillItem with ToggleMixin {
 
   @override
   FloatingToolbarItem build() {
-    return FloatingToolbarItem.popup(
-      toolbarButton,
-      [
+    return FloatingToolbarItem.buttonWithPopups(
+      item: toolbarButton,
+      popups: [
         PopupItemBuilder(
           controller: _boldController,
           builder: (context, state, _) =>
