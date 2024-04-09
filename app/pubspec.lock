@@ -205,8 +205,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: master
-      resolved-ref: "627a2bcde152df9a2b51086ed27f713c0ff37281"
+      ref: HEAD
+      resolved-ref: c517f08930a0b8b8d67b8c21bb205b2c3b084ab8
       url: "https://github.com/jwehrle/floating_toolbar.git"
     source: git
     version: "0.1.0"
