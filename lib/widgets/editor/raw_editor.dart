@@ -674,7 +674,7 @@ class RawEditorState extends EditorState
             }),
             child: Focus(
               focusNode: widget.focusNode,
-              onKey: _onKey,
+              onKeyEvent: _onKey,
               child: QuillKeyboardListener(
                 child: Container(
                   constraints: constraints,
@@ -688,13 +688,28 @@ class RawEditorState extends EditorState
     );
   }
 
-  KeyEventResult _onKey(node, RawKeyEvent event) {
+  KeyEventResult _onKey(node, KeyEvent event) {
     // Don't handle key if there is a meta key pressed.
-    if (event.isAltPressed || event.isControlPressed || event.isMetaPressed) {
+    if (event.physicalKey == PhysicalKeyboardKey.altLeft) {
       return KeyEventResult.ignored;
     }
-
-    if (event is! RawKeyDownEvent) {
+    if (event.physicalKey == PhysicalKeyboardKey.altRight) {
+      return KeyEventResult.ignored;
+    }
+    if (event.physicalKey == PhysicalKeyboardKey.controlLeft) {
+      return KeyEventResult.ignored;
+    }
+    if (event.physicalKey == PhysicalKeyboardKey.controlRight) {
+      return KeyEventResult.ignored;
+    }
+    if (event.physicalKey == PhysicalKeyboardKey.metaLeft) {
+      return KeyEventResult.ignored;
+    }
+    if (event.physicalKey == PhysicalKeyboardKey.metaRight) {
+      return KeyEventResult.ignored;
+    }
+    
+    if (event is! KeyDownEvent) {
       return KeyEventResult.ignored;
     }
     // Handle indenting blocks when pressing the tab key.
@@ -716,7 +731,7 @@ class RawEditorState extends EditorState
     return KeyEventResult.ignored;
   }
 
-  KeyEventResult _handleSpaceKey(RawKeyEvent event) {
+  KeyEventResult _handleSpaceKey(KeyEvent event) {
     final child =
         controller.document.queryChild(controller.selection.baseOffset);
     if (child.node == null) {
@@ -747,7 +762,7 @@ class RawEditorState extends EditorState
     return KeyEventResult.handled;
   }
 
-  KeyEventResult _handleTabKey(RawKeyEvent event) {
+  KeyEventResult _handleTabKey(KeyEvent event) {
     final child =
         controller.document.queryChild(controller.selection.baseOffset);
 
@@ -765,7 +780,8 @@ class RawEditorState extends EditorState
       if (parentBlock.style.containsKey(Attribute.ol.key) ||
           parentBlock.style.containsKey(Attribute.ul.key) ||
           parentBlock.style.containsKey(Attribute.checked.key)) {
-        controller.indentSelection(!event.isShiftPressed);
+            bool isShift = event == PhysicalKeyboardKey.shiftLeft || event == PhysicalKeyboardKey.shiftRight;
+        controller.indentSelection(!isShift);
       }
       return KeyEventResult.handled;
     }
@@ -794,7 +810,8 @@ class RawEditorState extends EditorState
           controller.selection.base.offset > node.documentOffset) {
         return insertTabCharacter();
       }
-      controller.indentSelection(!event.isShiftPressed);
+      bool isShift = event == PhysicalKeyboardKey.shiftLeft || event == PhysicalKeyboardKey.shiftRight;
+      controller.indentSelection(!isShift);
       return KeyEventResult.handled;
     }
 

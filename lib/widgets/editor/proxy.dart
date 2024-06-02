@@ -155,7 +155,7 @@ class RichTextProxy extends SingleChildRenderObjectWidget {
         textStyle,
         textAlign,
         textDirection,
-        textScaleFactor,
+        MediaQuery.textScalerOf(context),
         strutStyle,
         locale,
         textWidthBasis,
@@ -184,7 +184,7 @@ class RenderParagraphProxy extends RenderProxyBox
     TextStyle textStyle,
     TextAlign textAlign,
     TextDirection textDirection,
-    double textScaleFactor,
+    TextScaler textScaler,
     StrutStyle strutStyle,
     Locale locale,
     TextWidthBasis textWidthBasis,
@@ -193,7 +193,7 @@ class RenderParagraphProxy extends RenderProxyBox
             text: TextSpan(text: ' ', style: textStyle),
             textAlign: textAlign,
             textDirection: textDirection,
-            textScaleFactor: textScaleFactor,
+            textScaler: textScaler,
             strutStyle: strutStyle,
             locale: locale,
             textWidthBasis: textWidthBasis,
@@ -227,10 +227,7 @@ class RenderParagraphProxy extends RenderProxyBox
   }
 
   set textScaleFactor(double value) {
-    if (_prototypePainter.textScaleFactor == value) {
-      return;
-    }
-    _prototypePainter.textScaleFactor = value;
+    _prototypePainter.textScaler = TextScaler.linear(value);
     markNeedsLayout();
   }
 

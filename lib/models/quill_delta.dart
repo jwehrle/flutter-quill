@@ -66,7 +66,7 @@ class Operation {
 
   /// Rich-text attributes set by this operation, can be `null`.
   Map<String, dynamic>? get attributes =>
-      _attributes == null ? null : Map<String, dynamic>.from(_attributes!);
+      _attributes == null ? null : Map<String, dynamic>.from(_attributes);
   final Map<String, dynamic>? _attributes;
 
   /// Creates new [Operation] from JSON payload.
@@ -114,7 +114,7 @@ class Operation {
   bool get isRetain => key == Operation.retainKey;
 
   /// Returns `true` if this operation has no attributes, e.g. is plain text.
-  bool get isPlain => _attributes == null || _attributes!.isEmpty;
+  bool get isPlain => _attributes == null || _attributes.isEmpty;
 
   /// Returns `true` if this operation sets at least one attribute.
   bool get isNotPlain => !isPlain;
@@ -154,9 +154,9 @@ class Operation {
 
   @override
   int get hashCode {
-    if (_attributes != null && _attributes!.isNotEmpty) {
+    if (_attributes != null && _attributes.isNotEmpty) {
       final attrsHash =
-          hashObjects(_attributes!.entries.map((e) => hash2(e.key, e.value)));
+          hashObjects(_attributes.entries.map((e) => hash2(e.key, e.value)));
       return hash3(key, value, attrsHash);
     }
     return hash2(key, value);
@@ -313,7 +313,7 @@ class Delta {
   Operation get last => _operations.last;
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! Delta) return false;
     final typedOther = other;
