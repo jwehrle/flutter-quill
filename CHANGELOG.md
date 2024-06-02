@@ -1,3 +1,6 @@
+## [1.0.9]
+* Minor updates that do not change the API to track breaking changes in Flutter
+
 ## [1.0.8]
 * Support token attribute.
 

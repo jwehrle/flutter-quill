@@ -361,7 +361,7 @@ class RawEditorState extends EditorState
           pasteEnabled ? () => pasteText(SelectionChangedCause.toolbar) : null,
       onSelectAll: selectAllEnabled
           ? () => selectAll(SelectionChangedCause.toolbar)
-          : null,
+          : null, onLookUp: () {  }, onSearchWeb: () {  }, onShare: () {  }, onLiveTextInput: () {  },
     );
   }
 
@@ -1743,6 +1743,22 @@ class RawEditorState extends EditorState
       }
     }
   }
+  
+  @override
+  // TODO: implement liveTextInputEnabled
+  bool get liveTextInputEnabled => false;
+  
+  @override
+  // TODO: implement lookUpEnabled
+  bool get lookUpEnabled => false;
+  
+  @override
+  // TODO: implement searchWebEnabled
+  bool get searchWebEnabled => false;
+  
+  @override
+  // TODO: implement shareEnabled
+  bool get shareEnabled => false;
 }
 
 class _Editor extends MultiChildRenderObjectWidget {
